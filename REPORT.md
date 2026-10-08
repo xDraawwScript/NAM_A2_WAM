@@ -43,7 +43,14 @@ ouvrent des fenêtres de dialogue ; la fenêtre Presets comporte les onglets *Me
 
 ## 5. Architecture
 
-*À compléter (schéma hôte ↔ API ↔ MongoDB).*
+```
+Navigateur (hôte WAM, examples/wam)                Serveur (server/, Node + Express)        MongoDB
+  FxRack.getState()/setState()                        /api/auth/*   comptes (JWT, bcrypt)     users
+  presets/ : format, assets par hash,  ── HTTP+JWT ──► /api/presets  presets privés/publics ─► presets
+            IndexedDB (mode invité)                   /api/assets   modèles/IR par SHA-256    assets
+```
+Détail des routes : [`server/API_CONTRACT.md`](server/API_CONTRACT.md). Le format d'un preset est défini
+une seule fois (`examples/wam/presets/PresetFormat.js`) et utilisé par le navigateur et le serveur.
 
 ## 6. Découpage du travail
 
@@ -64,7 +71,7 @@ ouvrent des fenêtres de dialogue ; la fenêtre Presets comporte les onglets *Me
 |---|---|---|
 | Hôte (existants, projet d'origine) | `npm test` | 146 / 146 ✅ (avant modifications) |
 | Hôte (nouveaux, `tests/phase5/`) | `npm test` | 30 / 30 ✅ (mission 1) — total 176 / 176 |
-| Backend (`server/test/`) | `cd server && npm test` | *à venir* |
+| Backend (`server/test/`) | `cd server && npm test` | 24 / 24 ✅ (mission 2, MongoDB en mémoire) |
 
 ## 8. Utilisation de l'assistant IA
 
