@@ -1,0 +1,27 @@
+import mongoose from "mongoose";
+
+/*
+ * Asset = un modèle d'ampli (.nam, texte JSON) ou une IR de cabinet (échantillons Float32),
+ * identifié par son empreinte SHA-256 (`hash`). Deux presets qui utilisent le même modèle
+ * pointent vers le même document : il n'est stocké qu'une fois (déduplication).
+ *
+ * Les assets d'usine (livrés avec l'appli) ne sont JAMAIS envoyés ici : un preset les référence
+ * directement par leur identifiant d'usine. Seuls les modèles/IR externes (fichiers importés,
+ * TONE3000…) sont stockés.
+ *
+ * `bytes` contient les octets bruts : le texte UTF-8 du modèle, ou les Float32 de l'IR.
+ * MongoDB limite un document à 16 Mo ; on limite un asset à 8 Mo (voir routes/assets.js).
+ */
+const schema = new mongoose.Schema(
+  {
+    hash: { type: String, required: true, unique: true, match: /^[a-f0-9]{64}$/ },
+    kind: { type: String, required: true, enum: ["nam", "ir"] },
+    name: { type: String, required: true, trim: true, maxlength: 200 },
+    size: { type: Number, required: true, min: 1 },
+    bytes: { type: Buffer, required: true, select: false },
+    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  },
+  { timestamps: true },
+);
+
+export const Asset = mongoose.model("Asset", schema);
