@@ -11,6 +11,10 @@ import {FxRack} from './FxRack.js';
 import {FxRackView} from './FxRackView.js';
 import {TunerView} from './TunerView.js';
 import {WamPluginRegistry} from './WamPluginRegistry.js';
+import {PresetManager} from './presets/PresetManager.js';
+import {PresetView} from './presets/PresetView.js';
+import {IndexedDbPresetStorage} from './presets/PresetStorage.js';
+import {FactoryAssets} from './presets/PresetAssets.js';
 const TONE3000_CALLBACK_CHANNEL = 'nam-a2-wam.tone3000.callback';
 const TONE3000_CALLBACK_STORAGE_KEY = 'nam-a2-wam.tone3000.callback';
 
@@ -219,6 +223,13 @@ async function initialize() {
   Object.assign(window.phase3Debug,{backingPlayer,backingMix});
   chainView=new FxRackView(rack,message);
   window.phase3Debug.tuner=new TunerView({context,registry,groupId,input:chain.input,button:$('#tunerButton')});
+  // Presets (projet étudiant) : tout le rack A+B, modèles/IR par référence, stockage IndexedDB.
+  const presetManager=new PresetManager({rack,storage:new IndexedDbPresetStorage(),
+    factory:FactoryAssets.fromPlugins({namPlugin:plugin,cabinetPlugin,context}),
+    nameForUri:uri=>registry.records.find(record=>record.catalogue?.uri===uri||record.entryUrl===uri)?.name,
+    beforeLoad:()=>chainView.close(),interactionTarget:document});
+  window.phase3Debug.presets=presetManager;
+  new PresetView({manager:presetManager,button:$('#presetsButton'),label:$('#presetCurrent'),message});
   const modeButton=$('#uiMode');modeButton.disabled=false;
   modeButton.onclick=async()=>{
     modeButton.disabled=true;chainView.close();
