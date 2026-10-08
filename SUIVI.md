@@ -51,6 +51,7 @@ aligne (voir mission 0).
 | Git | Une branche `feature/...` par mission (depuis `develop`), commit + push auto, puis **merge auto dans `develop`** ; `main` seulement sur accord | Historique lisible sur GitHub ; `develop` = version intégrée en cours. |
 | Langue de l'interface | Anglais | Cohérent avec l'hôte existant (*Amplifier rack*, *Tuner*…). |
 | Contenu d'un preset | Tout le rack : chaînes A **et** B, pan, mute, routage A→B. **Sans** backing track ni gain d'entrée (trim) | Le trim dépend de la guitare / carte son, pas du son ; la backing track est un choix de séance. |
+| Identité publique | Inscription avec un **pseudo unique** (affiché comme auteur des presets publics), un **email privé** (sert à se connecter, jamais renvoyé par les routes publiques) et un mot de passe | Protéger l'email des utilisateurs tout en signant les presets publics. |
 | MCP | Aucun serveur MCP supplémentaire | Pas nécessaire ; on vérifie via les tests, l'API et le navigateur intégré. |
 | Skills | Navigateur intégré (vérifs visuelles), `/code-review`, `/security-review`, `/simplify` | Vérifier l'UI réelle et relire le code sécurité (JWT, droits). |
 
@@ -65,7 +66,7 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 | — | Installation, build, fork (avant le plan) | ✅ | 2026-10-08 | — |
 | 0 | Organisation (`feature/organisation`) | ✅ | 2026-10-08 | voir `git log feature/organisation` |
 | 1 | Format + presets locaux IndexedDB + assets par hash (`feature/presets-locaux`) | ✅ | 2026-10-08 | voir `git log feature/presets-locaux` |
-| 2 | Backend presets + assets (`feature/backend-presets`) | ⏳ | | |
+| 2 | Backend presets + assets (`feature/backend-presets`) | ✅ | 2026-10-09 | voir `git log feature/backend-presets` |
 | 3 | Comptes dans l'hôte (`feature/comptes`) | ⏳ | | |
 | 4 | Presets en ligne (`feature/presets-en-ligne`) | ⏳ | | |
 | 5 | Explorer les presets publics (`feature/explorer-public`) | ⏳ | | |
@@ -96,6 +97,18 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 - ✅ `tools/build-static-dist.mjs` (copie + vérification des fichiers) + test d'intégration
 - ✅ Correctif « modifié » : empreinte du son au lieu des seuls événements (voir journal)
 - ✅ Vérification dans le vrai navigateur (plugins réels) — tests : **176/176**
+- ✅ Commit, push, merge dans `develop`
+
+### Détail mission 2
+
+- ✅ Décision : pseudo unique public + email privé
+- ✅ `server/` : `package.json`, modèles `User` / `Preset` / `Asset`, `auth.js` (JWT), `validation.js`
+  (réutilise `PresetFormat.js`), routes `auth` / `presets` / `assets`, `app.js`, `server.js`
+- ✅ Tests `server/test/` avec MongoDB en mémoire : 24/24
+- ✅ `server/API_CONTRACT.md`, `server/.env.example`, `server/.env` (non versionné)
+- ✅ Test manuel du vrai serveur (MongoDB locale, base temporaire supprimée ensuite)
+- ✅ Relecture `/code-review` : 10 points relevés, tous corrigés et testés
+- ⚠️ Connexion Atlas refusée (IP non autorisée) : action de l'étudiant requise (voir journal)
 - ✅ Commit, push, merge dans `develop`
 
 ---
@@ -323,6 +336,93 @@ assets orphelins (principe du « ramasse-miettes »).
 5. *Export* → un fichier `.nam-preset.json` est téléchargé ; *Import file…* le réimporte.
 6. DevTools → Application → IndexedDB → `nam-a2-wam-presets` pour voir les données.
 
+### Mission 2 — Backend des comptes et presets (`feature/backend-presets`, 2026-10-09)
+
+**Fait** : une API REST dans `server/` (Express 5 + Mongoose + MongoDB), reprise du backend du TP1-3
+et adaptée : comptes avec **pseudo public + email privé**, presets en ligne privés ou publics,
+recherche, copie, et stockage des modèles/IR externes **par hash**. L'hôte ne l'utilise pas encore
+(missions 3 et 4) : cette mission livre et teste le serveur seul.
+
+**Organisation du code** (même découpage que le TP, en plus fin)
+
+| Fichier | Rôle |
+|---|---|
+| `src/app.js` | `createApp()` : log, CORS, lecteurs JSON, routes, gestionnaire d'erreurs central |
+| `src/server.js` | Connexion MongoDB (base `nam-presets`), compte démo, ménage des assets, écoute du port |
+| `src/auth.js` | Création/vérification des JWT, middlewares `requireAuth` / `optionalAuth`, `HttpError` |
+| `src/validation.js` | Validation des presets **en réutilisant `examples/wam/presets/PresetFormat.js`**, pagination, échappement des recherches |
+| `src/models/User.js` | `username` (unique, insensible à la casse), `email` (privé), `passwordHash` (bcrypt) |
+| `src/models/Preset.js` | Preset : métadonnées + `rack` déshydraté + `assetHashes` (assets utilisés) |
+| `src/models/Asset.js` | Modèle `.nam` ou IR, identifié par son SHA-256, octets bruts |
+| `src/routes/*.js` | Les routes (voir [`server/API_CONTRACT.md`](server/API_CONTRACT.md)) |
+| `test/*.test.js` | 24 tests avec une vraie MongoDB lancée en mémoire |
+
+**Explication — le chemin d'une requête** (ex. « créer un preset »)
+```
+POST /api/presets  (Authorization: Bearer <JWT>, corps JSON)
+  → log → CORS (origine Live Server autorisée ?) → express.json (≤ 1 Mo)
+  → requireAuth : vérifie la signature et l'expiration du JWT → req.userId
+  → presetInput() : mêmes règles que le navigateur (PresetFormat.validatePreset)
+                    + refuse un rack qui contient encore le modèle ou l'IR (doit être « déshydraté »)
+  → assertAssetsUsable() : les assets référencés existent et appartiennent à l'utilisateur
+                           (ou sont déjà publics)
+  → Preset.create() → MongoDB → 201 + preset complet (avec le pseudo de l'auteur)
+  (toute erreur → gestionnaire central → statut 400/401/404/409/413 + {message})
+```
+
+**Explication — pourquoi le serveur réutilise le code de l'hôte** : le format d'un preset (nom,
+tags, structure du rack…) est défini une seule fois dans `PresetFormat.js`. Le navigateur et le
+serveur appliquent donc exactement les mêmes règles ; si le format évolue, un seul fichier change.
+
+**Explication — les assets côté serveur** : avant d'enregistrer un preset qui utilise un modèle
+externe, l'hôte enverra ce modèle sur `PUT /api/assets/<hash>`. Le serveur **recalcule** le SHA-256
+et refuse si ça ne correspond pas (on ne fait jamais confiance au client). Si le hash existe déjà,
+rien n'est renvoyé ni stocké en double. Un asset n'est lisible que s'il sert à un preset public ou à
+un preset de l'utilisateur, et il est supprimé quand plus aucun preset ne l'utilise.
+
+**Explication — sécurité**
+- Mots de passe hachés avec **bcrypt** ; jamais renvoyés (`select: false`).
+- **JWT** signé avec `JWT_SECRET` (dans `server/.env`, jamais commité) ; le serveur refuse de démarrer
+  sans secret. Le jeton ne contient que l'id de l'utilisateur.
+- Un preset privé d'un autre répond **404** (pas 403) : on ne révèle même pas qu'il existe.
+- L'**email n'est jamais exposé** aux autres (seulement le pseudo).
+- Connexion : même message **et même durée** que l'email existe ou non (anti-énumération).
+- Recherche : la saisie est **échappée** avant d'être utilisée dans une expression régulière MongoDB.
+- **CORS** limité aux origines de Live Server ; corps JSON limités (1 Mo, 12 Mo pour les assets,
+  lus seulement après vérification du jeton) ; quota de 200 Mo d'assets par utilisateur.
+
+**Relecture de code (`/code-review`)** : 10 points relevés, tous corrigés et couverts par des tests :
+1. un jeton expiré bloquait la lecture des presets publics → il est maintenant ignoré sur les routes publiques ;
+2. le corps de 12 Mo des assets était lu avant de vérifier le jeton → lu après ;
+3. les assets envoyés mais jamais utilisés restaient pour toujours → ménage après 24 h + quota ;
+4. un secret JWT de développement était utilisé si `JWT_SECRET` manquait → démarrage refusé ;
+5. connaître le hash du modèle privé d'un autre permettait de se l'approprier → vérification de l'appartenance ;
+6. la durée de la connexion révélait quels emails existent → calcul bcrypt factice ;
+7. la liste « mes presets » n'avait pas d'auteur (contraire au contrat) → corrigé ;
+8–9. requêtes MongoDB en trop (une par asset, une par écriture) → regroupées ;
+10. `SUIVI.md` pas tenu à jour pendant la mission → ce journal.
+
+**Problème rencontré — Atlas refuse la connexion** : erreur TLS « alert internal error » au
+démarrage. C'est ce qu'Atlas renvoie quand **l'adresse IP du PC n'est pas autorisée** (*Network
+Access*) — l'IP a sans doute changé depuis le TP. Solution (à faire par l'étudiant, c'est un réglage
+de son compte) : Atlas → *Security* → *Network Access* → *Add IP Address* → *Add Current IP
+Address*. En attendant, le serveur a été vérifié sur la MongoDB **locale** déjà installée sur le PC
+(service Windows « MongoDB »), qu'on peut aussi utiliser pour développer (voir mémo).
+
+**Résultats**
+- Tests du backend : **24/24** (`cd server && npm test`) — comptes, droits, validation, recherche,
+  pagination, copie, assets (hash vérifié, partage, ménage, quota, accès), CORS.
+- Tests de l'hôte : toujours **176/176**.
+- Test manuel du vrai `server.js` : health + CORS, compte démo, création d'un preset public,
+  recherche, suppression → OK.
+
+**Comment tester soi-même**
+1. `cd server`, `npm install` (une fois), puis `npm test`.
+2. Autoriser son IP dans Atlas (ou passer `MONGODB_URI` sur la base locale), puis `npm start`.
+3. Ouvrir http://localhost:3000/api/health → `{"status":"ok"}`.
+4. Avec un client HTTP (extension REST Client / Thunder Client / Postman) : `POST /api/auth/login`
+   avec `demo@example.com` / `Demo1234!`, puis `GET /api/presets/public`.
+
 ---
 
 ## 5. Mémo pratique
@@ -335,8 +435,12 @@ assets orphelins (principe du « ramasse-miettes »).
 | Récupérer les mises à jour du prof | `git pull upstream main` |
 | Lancer uniquement les tests des presets | `wsl bash -lc "cd /mnt/c/Users/NITRO/Projects/NAM_A2_WAM && node --test tests/phase5/*.test.mjs"` |
 | Voir les presets stockés | DevTools (F12) → Application → IndexedDB → `nam-a2-wam-presets` |
-| Lancer le backend | *(mission 2)* |
-| Comptes de test | *(mission 2)* |
+| Installer le backend (une fois) | `cd server` puis `npm install` |
+| Lancer le backend | `cd server` puis `npm start` (lit `server/.env`) → http://localhost:3000/api/health |
+| Lancer les tests du backend | `cd server` puis `npm test` (MongoDB en mémoire, n'écrit jamais dans Atlas) |
+| Backend sur la MongoDB locale au lieu d'Atlas | dans `server/.env` : `MONGODB_URI=mongodb://127.0.0.1:27017/` (service Windows « MongoDB » déjà installé) |
+| Comptes de test | `demo@example.com` / `Demo1234!` (créé au démarrage du backend, pseudo `demo`) |
+| Documentation de l'API | [`server/API_CONTRACT.md`](server/API_CONTRACT.md) |
 
 ---
 

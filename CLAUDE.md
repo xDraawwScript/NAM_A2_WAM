@@ -43,6 +43,9 @@ Web, M1 MIAGE) : améliorer **l'hôte** WAM pour gérer **utilisateurs, connexio
   - `build.bat` (non versionné) ou `wsl bash -lc "cd /mnt/c/Users/NITRO/Projects/NAM_A2_WAM && npm run dist"`
   - `build.bat test` ou `wsl bash -lc "cd /mnt/c/Users/NITRO/Projects/NAM_A2_WAM && npm test"`
 - Résultat : `dist/NAM_A2_WAM/index.html`, ouvert avec Live Server (VS Code).
+- Backend `server/` (Node Windows) : `cd server && npm install`, `npm test` (MongoDB en mémoire),
+  `npm start` (lit `server/.env`, port 3000). Contrat HTTP : `server/API_CONTRACT.md` — à mettre à
+  jour à chaque route ajoutée ou modifiée.
 
 ## Architecture de l'hôte (`examples/wam/`)
 
