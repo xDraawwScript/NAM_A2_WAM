@@ -48,7 +48,9 @@ aligne (voir mission 0).
 | Backend | Celui du TP1-3 (Express 5, Mongoose, bcrypt, JWT) dans `server/` | Déjà maîtrisé et testé. |
 | Base | Cluster Atlas du TP, base séparée `nam-presets` | Pas d'installation ; pas de mélange avec le TP. |
 | Tests | `node --test` (hôte : `tests/phase5/`, backend : `server/test/` + mongodb-memory-server) | Même outil que le projet du prof et le TP. |
-| Git | Une branche `feature/...` par mission, commit + push auto, merge dans `main` sur accord | Historique lisible sur GitHub. |
+| Git | Une branche `feature/...` par mission (depuis `develop`), commit + push auto, puis **merge auto dans `develop`** ; `main` seulement sur accord | Historique lisible sur GitHub ; `develop` = version intégrée en cours. |
+| Langue de l'interface | Anglais | Cohérent avec l'hôte existant (*Amplifier rack*, *Tuner*…). |
+| Contenu d'un preset | Tout le rack : chaînes A **et** B, pan, mute, routage A→B. **Sans** backing track ni gain d'entrée (trim) | Le trim dépend de la guitare / carte son, pas du son ; la backing track est un choix de séance. |
 | MCP | Aucun serveur MCP supplémentaire | Pas nécessaire ; on vérifie via les tests, l'API et le navigateur intégré. |
 | Skills | Navigateur intégré (vérifs visuelles), `/code-review`, `/security-review`, `/simplify` | Vérifier l'UI réelle et relire le code sécurité (JWT, droits). |
 
@@ -211,8 +213,20 @@ preset, le preset garde seulement `{ ref: "<hash>" }` :
 Résultat : presets légers, pas de doublons, et on peut savoir si un asset est encore utilisé avant
 de le supprimer.
 
+**Explication — le workflow Git choisi**
+```
+main      ●───────────────────────────────────────────────●  (version rendue, sur accord)
+           \                                             /
+develop     ●────────●─────────────●─────────────●───────●   (intégration : merge auto de chaque mission)
+             \      /  \          /  \          /
+feature/…     ●──●─●    ●──●──●──●    ●──●──●──●            (une branche par mission, pushée)
+```
+Chaque mission vit sur sa branche `feature/...` (pushée sur GitHub), puis est fusionnée dans
+`develop` avec `git merge --no-ff` (le *no fast-forward* garde un commit de fusion : on voit sur
+GitHub où chaque mission commence et finit).
+
 **Comment vérifier** : `git status` propre après commit ; `CLAUDE.md` et `SUIVI.md` lisibles sur
-GitHub dans la branche `feature/organisation`.
+GitHub dans les branches `feature/organisation` et `develop`.
 
 ---
 

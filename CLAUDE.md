@@ -28,10 +28,11 @@ Web, M1 MIAGE) : améliorer **l'hôte** WAM pour gérer **utilisateurs, connexio
 
 ## Git
 
-- Une branche `feature/<sujet>` par mission, jamais de travail direct sur `main`.
+- Une branche `feature/<sujet>` par mission (créée depuis `develop`), jamais de travail direct sur `main` ni `develop`.
 - En fin de mission (tests verts) : commit + `git push -u origin feature/<sujet>`.
 - Messages de commit détaillés et compréhensibles : *quoi*, *pourquoi*, *comment tester*.
-- Ne pas pousser sur `main` ni fusionner sans accord explicite de l'étudiant.
+- Branche d'intégration `develop` : chaque `feature/...` terminée y est **fusionnée sans demander** (`git merge --no-ff`), puis `develop` est pushée. Les nouvelles features partent de `develop`.
+- Ne jamais pousser sur `main` sans accord explicite de l'étudiant.
 - Repo configuré en fins de ligne LF (`core.autocrlf=input`) : les scripts `.sh` sont exécutés
   dans WSL et cassent en CRLF.
 
