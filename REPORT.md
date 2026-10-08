@@ -17,9 +17,9 @@ capturés et restaurés uniquement par les méthodes WAM `getState()` / `setStat
 
 | Fonctionnalité | État |
 |---|---|
-| Presets locaux (navigateur, IndexedDB) : enregistrer, charger, renommer, supprimer | ⏳ |
-| Import / export d'un preset en fichier `.json` | ⏳ |
-| Modèles et IR partagés entre presets (adressés par hash) | ⏳ |
+| Presets locaux (navigateur, IndexedDB) : enregistrer, charger, renommer, mettre à jour, supprimer, indicateur « modifié » | ✅ |
+| Import / export d'un preset en fichier `.json` | ✅ |
+| Modèles et IR partagés entre presets (adressés par hash) | ✅ |
 | Comptes : inscription, connexion, déconnexion, profil (JWT) | ⏳ |
 | Presets en ligne, privés ou publics | ⏳ |
 | Explorer les presets publics : récents, recherche, copie | ⏳ |
@@ -63,7 +63,7 @@ ouvrent des fenêtres de dialogue ; la fenêtre Presets comporte les onglets *Me
 | Suite | Commande | Résultat |
 |---|---|---|
 | Hôte (existants, projet d'origine) | `npm test` | 146 / 146 ✅ (avant modifications) |
-| Hôte (nouveaux, `tests/phase5/`) | `npm test` | *à venir* |
+| Hôte (nouveaux, `tests/phase5/`) | `npm test` | 30 / 30 ✅ (mission 1) — total 176 / 176 |
 | Backend (`server/test/`) | `cd server && npm test` | *à venir* |
 
 ## 8. Utilisation de l'assistant IA

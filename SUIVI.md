@@ -64,7 +64,7 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 |---|---|---|---|---|
 | — | Installation, build, fork (avant le plan) | ✅ | 2026-10-08 | — |
 | 0 | Organisation (`feature/organisation`) | ✅ | 2026-10-08 | voir `git log feature/organisation` |
-| 1 | Format + presets locaux IndexedDB + assets par hash (`feature/presets-locaux`) | ⏳ | | |
+| 1 | Format + presets locaux IndexedDB + assets par hash (`feature/presets-locaux`) | ✅ | 2026-10-08 | voir `git log feature/presets-locaux` |
 | 2 | Backend presets + assets (`feature/backend-presets`) | ⏳ | | |
 | 3 | Comptes dans l'hôte (`feature/comptes`) | ⏳ | | |
 | 4 | Presets en ligne (`feature/presets-en-ligne`) | ⏳ | | |
@@ -81,6 +81,22 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 - ✅ `SUIVI.md` (ce fichier)
 - ✅ Squelette `REPORT.md`
 - ✅ Commit + push (tests : 146/146)
+
+### Détail mission 1
+
+- ✅ Étude : comment NAM et Cabinet chargent leurs modèles et IR d'usine (`src/shared/defaultAssets.js`),
+  ce que contient leur state, contraintes des tests existants
+- ✅ `examples/wam/presets/PresetFormat.js` — format, validation, migration, résumé
+- ✅ `examples/wam/presets/PresetAssets.js` — modèles/IR ↔ références par hash
+- ✅ `examples/wam/presets/PresetStorage.js` — IndexedDB (presets + assets partagés)
+- ✅ `examples/wam/presets/PresetFile.js` — export/import `.json` vérifié
+- ✅ `examples/wam/presets/PresetManager.js` — enregistrer / charger / « modifié »
+- ✅ Tests `tests/phase5/` (avec `fake-indexeddb`)
+- ✅ `PresetView.js` (dialog) + bouton dans `index.html` + câblage `main.js` + `presets.css`
+- ✅ `tools/build-static-dist.mjs` (copie + vérification des fichiers) + test d'intégration
+- ✅ Correctif « modifié » : empreinte du son au lieu des seuls événements (voir journal)
+- ✅ Vérification dans le vrai navigateur (plugins réels) — tests : **176/176**
+- ✅ Commit, push, merge dans `develop`
 
 ---
 
@@ -228,6 +244,85 @@ GitHub où chaque mission commence et finit).
 **Comment vérifier** : `git status` propre après commit ; `CLAUDE.md` et `SUIVI.md` lisibles sur
 GitHub dans les branches `feature/organisation` et `develop`.
 
+### Mission 1 — Presets locaux (`feature/presets-locaux`, 2026-10-08)
+
+**Fait** : un bouton **Presets** dans le header ouvre une fenêtre où l'on peut enregistrer le son
+actuel sous un nom (+ tags), le recharger, le renommer, le mettre à jour, le supprimer, l'exporter
+en fichier `.json` et importer un fichier. Les presets sont stockés **dans le navigateur**
+(IndexedDB) : c'est le « mode invité », avant l'arrivée des comptes (missions 2 à 4).
+
+**Fichiers créés** (tous dans `examples/wam/presets/`, aucun fichier de plugin touché)
+
+| Fichier | Rôle | Pourquoi séparé |
+|---|---|---|
+| `PresetFormat.js` | Format `{format:'nam-a2-preset', version:1, id, name, tags, summary, rack}`, validation, migration, résumé, empreinte | Fonctions pures → testables sans navigateur |
+| `PresetAssets.js` | Remplace modèles/IR par des références (et l'inverse) ; lit les manifestes d'usine | Cœur de la « déduplication » par hash |
+| `PresetStorage.js` | Adaptateur IndexedDB : `list/get/save/update/rename/delete/putAsset/getAsset` | Le backend aura la même interface (mission 4) |
+| `PresetFile.js` | Export/import `.json` autonome, vérification des hash | Sauvegarde / partage hors navigateur |
+| `PresetManager.js` | Orchestration (capturer, enregistrer, charger, « modifié ») | Relie rack + stockage + assets |
+| `PresetView.js` + `presets.css` | La fenêtre (en anglais, comme l'hôte) | Interface séparée de la logique |
+
+**Fichiers modifiés** : `index.html` (bouton + CSS), `main.js` (création du manager et de la vue,
+~8 lignes), `tools/build-static-dist.mjs` (copie du dossier `presets/` + vérification),
+`package.json` (tests `phase5` + `fake-indexeddb` en dépendance de dev).
+
+**Explication — ce qui se passe quand on clique sur « Save as new preset »**
+```
+PresetView.saveAs()
+  └─ PresetManager.saveAs({name, tags})
+       ├─ rack.getState()                         → état complet (~850 Ko : modèle .nam + IR)
+       ├─ dehydrateRack(state)                    → modèle/IR remplacés par des références
+       │     · modèle d'usine ? son contentHash est dans models-manifest.json → {source:'factory', id}
+       │     · sinon → storage.putAsset({hash, data}) une seule fois → {source:'store', hash}
+       ├─ createPreset({rack, name, tags})        → valide, retire le gain d'entrée, calcule le résumé
+       ├─ storage.save(preset)                    → IndexedDB, store « presets » (~14 Ko)
+       └─ setCurrent(preset)                      → mémorise l'empreinte du son (indicateur « modifié »)
+```
+**… et sur « Load »** : `storage.get(id)` → `hydrateRack` (va chercher le modèle d'usine dans la
+dist, ou l'asset dans IndexedDB) → `chainView.close()` → `rack.setState(rack)` (qui appelle
+`setState()` de chaque plugin, et recrée les pédales manquantes depuis le catalogue).
+
+**Explication — IndexedDB** : base de données du navigateur (clé → objet), asynchrone, qui stocke
+des objets JavaScript (y compris des `Float32Array`). Notre base `nam-a2-wam-presets` a deux
+« object stores » : `presets` (clé `id`) et `assets` (clé `hash`). Visible dans les DevTools →
+Application → IndexedDB. Elle est propre à l'origine (`http://127.0.0.1:5500` ≠ mainline) : c'est
+pour ça que la fenêtre propose l'export.
+
+**Explication — supprimer sans casser les autres presets** : quand on supprime un preset,
+`collectGarbage()` liste les hash encore utilisés par les presets restants et ne supprime que les
+assets orphelins (principe du « ramasse-miettes »).
+
+**Problèmes rencontrés et solutions**
+1. *Un test du prof interdit à `main.js` de mentionner `models-manifest`* (l'hôte ne doit pas faire
+   de « découverte » d'assets). → La lecture des manifestes est dans `PresetAssets.js`, et l'URL est
+   déduite de `plugin._descriptorUrl` (les manifestes sont à côté du `descriptor.json` de chaque
+   plugin, en source comme dans la dist).
+2. *L'indicateur « modifié » ne réagissait pas quand on tournait un bouton* : l'éditeur NAM appelle
+   `setParameterValues()`, qui n'émet aucun événement vers le rack. → On compare une **empreinte**
+   du son (`rackFingerprint` : le state JSON sans les gros contenus) à celle mémorisée au dernier
+   enregistrement/chargement, après chaque interaction (clic relâché, touche, molette) ou
+   changement du rack. Avantage : revenir à la valeur d'origine enlève l'indicateur.
+3. *Valeurs Float32* : `0.1` n'existe pas exactement en Float32 ; les tests utilisent donc des IR déjà
+   arrondies en Float32, comme celles que renvoie le vrai plugin Cabinet.
+
+**Résultats**
+- Tests : **176/176** (146 d'origine + 30 nouveaux dans `tests/phase5/`).
+- Navigateur, plugins réels (dist servie en local) :
+  - enregistrer → ajouter une pédale + changer un bouton → recharger : état **strictement
+    identique** ; preset de **14 Ko** au lieu de 852 Ko ;
+  - modèle et IR externes : stockés **une fois** pour deux presets, conservés après suppression du
+    premier, supprimés avec le second ;
+  - export → suppression → import → chargement : identique (fichier de 517 Ko, assets inclus) ;
+  - presets toujours là après rechargement de la page ; affichage correct en largeur mobile.
+
+**Comment tester soi-même**
+1. `build.bat`, puis Live Server sur `dist/NAM_A2_WAM/index.html`.
+2. Bouton **Presets** → nom + tags → *Save as new preset*.
+3. Ajouter une pédale avec `+`, tourner un bouton du NAM → le header affiche `Nom •`.
+4. *Load* sur le preset → la chaîne revient comme avant, le `•` disparaît.
+5. *Export* → un fichier `.nam-preset.json` est téléchargé ; *Import file…* le réimporte.
+6. DevTools → Application → IndexedDB → `nam-a2-wam-presets` pour voir les données.
+
 ---
 
 ## 5. Mémo pratique
@@ -238,6 +333,8 @@ GitHub dans les branches `feature/organisation` et `develop`.
 | Lancer les tests de l'hôte | `.\build.bat test` |
 | Voir l'appli | VS Code → clic droit `dist/NAM_A2_WAM/index.html` → *Open with Live Server* |
 | Récupérer les mises à jour du prof | `git pull upstream main` |
+| Lancer uniquement les tests des presets | `wsl bash -lc "cd /mnt/c/Users/NITRO/Projects/NAM_A2_WAM && node --test tests/phase5/*.test.mjs"` |
+| Voir les presets stockés | DevTools (F12) → Application → IndexedDB → `nam-a2-wam-presets` |
 | Lancer le backend | *(mission 2)* |
 | Comptes de test | *(mission 2)* |
 
