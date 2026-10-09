@@ -21,7 +21,7 @@ capturés et restaurés uniquement par les méthodes WAM `getState()` / `setStat
 | Import / export d'un preset en fichier `.json` | ✅ |
 | Modèles et IR partagés entre presets (adressés par hash) | ✅ |
 | Comptes : inscription, connexion, déconnexion, profil (JWT) | ✅ |
-| Presets en ligne, privés ou publics | ⏳ |
+| Presets en ligne, privés ou publics ; copie des presets du navigateur vers le compte | ✅ |
 | Explorer les presets publics : récents, recherche, copie | ⏳ |
 | Presets d'usine (lecture seule) | ⏳ |
 
@@ -70,8 +70,8 @@ une seule fois (`examples/wam/presets/PresetFormat.js`) et utilisé par le navig
 | Suite | Commande | Résultat |
 |---|---|---|
 | Hôte (existants, projet d'origine) | `npm test` | 146 / 146 ✅ (avant modifications) |
-| Hôte (nouveaux, `tests/phase5/`) | `npm test` | 44 / 44 ✅ (missions 1 et 3) — total 190 / 190 |
-| Backend (`server/test/`) | `cd server && npm test` | 24 / 24 ✅ (mission 2, MongoDB en mémoire) |
+| Hôte (nouveaux, `tests/phase5/`) | `npm test` | 59 / 59 ✅ (missions 1, 3 et 4) — total 205 / 205 |
+| Backend (`server/test/`) | `cd server && npm test` | 30 / 30 ✅ (MongoDB en mémoire, dont 5 tests de bout en bout navigateur ↔ serveur) |
 
 ## 8. Utilisation de l'assistant IA
 

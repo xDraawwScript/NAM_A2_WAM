@@ -2,6 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { User, USERNAME_PATTERN } from "../models/User.js";
 import { signToken, requireAuth, HttpError } from "../auth.js";
+import { PASSWORD_MIN, PASSWORD_MAX } from "../../../examples/wam/account/accountRules.js";
 
 /*
  * Comptes : inscription, connexion, profil.
@@ -13,7 +14,6 @@ import { signToken, requireAuth, HttpError } from "../auth.js";
  */
 export const authRouter = Router();
 
-import { PASSWORD_MIN, PASSWORD_MAX } from "../../../examples/wam/account/accountRules.js";
 // Hash factice : si l'email n'existe pas, on fait quand même un calcul bcrypt pour que le temps
 // de réponse ne révèle pas quels emails ont un compte.
 const DUMMY_HASH = bcrypt.hashSync("not-a-real-password", 10);

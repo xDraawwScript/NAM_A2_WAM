@@ -3,14 +3,17 @@ import assert from 'node:assert/strict';
 import {readFile, stat} from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../../${path}`, import.meta.url), 'utf8');
-const PRESET_FILES = ['PresetFormat.js', 'PresetAssets.js', 'PresetStorage.js', 'PresetFile.js', 'PresetManager.js', 'PresetView.js', 'presets.css'];
+const PRESET_FILES = ['PresetFormat.js', 'PresetAssets.js', 'PresetStorage.js', 'RemotePresetStorage.js', 'PresetFile.js', 'PresetManager.js', 'PresetView.js', 'presets.css'];
 
 test('host exposes a Presets button and wires the preset manager', async () => {
   const [html, main] = await Promise.all([read('examples/wam/index.html'), read('examples/wam/main.js')]);
   assert.match(html, /id="presetsButton"[^>]*aria-haspopup="dialog"[^>]*disabled/u);
   assert.match(html, /href="\.\/presets\/presets\.css"/u);
   assert.match(main, /from '\.\/presets\/PresetManager\.js'/u);
-  assert.match(main, /new PresetManager\(\{rack,storage:new IndexedDbPresetStorage\(\)/u);
+  assert.match(main, /const browserPresets=new IndexedDbPresetStorage\(\);\s*const presetManager=new PresetManager\(\{rack,storage:browserPresets/u);
+  // Mission 4 : le stockage « My account » n'est branché que pendant une session.
+  assert.match(main, /new RemotePresetStorage\(\{api,cache:browserPresets\}\)/u);
+  assert.match(main, /accountPresets\.clear\(\);presetManager\.setAccountStorage\(signedIn\?accountPresets:null\)/u);
   assert.match(main, /beforeLoad:\(\)=>chainView\.close\(\)/u);
   // Le contrat du prof : l'hôte ne lit pas lui-même les manifestes d'usine (tests/phase4a2).
   assert.doesNotMatch(main, /models-manifest|irs-manifest/u);

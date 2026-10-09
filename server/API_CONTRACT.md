@@ -120,7 +120,9 @@ Les assets d'usine (livrés avec l'appli) ne passent **jamais** par l'API.
 - modèle : `{ "kind": "nam", "name": "capture.nam", "data": "<texte du .nam>" }` — hash du texte UTF-8 ;
 - IR : `{ "kind": "ir", "name": "cab.wav", "samples": "<base64 des Float32 little-endian>" }` — hash des octets.
 
-Le serveur **recalcule** le hash et refuse un contenu qui ne correspond pas. Contenu ≤ 8 Mo ;
+Le serveur **recalcule** le hash et refuse un contenu qui ne correspond pas. Si le même fichier est
+déjà stocké (envoyé par quelqu'un d'autre), l'envoi du **bon contenu** prouve que l'utilisateur le
+possède : il est ajouté aux propriétaires, **sans doublon**. Contenu ≤ 8 Mo ;
 quota de 200 Mo d'assets par utilisateur. Le corps n'est lu qu'après vérification du jeton.
 Un asset jamais rattaché à un preset est supprimé après 24 h.
 Réponses : `201 { hash, created: true }` · `200 { hash, created: false }` (déjà présent : stocké une
@@ -128,11 +130,13 @@ seule fois) · `400` hash/kind/contenu invalide ou hash différent · `401` · `
 atteint.
 
 ### HEAD `/assets/:hash` (JWT)
-→ `200` existe · `404` absent · `400` hash invalide.
+→ `200` si l'utilisateur peut **déjà utiliser** cet asset (il en est propriétaire, ou il sert à un
+preset public ou à un de ses presets) · `404` sinon (absent, ou asset privé d'un autre : son existence
+n'est pas révélée) · `400` hash invalide. Sur `404`, le client envoie le contenu avec `PUT`.
 
 ### GET `/assets/:hash` (JWT optionnel)
 → `200 { hash, kind, name, data | samples }` si l'asset est utilisé par un preset public, par un de
-mes presets, ou si je l'ai envoyé ; `404` sinon.
+mes presets, ou si j'en suis propriétaire (je l'ai envoyé) ; `404` sinon.
 
 ## Codes d'erreur communs
 
