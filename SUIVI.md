@@ -1,7 +1,7 @@
 # Suivi du projet — Hôte NAM A2 WAM avec utilisateurs et presets
 
 > Journal de bord tenu **au fil de l'eau** : ce qui est fait, pourquoi, comment ça marche,
-> comment le tester. Le rendu final pour le prof est [`REPORT.md`](REPORT.md), rédigé à partir
+> comment le tester. Toutes les mesures de sécurité sont récapitulées dans [`SECURITE.md`](SECURITE.md). Le rendu final pour le prof est [`REPORT.md`](REPORT.md), rédigé à partir
 > de ce fichier. Règles du projet : [`CLAUDE.md`](CLAUDE.md).
 
 ## Sommaire
