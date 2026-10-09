@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {RemotePresetStorage, fromApi, assetToApi, assetFromApi} from '../../examples/wam/presets/RemotePresetStorage.js';
+import {RemotePresetStorage, fromApi} from '../../examples/wam/presets/RemotePresetStorage.js';
+import {encodeAsset as assetToApi, decodeAsset as assetFromApi} from '../../examples/wam/presets/PresetFile.js';
 import {ApiError} from '../../examples/wam/account/ApiClient.js';
 import {createPreset} from '../../examples/wam/presets/PresetFormat.js';
 import {dehydrateRack} from '../../examples/wam/presets/PresetAssets.js';
@@ -107,8 +108,8 @@ test('update, rename, visibility and delete call the right routes', async () => 
   const {preset} = await samplePreset();
   const api = fakeApi((call) => (call.method === 'DELETE' ? null : apiPreset(preset, {name: call.body?.name ?? preset.name, visibility: call.body?.visibility ?? 'private'})));
   const storage = new RemotePresetStorage({api});
-  assert.equal((await storage.rename('srv-1', 'Renamed')).name, 'Renamed');
-  assert.equal((await storage.setVisibility('srv-1', 'public')).visibility, 'public');
+  assert.equal((await storage.update('srv-1', {name: 'Renamed'})).name, 'Renamed');
+  assert.equal((await storage.update('srv-1', {visibility: 'public'})).visibility, 'public');
   assert.deepEqual(await storage.delete('srv-1'), []);
   assert.deepEqual(api.calls.map((call) => `${call.method} ${call.path}`), ['PUT /presets/srv-1', 'PUT /presets/srv-1', 'DELETE /presets/srv-1']);
   assert.deepEqual(api.calls[0].body, {name: 'Renamed'}, 'only the changed fields are sent');

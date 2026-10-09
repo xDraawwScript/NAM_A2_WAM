@@ -7,7 +7,7 @@
 
 import {presetFileName} from './PresetFile.js';
 import {el} from '../ui/el.js';
-import {describe, formatDate} from './presetText.js';
+import {describe, formatDate, tagList} from './presetText.js';
 import {ExplorePanel} from './ExplorePanel.js';
 
 /**
@@ -37,7 +37,7 @@ export class PresetView {
     this.renaming = null;
     this.listSource = null;
     this.listRequest = 0;
-    this.explore = new ExplorePanel({manager, accountUser, message, setStatus: (text, error) => this.setStatus(text, error)});
+    this.explore = new ExplorePanel({manager, accountUser, setStatus: (text, error) => this.setStatus(text, error), loadPreset: (preset, source) => this.load(preset, source)});
     this.build();
     button.setAttribute('aria-controls', this.dialog.id);
     button.setAttribute('aria-expanded', 'false');
@@ -159,8 +159,8 @@ export class PresetView {
     this.currentWhere.textContent = current ? ({account: '(my account)', public: '(public preset)', factory: '(factory)'}[current.source] || '(this browser)') : '';
     this.modified.hidden = !(current && dirty);
     // Un preset d'usine ou public d'un autre ne s'écrase pas : on l'enregistre comme nouveau preset.
-    this.overwriteButton.hidden = !current || ['public', 'factory'].includes(current.source);
-    const readOnly = source === 'factory';
+    this.overwriteButton.hidden = !current || Boolean(this.manager.storages[current.source]?.readOnly);
+    const readOnly = Boolean(this.manager.storage?.readOnly);
     this.saveForm.hidden = readOnly;
     this.importButton.hidden = readOnly;
     this.search.placeholder = readOnly ? 'Filter factory presets' : 'Filter my presets';
@@ -208,7 +208,7 @@ export class PresetView {
   renderItem(preset) {
     const source = this.manager.source;
     const online = source === 'account';
-    const factory = source === 'factory';
+    const factory = Boolean(this.manager.storage?.readOnly);
     const isCurrent = this.manager.isCurrent(preset.id, source);
     const title = this.renaming === preset.id
       ? el('form', {class: 'presets-rename', onsubmit: (event) => { event.preventDefault(); this.rename(preset.id, event.target.elements.name.value); }},
@@ -221,7 +221,7 @@ export class PresetView {
         el('div', {class: 'presets-title'}, title, badge),
         factory && preset.description ? el('span', {class: 'presets-description', text: preset.description}) : null,
         el('span', {class: 'presets-summary', text: describe(preset.summary)}),
-        preset.tags?.length ? el('span', {class: 'presets-tags'}, ...preset.tags.map((tag) => el('span', {class: 'presets-tag', text: tag}))) : null,
+        tagList(preset.tags),
         factory ? null : el('span', {class: 'presets-date', text: `Updated ${formatDate(preset.updatedAt)}`})),
       el('div', {class: 'presets-actions'},
         el('button', {type: 'button', class: 'presets-primary', text: 'Load', 'aria-label': `Load ${preset.name}`, onclick: () => this.load(preset)}),
@@ -253,15 +253,18 @@ export class PresetView {
     if (saved) await this.refresh();
   }
 
-  async load(preset) {
-    if (this.manager.dirty && !confirm(`“${this.manager.current?.name}” has unsaved changes. Load “${preset.name}” anyway?`)) return;
-    this.setStatus(`Loading “${preset.name}”…`);
-    const result = await this.run(() => this.manager.load(preset.id));
-    if (!result) return;
-    const text = result.warnings.length ? `Loaded “${preset.name}” with warnings: ${result.warnings.join(' ')}` : `Loaded “${preset.name}”.`;
+  /** Charge un preset (tous les onglets, y compris Explore) : confirmation si modifié, état, message. */
+  async load(preset, source = this.manager.source) {
+    if (this.manager.dirty && !confirm(`“${this.manager.current?.name}” has unsaved changes. Load “${preset.name}” anyway?`)) return null;
+    const by = preset.author?.username ? ` by ${preset.author.username}` : '';
+    this.setStatus(`Loading “${preset.name}”${by}…`);
+    const result = await this.run(() => this.manager.load(preset.id, source));
+    if (!result) return null;
+    const text = result.warnings.length ? `Loaded “${preset.name}” with warnings: ${result.warnings.join(' ')}` : `Loaded “${preset.name}”${by}.`;
     this.setStatus(text, result.warnings.length > 0);
     this.message(text, result.warnings.length > 0);
     this.renderList();
+    return result;
   }
 
   async rename(id, name) {

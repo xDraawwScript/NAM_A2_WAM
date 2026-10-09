@@ -124,3 +124,16 @@ test("deux utilisateurs avec le même fichier : stocké une fois, utilisable par
   assert.equal((await ctx.api(`/api/assets/${hash}`, { token: second.token })).status, 200);
   assert.equal(await Asset.countDocuments({ hash }), 1, "toujours un seul exemplaire");
 });
+
+test("migration : un ancien asset sans propriétaires redevient utilisable par celui qui l'a envoyé", async () => {
+  const { Asset } = await import("../src/models/Asset.js");
+  const { migrateAssetOwners } = await import("../src/routes/assets.js");
+  const { token, user } = await ctx.register("LegacyUploader");
+  const data = JSON.stringify({ legacy: true });
+  const hash = await sha256Hex(data);
+  await Asset.collection.insertOne({ hash, kind: "nam", name: "old.nam", size: data.length, bytes: Buffer.from(data), uploadedBy: new (await import("mongoose")).default.Types.ObjectId(user.id), createdAt: new Date(), updatedAt: new Date() });
+  assert.equal((await ctx.api(`/api/assets/${hash}`, { method: "HEAD", token })).status, 404, "avant migration : aucun propriétaire");
+  assert.equal(await migrateAssetOwners(), 1);
+  assert.equal((await ctx.api(`/api/assets/${hash}`, { method: "HEAD", token })).status, 200);
+  assert.equal(await migrateAssetOwners(), 0, "idempotente");
+});

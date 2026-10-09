@@ -13,9 +13,9 @@ test('host exposes a Presets button and wires the preset manager', async () => {
   assert.match(main, /const browserPresets=new IndexedDbPresetStorage\(\);\s*const presetManager=new PresetManager\(\{rack,storage:browserPresets/u);
   // Mission 4 : le stockage « My account » n'est branché que pendant une session.
   assert.match(main, /new RemotePresetStorage\(\{api,cache:browserPresets\}\)/u);
-  assert.match(main, /presetManager\.setFactoryStorage\(new FactoryPresetStorage\(\(\)=>import\('\.\/presets\/factoryPresets\.js'\)/u);
+  assert.match(main, /presetManager\.setStorage\('factory',new FactoryPresetStorage\(\(\)=>import\('\.\/presets\/factoryPresets\.js'\)/u);
   assert.doesNotMatch(main, /^import .*factoryPresets/mu, 'the 116 KB catalogue is loaded on demand, not at startup');
-  assert.match(main, /presetManager\.setPublicStorage\(new RemotePresetStorage\(\{api,cache:browserPresets\}\)\)/u);
+  assert.match(main, /presetManager\.setStorage\('public',new RemotePresetStorage\(\{api,cache:browserPresets,readOnly:true\}\)\)/u);
   assert.match(main, /accountPresets\.clear\(\);presetManager\.setAccountStorage\(signedIn\?accountPresets:null\)/u);
   assert.match(main, /beforeLoad:\(\)=>chainView\.close\(\)/u);
   // Le contrat du prof : l'hôte ne lit pas lui-même les manifestes d'usine (tests/phase4a2).

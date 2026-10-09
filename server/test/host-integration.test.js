@@ -120,7 +120,7 @@ test("Explore : un invité cherche et charge un preset public, puis se connecte 
   await author.manager.saveAs({ name: "Hidden draft" }); // privé : ne doit jamais apparaître
 
   const guest = await browser(null);
-  guest.manager.setPublicStorage(new RemotePresetStorage({ api: guest.api }));
+  guest.manager.setStorage("public", new RemotePresetStorage({ api: guest.api, readOnly: true }));
   guest.manager.setSource("public");
   const byAuthor = await guest.manager.searchPublic({ q: "e2eexplorer" });
   assert.deepEqual(byAuthor.items.map((item) => item.name), ["Explore me"], "search by author, private presets excluded");

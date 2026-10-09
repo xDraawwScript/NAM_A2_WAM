@@ -117,3 +117,18 @@ test("copier un preset public dans mes presets (privé), pas un preset privé d'
   assert.deepEqual(copy.body.rack, pub.rack);
   assert.equal((await ctx.api(`/api/presets/${priv.id}/copy`, { method: "POST", token: reader.token })).status, 404);
 });
+
+test("validation champ par champ : description trop longue, version future, mise à jour partielle", async () => {
+  const { token } = await ctx.register("FieldByField");
+  const { payload } = await makePresetPayload("Fields");
+  const long = await ctx.api("/api/presets", { method: "POST", token, body: { ...payload, description: "x".repeat(501) } });
+  assert.equal(long.status, 400);
+  assert.match(long.body.message, /500/);
+  assert.equal((await ctx.api("/api/presets", { method: "POST", token, body: { ...payload, version: 99 } })).status, 400);
+  const created = (await ctx.api("/api/presets", { method: "POST", token, body: payload })).body;
+  const onlyTags = await ctx.api(`/api/presets/${created.id}`, { method: "PUT", token, body: { tags: ["New"] } });
+  assert.equal(onlyTags.status, 200);
+  assert.deepEqual(onlyTags.body.tags, ["new"]);
+  assert.equal(onlyTags.body.name, "Fields", "the other fields are untouched");
+  assert.equal((await ctx.api(`/api/presets/${created.id}`, { method: "PUT", token, body: { name: "" } })).status, 400);
+});
