@@ -1,0 +1,68 @@
+// English dictionary (reference language: every key must exist here).
+// Keys are grouped by area: header.*, presets.*, errors.*… Values may contain {params};
+// plurals use { one, other } with a `count` parameter.
+export default {
+  header: {
+    rackKicker: 'Signal chain',
+    rackTitle: 'Amplifier rack',
+    tuner: 'Tuner',
+    tunerTitle: 'Open tuner',
+    presets: 'Presets',
+    presetsTitle: 'Save and load presets',
+    language: 'Language',
+    languageTitle: {
+      en: 'Show the interface in English',
+      fr: 'Show the interface in French',
+    },
+  },
+  presets: {
+    count: {one: '{count} preset', other: '{count} presets'},
+  },
+  errors: {
+    notSignedIn: 'Please sign in first.',
+    unreachable: 'Cannot reach the server ({url}). Is the backend running?',
+    sessionExpired: 'Your session has expired. Please sign in again.',
+    http: 'Server error (HTTP {status}).',
+    // Messages for the stable error codes sent by the API (server/src/errorCodes.js).
+    server: {
+      route_unknown: 'This server address does not exist.',
+      request_too_large: 'The request is too large.',
+      invalid_json: 'The server received invalid data.',
+      not_found: 'Not found.',
+      already_exists: 'This already exists.',
+      invalid_data: 'Some information is invalid.',
+      internal: 'The server ran into an error. Please try again.',
+      auth_required: 'Please sign in first.',
+      auth_invalid_token: 'Your session is no longer valid. Please sign in again.',
+      auth_bad_credentials: 'Incorrect email or password.',
+      auth_account_not_found: 'This account no longer exists.',
+      auth_username_invalid: 'Username: {min} to {max} characters: letters, digits, dot, dash or underscore.',
+      auth_username_taken: 'This username is already taken.',
+      auth_email_required: 'Email is required.',
+      auth_email_invalid: 'Invalid email address.',
+      auth_email_taken: 'This email is already used.',
+      auth_password_length: 'Password: {min} to {max} characters (accented letters count double).',
+      rate_login: 'Too many sign-in attempts. Please wait a few minutes.',
+      rate_register: 'Too many accounts created from this address. Please try again later.',
+      asset_invalid_hash: 'Invalid file fingerprint.',
+      asset_nam_data_required: 'The amp model file is empty.',
+      asset_ir_samples_required: 'The cabinet IR is empty.',
+      asset_ir_invalid: 'The cabinet IR is damaged.',
+      asset_invalid_kind: 'Unknown file type (amp model or IR expected).',
+      asset_too_large: 'File too large ({max} MB maximum).',
+      asset_hash_mismatch: 'The file was damaged during upload. Please try again.',
+      asset_missing: {
+        one: 'A file used by this preset is missing on the server. Save the preset again.',
+        other: '{count} files used by this preset are missing on the server. Save the preset again.',
+      },
+      asset_quota: 'Storage full ({max} MB per account). Delete presets you no longer use.',
+      asset_not_found: 'File not found on the server.',
+      preset_not_found: 'Preset not found. It may have been deleted or made private.',
+      preset_invalid: 'This preset is invalid: {detail}',
+      preset_embedded_asset: 'This preset could not be prepared for the server. Please try again.',
+      preset_invalid_asset_ref: 'This preset refers to an invalid file.',
+      preset_too_large: 'This preset is too large.',
+      preset_invalid_visibility: 'Visibility must be private or public.',
+    },
+  },
+};

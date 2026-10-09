@@ -900,7 +900,7 @@ refonte complète de la mise en page ; **maquette HTML avant de coder**.
 | 0 | Branche, inventaire de l'interface, plan | ✅ |
 | 1 | Maquette HTML avec 3 ambiances rock (`docs/maquette/`) → choix de l'étudiant | ✅ choix : **Tolex & Lampes** |
 | 2 | Thème : design tokens (`ui/theme.css`), polices, réécriture des CSS | ✅ |
-| 3 | Internationalisation : `ui/i18n.js`, `ui/locales/{en,fr}.js`, tests | ⏳ |
+| 3 | Internationalisation : `ui/i18n.js`, `ui/locales/{en,fr}.js`, codes d'erreur du serveur, tests | ✅ |
 | 4 | Nouvelle mise en page, guide de démarrage, confirmations thémées, accessibilité, fond animé Butterchurn (option) | ⏳ |
 | 5 | Traduction de tous les textes de l'hôte | ⏳ |
 | 6 | Audit accessibilité, relecture des textes, parcours FR/EN, `/code-review`, `/simplify` | ⏳ |
@@ -1031,6 +1031,63 @@ et accordeur (26).
 **Résultats** : suite de l'hôte **230/230** (dont les 7 nouveaux) ; `npm run dist` OK ; axe-core 4.10.2 sur la dist
 (rack, dialog Presets, dialog Compte) : **0 violation** WCAG A/AA ; aucune erreur dans la console.
 Captures : `docs/screenshots/mission8/`.
+
+#### Étape 3 : l'infrastructure de traduction (2026-10-09)
+
+**Principe.** Le code n'écrit plus un texte affiché en dur : il demande `t('header.tuner')`, et le module
+`ui/i18n.js` renvoie « Tuner » ou « Accordeur » selon la langue choisie. Les textes vivent dans deux
+**dictionnaires** : `ui/locales/en.js` et `ui/locales/fr.js`, avec exactement les mêmes clés.
+
+**Fichiers**
+- `ui/i18n.js` (nouveau), sans aucune bibliothèque :
+  - `t(clé, paramètres)` remplace `{status}`, `{min}`… dans le texte ; une clé absente en français
+    retombe sur l'anglais, puis sur la clé elle-même (un oubli se voit au lieu de laisser un trou) ;
+  - **pluriels** avec `Intl.PluralRules` : en français 0 et 1 sont au singulier (« 0 preset »), en anglais
+    seul 1 l'est (« 0 presets ») ;
+  - `formatDate` / `formatNumber` : « 9 octobre 2026 », « 1 234,5 » en français ;
+  - `setLanguage` met à jour `<html lang>` (utile aux lecteurs d'écran) et prévient les vues abonnées
+    avec `onLanguageChange`. On n'utilise **pas** l'événement `languagechange` de `window` prévu au plan :
+    le navigateur l'émet déjà quand la langue du système change, les deux se mélangeraient ;
+  - langue de départ : `?lang=fr` dans l'URL, sinon le choix mémorisé (`localStorage`, clé `nam-a2-lang`),
+    sinon la langue du navigateur, sinon l'anglais ;
+  - `applyTranslations()` remplit le HTML statique marqué `data-i18n`, `data-i18n-title`,
+    `data-i18n-aria-label`, `data-i18n-placeholder` ;
+  - le module ne touche pas au navigateur au chargement : il s'importe dans Node pour les tests.
+- `ui/LanguageSwitch.js` (nouveau) + `index.html` : boutons **FR | EN** dans le header
+  (`aria-pressed`, infobulle traduite). Le header du rack (« Chaîne du signal », « Rack d'ampli »,
+  « Accordeur », « Presets ») est déjà traduit.
+- **Codes d'erreur du serveur.** Avant, l'API renvoyait `{ message }` en anglais, affiché tel quel. Maintenant
+  `{ message, code, params? }` : `message` reste en anglais (rétrocompatible, lisible avec curl), et `code`
+  est un identifiant stable (`auth_bad_credentials`, `asset_quota`…) que l'interface traduit. 36 codes,
+  déclarés dans `server/src/errorCodes.js` ; `params` transporte les valeurs à insérer (`{min, max}` du mot de
+  passe, `{max}` du quota…). Fichiers : `auth.js` (`HttpError`), `rateLimit.js`, `validation.js`,
+  `routes/*.js`, et le gestionnaire central de `app.js` qui donne aussi un code aux erreurs Mongoose
+  (validation, `CastError`, doublon 11000) et à toute erreur 500. Documenté dans `server/API_CONTRACT.md`.
+- `account/ApiClient.js` : si le code est connu, message traduit ; sinon le `message` du serveur (un ancien
+  backend reste donc compatible) ; « non connecté », « serveur injoignable », « session expirée » traduits.
+- `tools/build-static-dist.mjs` : vérifie que les 4 nouveaux fichiers sont dans la dist.
+
+**Écart au plan (assumé).** L'étape 3 pose l'infrastructure. Les vues (Presets, Explorer, Compte, chaîne
+d'effets, rack) seront traduites **et** abonnées au changement de langue à l'étape 5 : les abonner maintenant
+ne servirait à rien tant que leurs textes sont en dur. Les erreurs locales des presets (`PresetError`)
+recevront aussi leurs codes à l'étape 5.
+
+**Tests**
+- `tests/phase6/i18n.test.mjs` (12 tests) : import sans DOM ; **mêmes clés en FR et EN** ; mêmes paramètres
+  `{x}` dans les deux langues et aucune valeur vide ; **chaque `t('…')` du code et chaque `data-i18n` du HTML
+  existe** dans `en.js` (scan de `examples/wam`, plugins exclus) ; chaque code du serveur a sa traduction EN et FR ;
+  interpolation, dates et nombres ; pluriels ; repli ; détection de la langue ; abonnements ; `applyTranslations` ;
+  messages traduits par `ApiClient`.
+- `server/test/error-codes.test.js` (6 tests) : chaque code utilisé dans les sources du serveur est déclaré ;
+  vraies réponses HTTP (route inconnue, JSON invalide, identifiant mal formé, chaque règle d'inscription
+  avec `{min, max}` pour le mot de passe, pseudo/e-mail déjà pris, mauvais identifiants, jeton absent ou invalide,
+  limiteur de tentatives, preset et asset invalides).
+- **Navigateur** (dist + backend lancé sur une base MongoDB **locale temporaire**, jamais Atlas) : clic FR → header
+  traduit, `<html lang="fr">`, `aria-pressed` à jour ; le choix survit au rechargement ; `?lang=en` l'emporte
+  sans écraser le choix mémorisé ; vraie connexion ratée → « E-mail ou mot de passe incorrect. » en français,
+  « Incorrect email or password. » en anglais ; pseudo trop court → « Pseudo : 3 à 24 caractères… ».
+
+**Résultats** : hôte **242/242**, serveur **43/43**, `npm run dist` OK.
 
 ---
 
