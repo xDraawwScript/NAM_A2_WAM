@@ -14,11 +14,11 @@ test("health répond sans authentification", async () => {
 
 test("inscription : pseudo, email et mot de passe validés", async () => {
   const bad = [
-    [{ username: "ab", email: "a@b.co", password: "Password123" }, /Pseudo/],
-    [{ username: "nice name", email: "a@b.co", password: "Password123" }, /Pseudo/],
-    [{ username: "valid", email: "", password: "Password123" }, /Email/],
-    [{ username: "valid", email: "not-an-email", password: "Password123" }, /Email invalide/],
-    [{ username: "valid", email: "a@b.co", password: "short" }, /Mot de passe/],
+    [{ username: "ab", email: "a@b.co", password: "Password123" }, /Username/],
+    [{ username: "nice name", email: "a@b.co", password: "Password123" }, /Username/],
+    [{ username: "valid", email: "", password: "Password123" }, /Email is required/],
+    [{ username: "valid", email: "not-an-email", password: "Password123" }, /^Invalid email address$/],
+    [{ username: "valid", email: "a@b.co", password: "short" }, /Password/],
   ];
   for (const [body, message] of bad) {
     const response = await ctx.api("/api/auth/register", { method: "POST", body });
@@ -46,7 +46,7 @@ test("pseudo unique sans tenir compte de la casse, email unique", async () => {
   await ctx.register("Stevie");
   const sameName = await ctx.api("/api/auth/register", { method: "POST", body: { username: "stevie", email: "other@example.com", password: "Password123" } });
   assert.equal(sameName.status, 409);
-  assert.match(sameName.body.message, /pseudo/);
+  assert.match(sameName.body.message, /username/);
   const sameEmail = await ctx.api("/api/auth/register", { method: "POST", body: { username: "Stevie2", email: "stevie@example.com", password: "Password123" } });
   assert.equal(sameEmail.status, 409);
   assert.match(sameEmail.body.message, /email/);
@@ -87,7 +87,7 @@ test("CORS : seule l'origine de Live Server est autorisée", async () => {
 test("JSON invalide et route inconnue : erreurs propres", async () => {
   const invalid = await ctx.api("/api/auth/login", { method: "POST", body: "{oops" });
   assert.equal(invalid.status, 400);
-  assert.equal(invalid.body.message, "JSON invalide");
+  assert.equal(invalid.body.message, "Invalid JSON");
   assert.equal((await ctx.api("/api/nothing")).status, 404);
 });
 
