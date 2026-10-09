@@ -2,11 +2,16 @@ import mongoose from "mongoose";
 import {
   PRESET_FORMAT,
   PRESET_VERSION,
-  validatePreset,
+  PresetError,
+  normalizeName,
+  normalizeDescription,
+  normalizeTags,
+  validateRack,
+  portableRack,
   summarize,
   rackEntries,
 } from "../../examples/wam/presets/PresetFormat.js";
-import { collectAssetRefs } from "../../examples/wam/presets/PresetAssets.js";
+import { collectAssetRefs, ASSET_KINDS, HASH_PATTERN } from "../../examples/wam/presets/PresetAssets.js";
 import { HttpError } from "./auth.js";
 
 /*
@@ -16,19 +21,19 @@ import { HttpError } from "./auth.js";
  */
 
 export const MAX_RACK_BYTES = 256 * 1024; // un rack déshydraté pèse ~15 Ko
-export const HASH_PATTERN = /^[a-f0-9]{64}$/;
+export { HASH_PATTERN };
 
 const text = (value, max) => String(value ?? "").trim().slice(0, max);
 
 /** Vérifie un identifiant MongoDB avant toute requête (sinon CastError). */
-export function assertObjectId(id, message = "Preset not found") {
-  if (!mongoose.isValidObjectId(id)) throw new HttpError(404, message);
+export function assertObjectId(id) {
+  if (!mongoose.isValidObjectId(id)) throw new HttpError(404, "Preset not found");
 }
 
 /** page et limit validés, avec un maximum (bonne pratique du TP). */
-export function pagination(query, defaultLimit = 12) {
+export function pagination(query) {
   const page = Math.max(1, Math.trunc(Number(query.page)) || 1);
-  const limit = Math.min(50, Math.max(1, Math.trunc(Number(query.limit)) || defaultLimit));
+  const limit = Math.min(50, Math.max(1, Math.trunc(Number(query.limit)) || 12));
   return { page, limit, skip: (page - 1) * limit };
 }
 
@@ -49,7 +54,7 @@ function assertDehydrated(rack) {
     const valid = ref?.source === "factory"
       ? typeof ref.id === "string" && ref.id.startsWith("factory:") && ref.id.length < 500
       : ref?.source === "store" && HASH_PATTERN.test(ref.hash);
-    if (!valid || !["nam", "ir"].includes(ref.kind)) throw new HttpError(400, "Invalid asset reference");
+    if (!valid || !ASSET_KINDS.includes(ref.kind)) throw new HttpError(400, "Invalid asset reference");
   }
   return [...new Set(refs.filter((ref) => ref.source === "store").map((ref) => ref.hash))];
 }
@@ -72,43 +77,30 @@ function cleanSummary(summary, rack) {
 /**
  * Valide le corps d'une création ou d'une mise à jour de preset.
  * `partial` = mise à jour : seuls les champs présents sont validés et renvoyés.
+ * Chaque champ est validé avec LA fonction partagée de l'hôte (PresetFormat.js).
  */
 export function presetInput(body = {}, { partial = false } = {}) {
-  const has = (key) => Object.prototype.hasOwnProperty.call(body, key);
+  const wanted = (key) => !partial || Object.prototype.hasOwnProperty.call(body, key);
   const output = {};
-  if (!partial || has("name") || has("tags") || has("description") || has("rack")) {
-    // On réutilise validatePreset de l'hôte sur un preset « reconstitué ».
-    const candidate = {
-      format: body.format ?? PRESET_FORMAT,
-      version: body.version ?? PRESET_VERSION,
-      id: "server",
-      name: has("name") || !partial ? body.name : "placeholder",
-      description: body.description ?? "",
-      tags: body.tags ?? [],
-      rack: has("rack") || !partial ? body.rack : { version: 2, a: { version: 1, entries: [] } },
-    };
-    let valid;
-    try {
-      valid = validatePreset(candidate);
-    } catch (error) {
-      throw new HttpError(400, error.message);
+  try {
+    if (body.format !== undefined && body.format !== PRESET_FORMAT) throw new PresetError("Not a NAM A2 preset");
+    if (body.version !== undefined && !(Number.isInteger(body.version) && body.version >= 1 && body.version <= PRESET_VERSION)) {
+      throw new PresetError(`Unsupported preset version (this server reads up to version ${PRESET_VERSION})`);
     }
-    if (valid.description.length > 500) throw new HttpError(400, "Description is limited to 500 characters");
-    if (!partial || has("name")) output.name = valid.name;
-    if (!partial || has("description")) output.description = valid.description;
-    if (!partial || has("tags")) output.tags = valid.tags;
-    if (!partial || has("rack")) {
-      const size = Buffer.byteLength(JSON.stringify(valid.rack));
+    if (wanted("name")) output.name = normalizeName(body.name);
+    if (wanted("description")) output.description = normalizeDescription(body.description);
+    if (wanted("tags")) output.tags = normalizeTags(body.tags ?? []);
+    if (wanted("rack")) {
+      const rack = portableRack(validateRack(body.rack));
+      const size = Buffer.byteLength(JSON.stringify(rack));
       if (size > MAX_RACK_BYTES) throw new HttpError(413, "Preset too large: amp models and IRs must be uploaded as assets");
-      output.assetHashes = assertDehydrated(valid.rack);
-      output.rack = valid.rack;
-      output.summary = cleanSummary(body.summary, valid.rack);
-      output.size = size;
-      output.format = PRESET_FORMAT;
-      output.version = valid.version;
+      Object.assign(output, { rack, size, assetHashes: assertDehydrated(rack), summary: cleanSummary(body.summary, rack), format: PRESET_FORMAT, version: body.version ?? PRESET_VERSION });
     }
+  } catch (error) {
+    if (error instanceof PresetError) throw new HttpError(400, error.message);
+    throw error;
   }
-  if (!partial || has("visibility")) {
+  if (wanted("visibility")) {
     const visibility = body.visibility ?? "private";
     if (!["private", "public"].includes(visibility)) throw new HttpError(400, "Visibility must be private or public");
     output.visibility = visibility;

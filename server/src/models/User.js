@@ -9,8 +9,7 @@ import bcrypt from "bcryptjs";
  * L'unicité du pseudo ignore la casse (« Jimi » et « jimi » sont le même pseudo) grâce au
  * champ `usernameKey` (pseudo en minuscules) indexé en unique.
  */
-import { USERNAME_PATTERN } from "../../../examples/wam/account/accountRules.js";
-export { USERNAME_PATTERN };
+import { USERNAME_PATTERN, USERNAME_HINT } from "../../../examples/wam/account/accountRules.js";
 
 const schema = new mongoose.Schema(
   {
@@ -18,7 +17,7 @@ const schema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      match: [USERNAME_PATTERN, "Username: 3 to 24 characters (letters, digits, . _ -)"],
+      match: [USERNAME_PATTERN, `Username: ${USERNAME_HINT}`],
     },
     usernameKey: { type: String, required: true, unique: true, select: false },
     email: {

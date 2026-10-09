@@ -28,6 +28,27 @@ export function base64ToFloats(text) {
   return new Float32Array(bytes.buffer);
 }
 
+/**
+ * Encodage JSON d'un asset, commun aux fichiers exportés et à l'API (PUT /api/assets/:hash) :
+ *   modèle : {kind:'nam', name, data: <texte du .nam>}
+ *   IR     : {kind:'ir',  name, samples: <base64 des Float32>}
+ */
+export function encodeAsset(asset) {
+  return asset.kind === 'nam'
+    ? {kind: 'nam', name: asset.name, data: asset.data}
+    : {kind: 'ir', name: asset.name, samples: floatsToBase64(asset.samples)};
+}
+
+/** Inverse d'encodeAsset (le hash n'est pas vérifié ici). */
+export function decodeAsset(item) {
+  if (item?.kind === 'nam') {
+    if (typeof item.data !== 'string') throw new PresetError(`Amp model "${item.name}" is invalid`);
+    return {hash: item.hash, kind: 'nam', name: String(item.name || 'model.nam'), data: item.data};
+  }
+  if (item?.kind === 'ir') return {hash: item.hash, kind: 'ir', name: String(item.name || 'cabinet.wav'), samples: base64ToFloats(item.samples)};
+  throw new PresetError('Unknown asset kind');
+}
+
 /** Nom de fichier sûr à partir du nom du preset. */
 export function presetFileName(preset) {
   const base = String(preset?.name || 'preset').normalize('NFKD').replace(/[^\w\- ]+/gu, '').trim().replace(/\s+/gu, '-').slice(0, 60) || 'preset';
@@ -48,9 +69,7 @@ export async function exportPresetFile(preset, {loadAsset, now = new Date()}) {
     seen.add(ref.hash);
     const asset = await loadAsset(ref.hash);
     if (!asset) { warnings.push(`Asset ${ref.hash.slice(0, 12)}… is missing and was not exported.`); continue; }
-    assets.push(asset.kind === 'nam'
-      ? {hash: asset.hash, kind: 'nam', name: asset.name, data: asset.data}
-      : {hash: asset.hash, kind: 'ir', name: asset.name, samples: floatsToBase64(asset.samples)});
+    assets.push({hash: asset.hash, ...encodeAsset(asset)});
   }
   const file = {format: FILE_FORMAT, version: FILE_VERSION, exportedAt: now.toISOString(), preset: valid, assets};
   return {text: JSON.stringify(file), warnings};
@@ -68,14 +87,10 @@ export async function importPresetFile(text, {now = new Date(), newId = () => cr
   const preset = validatePreset(file.preset);
   const assets = [];
   for (const item of Array.isArray(file.assets) ? file.assets : []) {
-    if (item?.kind === 'nam') {
-      if (typeof item.data !== 'string' || await sha256Hex(item.data) !== item.hash) throw new PresetError(`Amp model "${item.name}" is corrupted (hash mismatch)`);
-      assets.push({hash: item.hash, kind: 'nam', name: String(item.name || 'model.nam'), data: item.data});
-    } else if (item?.kind === 'ir') {
-      const samples = base64ToFloats(item.samples);
-      if (await irSamplesHash(samples) !== item.hash) throw new PresetError(`Cabinet IR "${item.name}" is corrupted (hash mismatch)`);
-      assets.push({hash: item.hash, kind: 'ir', name: String(item.name || 'cabinet.wav'), samples});
-    } else throw new PresetError('Unknown asset in preset file');
+    const asset = decodeAsset(item);
+    const actual = asset.kind === 'nam' ? await sha256Hex(asset.data) : await irSamplesHash(asset.samples);
+    if (actual !== item.hash) throw new PresetError(`${asset.kind === 'nam' ? 'Amp model' : 'Cabinet IR'} "${asset.name}" is corrupted (hash mismatch)`);
+    assets.push(asset);
   }
   const provided = new Set(assets.map((asset) => asset.hash));
   const missing = collectAssetRefs(preset.rack).filter((ref) => ref.source === 'store' && !provided.has(ref.hash));

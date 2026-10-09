@@ -40,8 +40,10 @@ export class PresetManager extends EventTarget {
     this.busy = false;
     this.baseline = null;     // empreinte du son au dernier enregistrement / chargement
     this.timer = null;
-    this.scheduleCheck = () => {
-      if (!this.current) return;
+    this.scheduleCheck = (event) => {
+      // Taper un nom de preset ou un mot de passe dans une fenêtre ne change pas le son : on ignore
+      // les interactions faites dans les <dialog> (évite une capture complète du rack à chaque touche).
+      if (!this.current || event?.target?.closest?.('dialog')) return;
       clearTimeout(this.timer);
       this.timer = setTimeout(() => this.checkDirty().catch(() => {}), this.checkDelay);
     };
@@ -73,29 +75,34 @@ export class PresetManager extends EventTarget {
     if (storage && this.source === 'browser') this.source = 'account';
     else {
       if (this.source === 'account') this.source = 'browser';
-      if (this.current?.source === 'account') { this.current = null; this.baseline = null; this.dirty = false; }
+      if (this.current?.source === 'account') this.forgetCurrent();
     }
     this.changed();
   }
 
-  /** Branche le catalogue des presets publics (disponible avec ou sans compte). */
-  setPublicStorage(storage) {
-    this.storages.public = storage;
-    if (!storage && this.source === 'public') this.source = 'browser';
+  /** Branche (ou débranche avec null) un catalogue : 'factory' (usine) ou 'public' (Explore). */
+  setStorage(source, storage) {
+    if (!SOURCES.includes(source)) throw new PresetError('Unknown preset source');
+    this.storages[source] = storage;
+    if (!storage && this.source === source) this.source = 'browser';
     this.changed();
   }
 
-  /** Branche le catalogue des presets d'usine (lecture seule, toujours disponible). */
-  setFactoryStorage(storage) {
-    this.storages.factory = storage;
-    if (!storage && this.source === 'factory') this.source = 'browser';
-    this.changed();
-  }
-
-  /** Les sources où l'on peut écrire : le navigateur et le compte, jamais l'usine ni le public. */
+  /**
+   * Les sources où l'on peut écrire. La lecture seule est une CAPACITÉ du stockage (`readOnly`),
+   * pas une liste de noms : l'usine et le catalogue public la déclarent eux-mêmes.
+   */
   writableStorage(source) {
-    if (READ_ONLY[source]) throw new PresetError(READ_ONLY[source]);
-    return this.storageOf(source);
+    const storage = this.storageOf(source);
+    if (storage.readOnly) throw new PresetError(READ_ONLY[source] || 'These presets are read-only');
+    return storage;
+  }
+
+  /** Le son reste, mais n'est plus rattaché à un preset (plus d'Update ni d'indicateur « modifié »). */
+  forgetCurrent() {
+    this.current = null;
+    this.baseline = null;
+    this.dirty = false;
   }
 
   setSource(source) {
@@ -115,9 +122,10 @@ export class PresetManager extends EventTarget {
     return this.dirty;
   }
 
-  async setCurrent(preset, source) {
+  /** `rack` : état déjà capturé (évite une 2e capture complète après un enregistrement). */
+  async setCurrent(preset, source, rack = null) {
     this.current = preset ? {id: preset.id, name: preset.name, source} : null;
-    this.baseline = preset ? rackFingerprint(await this.rack.getState()) : null;
+    this.baseline = preset ? rackFingerprint(rack ?? await this.rack.getState()) : null;
     this.dirty = false;
     this.changed();
   }
@@ -152,7 +160,7 @@ export class PresetManager extends EventTarget {
       const {rack} = await this.capture(storage);
       const preset = createPreset({rack, name, description, tags, nameForUri: this.nameForUri});
       const saved = await storage.save(preset, {visibility});
-      await this.setCurrent(saved, source);
+      await this.setCurrent(saved, source, rack);
       return saved;
     });
   }
@@ -166,7 +174,7 @@ export class PresetManager extends EventTarget {
       const {rack, summary} = await this.capture(storage);
       const saved = await storage.update(current.id, {rack, summary});
       await storage.collectGarbage?.();
-      await this.setCurrent(saved, current.source);
+      await this.setCurrent(saved, current.source, rack);
       return saved;
     });
   }
@@ -199,7 +207,7 @@ export class PresetManager extends EventTarget {
 
   async remove(id, source = this.source) {
     await this.writableStorage(source).delete(id);
-    if (this.isCurrent(id, source)) { this.current = null; this.baseline = null; this.dirty = false; }
+    if (this.isCurrent(id, source)) this.forgetCurrent();
     this.changed();
   }
 
@@ -214,15 +222,17 @@ export class PresetManager extends EventTarget {
       const account = this.storageOf('account');
       const copied = [];
       const failed = [];
+      const uploaded = new Set(); // un modèle partagé par plusieurs presets n'est lu et envoyé qu'une fois
       for (const id of ids) {
         const preset = await browser.get(id);
         if (!preset) continue;
         try {
           for (const ref of collectAssetRefs(preset.rack)) {
-            if (ref.source !== 'store') continue;
+            if (ref.source !== 'store' || uploaded.has(ref.hash)) continue;
             const asset = await browser.getAsset(ref.hash);
             if (!asset) throw new PresetError(`a ${ref.kind === 'nam' ? 'model' : 'IR'} is missing in this browser`);
             await account.putAsset(asset);
+            uploaded.add(ref.hash);
           }
           await account.save(preset, {visibility: 'private'});
           copied.push(preset.name);

@@ -235,7 +235,7 @@ async function initialize() {
     beforeLoad:()=>chainView.close(),interactionTarget:document});
   window.phase3Debug.presets=presetManager;
   // Presets d'usine (lecture seule) : sons prêts à jouer livrés avec l'appli, chargés à la demande.
-  presetManager.setFactoryStorage(new FactoryPresetStorage(()=>import('./presets/factoryPresets.js').then(module=>module.FACTORY_PRESETS)));
+  presetManager.setStorage('factory',new FactoryPresetStorage(()=>import('./presets/factoryPresets.js').then(module=>module.FACTORY_PRESETS)));
   // Comptes (projet étudiant) : client de l'API server/ + fenêtre Account. La session enregistrée
   // est revérifiée auprès du serveur en arrière-plan (sans bloquer le démarrage de l'audio).
   // Sans URL d'API (ancien config.js), seule la fonction Account est désactivée, pas l'hôte.
@@ -249,7 +249,7 @@ async function initialize() {
     // (les modèles/IR déjà présents dans ce navigateur servent de cache).
     const accountPresets=new RemotePresetStorage({api,cache:browserPresets});
     // Onglet Explore : presets publics de tous les utilisateurs, consultables même sans compte.
-    presetManager.setPublicStorage(new RemotePresetStorage({api,cache:browserPresets}));
+    presetManager.setStorage('public',new RemotePresetStorage({api,cache:browserPresets,readOnly:true}));
     let signedIn=null;
     const syncAccount=()=>{if(api.loggedIn===signedIn)return;signedIn=api.loggedIn;accountPresets.clear();presetManager.setAccountStorage(signedIn?accountPresets:null);};
     api.addEventListener('change',syncAccount);syncAccount();

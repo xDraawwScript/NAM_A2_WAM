@@ -1,5 +1,10 @@
 // Textes d'affichage partagés par PresetView (mes presets) et ExplorePanel (presets publics).
 
+import {el} from '../ui/el.js';
+
+/** Les tags d'un preset sous forme de pastilles (null s'il n'y en a pas). */
+export const tagList = (tags = []) => (tags.length ? el('span', {class: 'presets-tags'}, ...tags.map((tag) => el('span', {class: 'presets-tag', text: tag}))) : null);
+
 export const formatDate = (iso) => {
   try { return new Date(iso).toLocaleString('en-GB', {dateStyle: 'medium', timeStyle: 'short'}); } catch { return ''; }
 };

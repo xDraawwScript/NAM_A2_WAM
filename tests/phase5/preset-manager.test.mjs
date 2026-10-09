@@ -181,7 +181,8 @@ test('public presets: load without account, but never update, rename, delete or 
   const copyInCatalogue = await catalogue.save({...(await account.get(theirs.id)), id: 'pub-1'});
   for (const hash of await account.listAssetHashes()) await catalogue.putAsset(await account.getAsset(hash));
   manager.setAccountStorage(null);
-  manager.setPublicStorage(catalogue);
+  catalogue.readOnly = true; // comme RemotePresetStorage({readOnly: true}) dans main.js
+  manager.setStorage('public', catalogue);
   manager.setSource('public');
 
   const {warnings} = await manager.load(copyInCatalogue.id, 'public');
@@ -198,13 +199,13 @@ test('public presets: load without account, but never update, rename, delete or 
 
 test('signing in while exploring stays on Explore; signing out keeps Explore available', async () => {
   const {manager, account} = await setupTwoSources();
-  manager.setPublicStorage(new IndexedDbPresetStorage({indexedDB: new IDBFactory(), name: 'public'}));
+  manager.setStorage('public', new IndexedDbPresetStorage({indexedDB: new IDBFactory(), name: 'public'}));
   manager.setSource('public');
   manager.setAccountStorage(account);
   assert.equal(manager.source, 'public');
   manager.setAccountStorage(null);
   assert.equal(manager.source, 'public');
-  manager.setPublicStorage(null);
+  manager.setStorage('public', null);
   assert.equal(manager.source, 'browser');
 });
 
@@ -214,4 +215,30 @@ test('signalPath shows the order of the signal, bypassed modules in brackets', a
   assert.equal(signalPath(), '');
   assert.equal(describe({amp: 'Twin', effects: ['BigMuff'], chains: 2}), 'Amp: Twin · 1 effect: BigMuff · Chains A + B');
   assert.equal(describe({amp: 'Twin', cabinet: 'V30', effects: []}), 'Amp: Twin · Cab: V30 · No effect');
+});
+
+// --- Mission 7 (/simplify) ---------------------------------------------------------------------
+test('typing inside a dialog (preset name, password…) does not trigger the "modified" check', async () => {
+  const {rack, manager, interactions} = await setup();
+  await manager.saveAs({name: 'Clean'});
+  rack.state.a.entries[1].state.parameterValues.bass.value = 2;
+  let reads = 0;
+  const getState = rack.getState.bind(rack);
+  rack.getState = async () => { reads++; return getState(); };
+  const insideDialog = new Event('keyup');
+  Object.defineProperty(insideDialog, 'target', {value: {closest: (selector) => (selector === 'dialog' ? {} : null)}});
+  interactions.dispatchEvent(insideDialog);
+  await tick();
+  assert.equal(reads, 0, 'no full rack capture while typing in a dialog');
+  interactions.dispatchEvent(new Event('pointerup'));
+  await tick();
+  assert.equal(manager.dirty, true, 'a real interaction with the rack is still checked');
+});
+
+test('read-only is a capability of the storage, whatever its name', async () => {
+  const {manager, account} = await setupTwoSources();
+  account.readOnly = true;
+  manager.setAccountStorage(account);
+  await assert.rejects(manager.saveAs({name: 'x'}), /read-only/);
+  assert.throws(() => manager.setStorage('nowhere', account), /Unknown preset source/);
 });

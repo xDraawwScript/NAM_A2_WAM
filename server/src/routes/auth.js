@@ -1,8 +1,8 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import { User, USERNAME_PATTERN } from "../models/User.js";
+import { User } from "../models/User.js";
 import { signToken, requireAuth, HttpError } from "../auth.js";
-import { PASSWORD_MIN, PASSWORD_MAX, passwordBytes } from "../../../examples/wam/account/accountRules.js";
+import { USERNAME_PATTERN, USERNAME_HINT, PASSWORD_MIN, PASSWORD_MAX, passwordBytes } from "../../../examples/wam/account/accountRules.js";
 import { rateLimit } from "../rateLimit.js";
 
 /*
@@ -31,6 +31,11 @@ function credentials(body = {}) {
   };
 }
 
+/** Même règle (et même message) que le formulaire d'inscription : accountRules.js. */
+function assertUsername(username) {
+  if (!USERNAME_PATTERN.test(username)) throw new HttpError(400, `Username: ${USERNAME_HINT}`);
+}
+
 async function assertUsernameFree(username, exceptId = null) {
   const existing = await User.findOne({ usernameKey: username.toLowerCase() }).select("_id").lean();
   if (existing && String(existing._id) !== String(exceptId)) throw new HttpError(409, "This username is already taken");
@@ -40,7 +45,7 @@ authRouter.post("/auth/register", registerLimiter, async (req, res, next) => {
   try {
     const { username, email, password } = credentials(req.body);
     console.log(`[auth] Inscription demandée pour le pseudo « ${username || "?"} »`);
-    if (!USERNAME_PATTERN.test(username)) throw new HttpError(400, "Username: 3 to 24 characters (letters, digits, . _ -)");
+    assertUsername(username);
     if (!email) throw new HttpError(400, "Email is required");
     if (password.length < PASSWORD_MIN || passwordBytes(password) > PASSWORD_MAX) {
       throw new HttpError(400, `Password: ${PASSWORD_MIN} to ${PASSWORD_MAX} characters (accented letters count double)`);
@@ -85,7 +90,7 @@ authRouter.get("/users/me", requireAuth, async (req, res, next) => {
 authRouter.put("/users/me", requireAuth, async (req, res, next) => {
   try {
     const username = String(req.body?.username ?? "").trim();
-    if (!USERNAME_PATTERN.test(username)) throw new HttpError(400, "Username: 3 to 24 characters (letters, digits, . _ -)");
+    assertUsername(username);
     await assertUsernameFree(username, req.userId);
     const user = await User.findById(req.userId);
     if (!user) throw new HttpError(401, "Account not found");

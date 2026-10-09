@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { NAME_MAX, DESCRIPTION_MAX } from "../../../examples/wam/presets/PresetFormat.js";
 
 /*
  * Preset en ligne. `rack` est l'état du rack « déshydraté » produit par l'hôte
@@ -11,8 +12,8 @@ import mongoose from "mongoose";
 const schema = new mongoose.Schema(
   {
     ownerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    name: { type: String, required: true, trim: true, maxlength: 80 },
-    description: { type: String, trim: true, maxlength: 500, default: "" },
+    name: { type: String, required: true, trim: true, maxlength: NAME_MAX },
+    description: { type: String, trim: true, maxlength: DESCRIPTION_MAX, default: "" },
     tags: { type: [String], default: [] },
     visibility: { type: String, enum: ["private", "public"], default: "private" },
     format: { type: String, required: true },

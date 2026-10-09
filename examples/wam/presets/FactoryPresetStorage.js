@@ -28,12 +28,10 @@ export class FactoryPresetStorage {
    * Un catalogue invalide ne fait échouer QUE l'onglet Factory (erreur affichée), jamais l'hôte.
    */
   constructor(presets) {
-    this.kind = 'factory';
+    this.readOnly = true;
     if (typeof presets === 'function') this.loader = presets;
     else this.presets = validateCatalogue(presets);
   }
-
-  get available() { return true; }
 
   async catalogue() {
     if (!this.presets) {
