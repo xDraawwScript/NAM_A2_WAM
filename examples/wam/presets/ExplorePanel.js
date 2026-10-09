@@ -7,14 +7,15 @@
 // Les presets publics sont en lecture seule : on ne peut ni les renommer ni les écraser.
 
 import {el} from '../ui/el.js';
-import {describe, formatDate, signalPath} from './presetText.js';
+import {describe, formatDate, signalPath, tagList} from './presetText.js';
 
 const PAGE_SIZE = 12;
 const SEARCH_DELAY = 300;
 
 export class ExplorePanel {
-  constructor({manager, accountUser = () => null, setStatus = () => {}, message = () => {}}) {
-    Object.assign(this, {manager, accountUser, setStatus, message});
+  /** `loadPreset(preset, source)` : le chargement commun de PresetView (confirmation, messages). */
+  constructor({manager, accountUser = () => null, setStatus = () => {}, loadPreset}) {
+    Object.assign(this, {manager, accountUser, setStatus, loadPreset});
     this.items = [];
     this.page = 0;
     this.pages = 0;
@@ -109,7 +110,7 @@ export class ExplorePanel {
         el('div', {class: 'presets-title'}, el('strong', {class: 'presets-name', text: preset.name}), mine ? el('span', {class: 'presets-badge public', text: 'Yours'}) : null),
         el('span', {class: 'explore-author', text: `by ${preset.author?.username || 'unknown'} · ${formatDate(preset.createdAt)}`}),
         el('span', {class: 'presets-summary', text: describe(preset.summary)}),
-        preset.tags?.length ? el('span', {class: 'presets-tags'}, ...preset.tags.map((tag) => el('span', {class: 'presets-tag', text: tag}))) : null,
+        tagList(preset.tags),
         details),
       el('div', {class: 'presets-actions'},
         el('button', {type: 'button', class: 'presets-primary', text: 'Load', disabled: busy, 'aria-label': `Load ${preset.name}`, onclick: () => this.load(preset)}),
@@ -118,17 +119,7 @@ export class ExplorePanel {
   }
 
   async load(preset) {
-    if (this.manager.dirty && !confirm(`“${this.manager.current?.name}” has unsaved changes. Load “${preset.name}” anyway?`)) return;
-    this.setStatus(`Loading “${preset.name}” by ${preset.author?.username || 'unknown'}…`);
-    try {
-      const {warnings} = await this.manager.load(preset.id, 'public');
-      const text = warnings.length ? `Loaded “${preset.name}” with warnings: ${warnings.join(' ')}` : `Loaded “${preset.name}” by ${preset.author?.username || 'unknown'}.`;
-      this.setStatus(text, warnings.length > 0);
-      this.message(text, warnings.length > 0);
-      this.render();
-    } catch (error) {
-      this.setStatus(error.message, true);
-    }
+    if (await this.loadPreset(preset, 'public')) this.render();
   }
 
   async copy(preset) {

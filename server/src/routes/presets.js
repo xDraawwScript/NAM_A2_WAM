@@ -3,6 +3,7 @@ import { Preset } from "../models/Preset.js";
 import { User } from "../models/User.js";
 import { requireAuth, optionalAuth, HttpError } from "../auth.js";
 import { presetInput, pagination, assertObjectId, escapeRegex } from "../validation.js";
+import { NAME_MAX } from "../../../examples/wam/presets/PresetFormat.js";
 import { assertAssetsUsable, removeUnusedAssets } from "./assets.js";
 
 /*
@@ -151,7 +152,7 @@ presetsRouter.post("/:id/copy", requireAuth, async (req, res, next) => {
     assertObjectId(req.params.id);
     const source = await Preset.findById(req.params.id).lean();
     if (!source || (source.visibility !== "public" && String(source.ownerId) !== req.userId)) throw new HttpError(404, "Preset not found");
-    const name = `${source.name} (copy)`.slice(0, 80);
+    const name = `${source.name} (copy)`.slice(0, NAME_MAX);
     const copy = await Preset.create({
       ownerId: req.userId, name, description: source.description, tags: source.tags, visibility: "private",
       format: source.format, version: source.version, summary: source.summary, rack: source.rack,

@@ -11,7 +11,8 @@
 // fournie (`cache`), pour ne pas retélécharger 300 Ko à chaque chargement du même modèle.
 
 import {validatePreset, presetMetadata, PresetError} from './PresetFormat.js';
-import {floatsToBase64, base64ToFloats} from './PresetFile.js';
+import {encodeAsset, decodeAsset} from './PresetFile.js';
+import {ASSET_KINDS} from './PresetAssets.js';
 
 const MAX_PAGES = 20; // 20 × 50 presets : largement assez pour un compte d'étudiant
 const MEMORY_LIMIT = 16; // assets gardés en mémoire (~300 Ko chacun), les plus anciens sont oubliés
@@ -29,23 +30,10 @@ export function cardFromApi(item) {
   return {id, name, description, tags, summary, createdAt, updatedAt, visibility, author, copiedFrom, size};
 }
 
-/** Corps JSON d'un asset pour PUT /api/assets/:hash (même encodage que les fichiers exportés). */
-export function assetToApi(asset) {
-  return asset.kind === 'nam'
-    ? {kind: 'nam', name: asset.name, data: asset.data}
-    : {kind: 'ir', name: asset.name, samples: floatsToBase64(asset.samples)};
-}
-
-export function assetFromApi(body) {
-  return body.kind === 'nam'
-    ? {hash: body.hash, kind: 'nam', name: body.name, data: body.data}
-    : {hash: body.hash, kind: 'ir', name: body.name, samples: base64ToFloats(body.samples)};
-}
-
 export class RemotePresetStorage {
-  constructor({api, cache = null}) {
-    Object.assign(this, {api, cache});
-    this.kind = 'account';
+  /** `readOnly: true` pour le catalogue public (onglet Explore) : on lit et on copie, sans écrire. */
+  constructor({api, cache = null, readOnly = false}) {
+    Object.assign(this, {api, cache, readOnly});
     this.assetMemory = new Map(); // hash → asset, du plus ancien au plus récent
     this.onServer = new Set();    // hashes déjà présents sur le serveur pour CE compte
   }
@@ -65,8 +53,6 @@ export class RemotePresetStorage {
     while (this.assetMemory.size > MEMORY_LIMIT) this.assetMemory.delete(this.assetMemory.keys().next().value);
     return asset;
   }
-
-  get available() { return this.api.loggedIn; }
 
   /** Tous mes presets (toutes les pages), du plus récemment modifié au plus ancien. */
   async list() {
@@ -121,20 +107,15 @@ export class RemotePresetStorage {
     return presetMetadata(fromApi(copy));
   }
 
-  rename(id, name) { return this.update(id, {name}); }
-  setVisibility(id, visibility) { return this.update(id, {visibility}); }
-
   /** Le serveur supprime lui-même les assets devenus inutiles. */
   async delete(id) {
     await this.api.request(`/presets/${encodeURIComponent(id)}`, {method: 'DELETE', auth: true});
     return [];
   }
 
-  async collectGarbage() { return []; }
-
   /** Envoie un asset seulement s'il n'est pas déjà sur le serveur (même hash = même contenu). */
   async putAsset(asset) {
-    if (!asset?.hash || !['nam', 'ir'].includes(asset.kind)) throw new PresetError('Invalid asset');
+    if (!asset?.hash || !ASSET_KINDS.includes(asset.kind)) throw new PresetError('Invalid asset');
     if (this.onServer.has(asset.hash)) return false; // déjà confirmé pendant cette session
     try {
       await this.api.request(`/assets/${asset.hash}`, {method: 'HEAD', auth: true});
@@ -143,7 +124,7 @@ export class RemotePresetStorage {
     } catch (error) {
       if (error.status !== 404) throw error;
     }
-    await this.api.request(`/assets/${asset.hash}`, {method: 'PUT', auth: true, body: assetToApi(asset)});
+    await this.api.request(`/assets/${asset.hash}`, {method: 'PUT', auth: true, body: encodeAsset(asset)});
     this.onServer.add(asset.hash);
     this.remember(asset);
     return true;
@@ -155,7 +136,7 @@ export class RemotePresetStorage {
     const cached = await this.cache?.getAsset(hash).catch(() => null);
     if (cached) return this.remember(cached);
     try {
-      return this.remember(assetFromApi(await this.api.request(`/assets/${hash}`)));
+      return this.remember(decodeAsset(await this.api.request(`/assets/${hash}`)));
     } catch (error) {
       if (error.status === 404) return null;
       throw error;

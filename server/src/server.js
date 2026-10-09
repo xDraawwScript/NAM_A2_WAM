@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { createApp, DEFAULT_CORS_ORIGINS } from "./app.js";
 import { User } from "./models/User.js";
-import { removeOrphanAssets } from "./routes/assets.js";
+import { removeOrphanAssets, migrateAssetOwners } from "./routes/assets.js";
 
 /*
  * Point d'entrée réel : connexion à MongoDB (Atlas), compte de démonstration, ouverture du port.
@@ -30,10 +30,14 @@ if (seedDemo && !(await User.exists({ email: "demo@example.com" }))) {
   console.log("[startup] Compte de démonstration créé : demo@example.com / Demo1234!");
 }
 
-// Ménage des assets envoyés mais jamais rattachés à un preset (upload interrompu…), au démarrage
-// puis toutes les heures.
+// Migration : les assets créés avant la notion de propriétaires reçoivent leur premier envoyeur
+// comme propriétaire (les droits ne se lisent plus que dans `owners`).
+await migrateAssetOwners();
+
+// Ménage des assets envoyés mais jamais rattachés à un preset (upload interrompu…), toutes les
+// heures et une première fois juste après le démarrage (sans retarder l'ouverture du port).
 const cleanOrphans = () => removeOrphanAssets().catch((error) => console.error("[assets] Ménage impossible", error));
-await cleanOrphans();
+setTimeout(cleanOrphans, 1000).unref();
 setInterval(cleanOrphans, 60 * 60 * 1000).unref();
 
 const server = createApp({ corsOrigins }).listen(port, () => {

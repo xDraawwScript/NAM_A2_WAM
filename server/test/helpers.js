@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 import { createApp } from "../src/app.js";
 import { loginLimiter, registerLimiter } from "../src/routes/auth.js";
 import { dehydrateRack } from "../../examples/wam/presets/PresetAssets.js";
-import { floatsToBase64 } from "../../examples/wam/presets/PresetFile.js";
+import { encodeAsset } from "../../examples/wam/presets/PresetFile.js";
 import { createPreset } from "../../examples/wam/presets/PresetFormat.js";
 import { makeRackState, makeFactory, makeAssetMap } from "../../tests/phase5/fixtures.mjs";
 
@@ -66,7 +66,7 @@ export async function makePresetPayload(name = "My tone", options = {}) {
   const preset = createPreset({ rack, name, tags: options.tags ?? ["rock"] });
   const assets = [...store.map.values()].map((asset) => ({
     hash: asset.hash,
-    body: asset.kind === "nam" ? { kind: "nam", name: asset.name, data: asset.data } : { kind: "ir", name: asset.name, samples: floatsToBase64(asset.samples) },
+    body: encodeAsset(asset),
   }));
   const { id, createdAt, updatedAt, ...payload } = preset;
   return { payload: { ...payload, visibility: options.visibility ?? "private" }, assets };

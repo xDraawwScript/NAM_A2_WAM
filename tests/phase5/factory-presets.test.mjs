@@ -83,7 +83,7 @@ test('load a factory preset, tweak it, save it as MY preset; the factory one nev
   };
   const rack = new FakeRack(await makeRackState());
   const manager = new PresetManager({rack, storage: new IndexedDbPresetStorage({indexedDB: new IDBFactory()}), factory: factoryAssets, checkDelay: 0});
-  manager.setFactoryStorage(new FactoryPresetStorage(FACTORY_PRESETS));
+  manager.setStorage('factory', new FactoryPresetStorage(FACTORY_PRESETS));
   manager.setSource('factory');
   const fuzz = FACTORY_PRESETS.find((preset) => preset.id === 'factory:fuzz-muff');
   const {warnings} = await manager.load(fuzz.id);

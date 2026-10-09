@@ -24,13 +24,13 @@ test('save, list, get, rename and update presets in IndexedDB', async () => {
   assert.equal('rack' in list[0], false, 'lists are light: no rack state');
   const loaded = await storage.get(first.id);
   assert.equal(loaded.rack.a.entries.length, 3);
-  const renamed = await storage.rename(first.id, 'Clean & bright');
+  const renamed = await storage.update(first.id, {name: 'Clean & bright'});
   assert.equal(renamed.name, 'Clean & bright');
   assert.equal(renamed.updatedAt, '2026-10-08T12:00:00.000Z');
   const updated = await storage.update(second.id, {tags: ['Lead', 'solo'], description: 'For solos'});
   assert.deepEqual(updated.tags, ['lead', 'solo']);
   assert.equal(await storage.get('unknown'), null);
-  await assert.rejects(storage.rename('unknown', 'x'), /not found/);
+  await assert.rejects(storage.update('unknown', {name: 'x'}), /not found/);
 });
 
 test('an asset shared by two presets survives the deletion of one of them', async () => {
@@ -58,6 +58,5 @@ test('putAsset keeps the first copy and stores IR samples as Float32Array', asyn
 
 test('storage reports when IndexedDB is unavailable', async () => {
   const storage = new IndexedDbPresetStorage({indexedDB: null});
-  assert.equal(storage.available, false);
   await assert.rejects(storage.list(), /IndexedDB is not available/);
 });
