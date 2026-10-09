@@ -70,7 +70,7 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 | 3 | Comptes dans l'hôte (`feature/comptes`) | ✅ | 2026-10-10 | voir `git log feature/comptes` |
 | 4 | Presets en ligne (`feature/presets-en-ligne`) | ✅ | 2026-10-10 | voir `git log feature/presets-en-ligne` |
 | S | Revue de sécurité avancée (`feature/revue-securite`) | ✅ | 2026-10-10 | voir `git log feature/revue-securite` |
-| 5 | Explorer les presets publics (`feature/explorer-public`) | ⏳ | | |
+| 5 | Explorer les presets publics (`feature/explorer-public`) | ✅ | 2026-10-10 | voir `git log feature/explorer-public` |
 | 6 | Presets d'usine (`feature/presets-usine`) | ⏳ | | |
 | 7 | Finitions, relectures, REPORT.md (`feature/finitions`) | ⏳ | | |
 
@@ -136,6 +136,17 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 - ✅ Vérification dans le navigateur (vrais plugins + vrai backend, base temporaire)
 - ✅ Relecture `/code-review` : 6 points traités
 - ✅ Tests : hôte 205/205, backend 30/30 — commit, push, merge dans `develop`
+
+### Détail mission 5
+
+- ✅ `RemotePresetStorage` : `listPublic()` (recherche, pagination, sans compte) et `copyFrom()`
+- ✅ `PresetManager` : troisième source `public` en **lecture seule**, `searchPublic()`, `copyPublic()`
+- ✅ `ExplorePanel.js` (onglet Explore) + `presetText.js` (textes partagés)
+- ✅ Octet nul invisible dans `PresetView.js` (Git le voyait comme binaire) → corrigé + test
+- ✅ Tests unitaires + test de bout en bout navigateur ↔ serveur de l'exploration
+- ✅ Vérification dans le navigateur (invité, autre compte, mobile)
+- ✅ Relecture `/code-review` : 5 points traités
+- ✅ Tests : hôte 209/209, backend 35/35 — commit, push, merge dans `develop`
 
 ---
 
@@ -632,6 +643,71 @@ combien de secondes attendre.
 refusé, jeton signé avec un autre algorithme refusé). Les tests créent beaucoup de comptes depuis
 127.0.0.1 : leurs outils remettent les compteurs à zéro entre deux appels, sauf dans les tests du
 limiteur. Résultats : backend **34/34**, hôte **205/205**.
+
+### Mission 5 — Explorer les presets publics (`feature/explorer-public`, 2026-10-10)
+
+**Fait** : un troisième onglet **Explore** dans la fenêtre Presets montre les presets **publics de
+tous les utilisateurs**, accessibles **même sans compte** :
+- « récemment ajoutés » par défaut, avec un bouton *Load more* (12 par page) ;
+- une **recherche** (nom, tag, ampli, cabinet, pédale, pseudo de l'auteur), lancée 300 ms après la
+  dernière frappe pour ne pas interroger le serveur à chaque lettre ;
+- un **aperçu** : auteur, date, résumé, tags, et *Details* = l'ordre du signal de chaque chaîne
+  (« Faust BigMuff → Bogner Uberschall → (Celestion V30) », les modules bypassés entre parenthèses) ;
+- **Load** : essayer le son (le modèle et l'IR externes sont téléchargés automatiquement) ;
+- **Copy to my presets** (connecté) : copie **privée** sur son compte, qu'on peut ensuite modifier.
+  Ses propres presets publics portent un badge *Yours*.
+
+**Lecture seule** : un preset public d'un autre utilisateur ne peut être ni écrasé (*Update* masqué),
+ni renommé, ni supprimé — le manager le refuse (`writableStorage`) et l'interface ne le propose pas.
+Pour le garder : *Copy to my presets*, ou *Save as new preset*.
+
+**Fichiers**
+
+| Fichier | Rôle |
+|---|---|
+| `presets/ExplorePanel.js` (nouveau) | L'onglet Explore : recherche, liste, *Load more*, détails, chargement, copie |
+| `presets/presetText.js` (nouveau) | Textes partagés (résumé, date, ordre du signal) entre les deux vues |
+| `presets/RemotePresetStorage.js` | `listPublic()` (GET `/api/presets/public`) et `copyFrom()` (POST `/api/presets/:id/copy`) |
+| `presets/PresetManager.js` | Source `public` en lecture seule ; rester sur Explore quand on se connecte |
+| `presets/PresetView.js`, `presets.css`, `main.js` | Troisième onglet, câblage du catalogue public |
+
+Le serveur n'a pas changé : les routes `/api/presets/public` et `/copy` existaient depuis la mission 2.
+
+**Explication — « lecture seule » sans dupliquer de code** : le catalogue public est un
+`RemotePresetStorage` comme le compte. La différence est faite à un seul endroit :
+`writableStorage(source)` refuse toute écriture quand `source === 'public'`. Toutes les opérations
+d'écriture (enregistrer, écraser, renommer, supprimer, importer) passent par lui.
+
+**Explication — les recherches qui se croisent** : si l'on tape vite, plusieurs recherches partent ;
+la réponse de la première peut arriver après la seconde. Chaque recherche reçoit donc un **numéro** :
+une réponse dont le numéro n'est plus le dernier est ignorée (même principe pour *Load more*).
+
+**Problème découvert : un octet nul invisible** dans `PresetView.js` (ajouté en mission 4 par un
+script, dans la clé `copyKey`). Le code marchait, mais **Git considérait le fichier comme binaire** :
+ses diffs étaient illisibles sur GitHub. Remplacé par la séquence `\u0000`, et un test interdit
+désormais tout octet nul dans les sources.
+
+**Relecture de code (`/code-review`)** : 5 points traités.
+1. La fenêtre réactivait tous les boutons après chaque opération, y compris *Copy* pour un invité →
+   l'onglet Explore gère ses propres boutons.
+2. *Load more* pendant une nouvelle recherche affichait des résultats de l'ancienne → numéros séparés.
+3. Le badge *Yours* comparait les pseudos (qui peuvent changer) → comparaison par identifiant.
+4. Un test de texte acceptait une mauvaise réponse (expression régulière trop large) → égalité exacte.
+5. `SUIVI.md` pas tenu pendant la mission → ce journal.
+
+**Vérifié dans le navigateur** (vrais plugins, vrai backend sur MongoDB locale, base temporaire) :
+invité → 2 presets publics (le privé n'apparaît pas) → recherche « fuzz » → *Load* : son
+**identique** à l'original (pédale BigMuff comprise), *Update* masqué, *Copy* désactivé → connexion
+d'un autre compte (on reste sur Explore) → *Copy* → copie privée dans *My account* → *Details* →
+affichage mobile correct → compte de l'auteur : badge *Yours*, pas de bouton de copie.
+
+**Résultats** : hôte **209/209** · backend **35/35** (dont 6 tests de bout en bout).
+
+**Comment tester soi-même**
+1. Avec un compte : enregistrer un preset en cochant *Public*.
+2. Se déconnecter → *Presets* → onglet **Explore** : le preset apparaît ; *Details*, *Load*.
+3. Chercher par tag, ampli, pédale ou pseudo.
+4. Se connecter avec un autre compte → *Copy to my presets* → il apparaît dans *My account*.
 
 ---
 
