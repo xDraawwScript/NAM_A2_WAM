@@ -15,6 +15,8 @@ import {PresetManager} from './presets/PresetManager.js';
 import {PresetView} from './presets/PresetView.js';
 import {IndexedDbPresetStorage} from './presets/PresetStorage.js';
 import {FactoryAssets} from './presets/PresetAssets.js';
+import {ApiClient} from './account/ApiClient.js';
+import {AccountView} from './account/AccountView.js';
 const TONE3000_CALLBACK_CHANNEL = 'nam-a2-wam.tone3000.callback';
 const TONE3000_CALLBACK_STORAGE_KEY = 'nam-a2-wam.tone3000.callback';
 
@@ -230,6 +232,17 @@ async function initialize() {
     beforeLoad:()=>chainView.close(),interactionTarget:document});
   window.phase3Debug.presets=presetManager;
   new PresetView({manager:presetManager,button:$('#presetsButton'),label:$('#presetCurrent'),message});
+  // Comptes (projet étudiant) : client de l'API server/ + fenêtre Account. La session enregistrée
+  // est revérifiée auprès du serveur en arrière-plan (sans bloquer le démarrage de l'audio).
+  // Sans URL d'API (ancien config.js), seule la fonction Account est désactivée, pas l'hôte.
+  const apiUrl=window.NAM_A2_WAM_CONFIG?.api?.baseUrl;
+  if(apiUrl){
+    const api=new ApiClient({baseUrl:apiUrl});
+    window.phase3Debug.api=api;
+    new AccountView({api,button:$('#accountButton'),label:$('#accountName'),message});
+    // Une session refusée (401) est déjà signalée par l'événement 'expired' de l'AccountView.
+    api.refresh().catch(error=>{if(error.status!==401)message(`Account: ${error.message}`,true);});
+  }else $('#accountButton').title='Account server not configured (config.js → api.baseUrl)';
   const modeButton=$('#uiMode');modeButton.disabled=false;
   modeButton.onclick=async()=>{
     modeButton.disabled=true;chainView.close();

@@ -21,7 +21,7 @@ export const HASH_PATTERN = /^[a-f0-9]{64}$/;
 const text = (value, max) => String(value ?? "").trim().slice(0, max);
 
 /** Vérifie un identifiant MongoDB avant toute requête (sinon CastError). */
-export function assertObjectId(id, message = "Preset inconnu") {
+export function assertObjectId(id, message = "Preset not found") {
   if (!mongoose.isValidObjectId(id)) throw new HttpError(404, message);
 }
 
@@ -41,7 +41,7 @@ export function escapeRegex(value) {
 function assertDehydrated(rack) {
   for (const entry of rackEntries(rack)) {
     if (entry.state?.model?.data !== undefined || entry.state?.ir?.samples !== undefined) {
-      throw new HttpError(400, "Le modèle ou l'IR doit être envoyé comme asset (/api/assets), pas dans le preset");
+      throw new HttpError(400, "The amp model or IR must be uploaded as an asset (/api/assets), not embedded in the preset");
     }
   }
   const refs = collectAssetRefs(rack);
@@ -49,7 +49,7 @@ function assertDehydrated(rack) {
     const valid = ref?.source === "factory"
       ? typeof ref.id === "string" && ref.id.startsWith("factory:") && ref.id.length < 500
       : ref?.source === "store" && HASH_PATTERN.test(ref.hash);
-    if (!valid || !["nam", "ir"].includes(ref.kind)) throw new HttpError(400, "Référence d'asset invalide");
+    if (!valid || !["nam", "ir"].includes(ref.kind)) throw new HttpError(400, "Invalid asset reference");
   }
   return [...new Set(refs.filter((ref) => ref.source === "store").map((ref) => ref.hash))];
 }
@@ -93,13 +93,13 @@ export function presetInput(body = {}, { partial = false } = {}) {
     } catch (error) {
       throw new HttpError(400, error.message);
     }
-    if (valid.description.length > 500) throw new HttpError(400, "Description : 500 caractères maximum");
+    if (valid.description.length > 500) throw new HttpError(400, "Description is limited to 500 characters");
     if (!partial || has("name")) output.name = valid.name;
     if (!partial || has("description")) output.description = valid.description;
     if (!partial || has("tags")) output.tags = valid.tags;
     if (!partial || has("rack")) {
       const size = Buffer.byteLength(JSON.stringify(valid.rack));
-      if (size > MAX_RACK_BYTES) throw new HttpError(413, "Preset trop volumineux : les modèles et IR doivent être des assets");
+      if (size > MAX_RACK_BYTES) throw new HttpError(413, "Preset too large: amp models and IRs must be uploaded as assets");
       output.assetHashes = assertDehydrated(valid.rack);
       output.rack = valid.rack;
       output.summary = cleanSummary(body.summary, valid.rack);
@@ -110,7 +110,7 @@ export function presetInput(body = {}, { partial = false } = {}) {
   }
   if (!partial || has("visibility")) {
     const visibility = body.visibility ?? "private";
-    if (!["private", "public"].includes(visibility)) throw new HttpError(400, "Visibilité : private ou public");
+    if (!["private", "public"].includes(visibility)) throw new HttpError(400, "Visibility must be private or public");
     output.visibility = visibility;
   }
   return output;

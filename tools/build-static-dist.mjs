@@ -24,6 +24,8 @@ for (const [source, target] of [
   ['examples/wam/backing-track-player', 'backing-track-player'],
   // Projet étudiant : modules de gestion des presets (format, assets, IndexedDB, fenêtre).
   ['examples/wam/presets', 'presets'],
+  // Projet étudiant : comptes (client de l'API, fenêtre Account) et utilitaire DOM partagé.
+  ['examples/wam/account', 'account'], ['examples/wam/ui', 'ui'],
   ['examples/wam/fx-test', 'fx-test'], ['examples/wam/wamPlugins', 'wamPlugins'],
   ['src/nam-wam', 'plugins/nam-wam'], ['src/cabinet-wam', 'plugins/cabinet-wam'], ['src/shared', 'plugins/shared'],
   ['third_party/wam-examples/packages/sdk/src', 'third_party/wam-examples/packages/sdk/src'],
@@ -66,6 +68,7 @@ for (const a of nam.assets) await required(join(dist, 'plugins/nam-wam/models', 
 for (const a of irs.assets) await required(join(dist, 'plugins/cabinet-wam/IRs', ...a.relativePath.split('/')));
 for (const p of ['index.html', 'config.js', 'host.css', 'main.js', 'plugins/nam-wam/index.js', 'plugins/nam-wam/models-manifest.json', 'plugins/nam-wam/nam-simd.wasm', 'plugins/cabinet-wam/index.js', 'plugins/cabinet-wam/irs-manifest.json', 'plugins/cabinet-wam/neuralwamp-cabinet-logo.svg', 'plugins/cabinet-wam/nam-simd.wasm', 'WamPluginRegistry.js', 'PluginCard.js', 'fx-test/index.html', 'fx-test/main.js', 'fx-test/style.css', 'wamPlugins/plugins.json']) await required(join(dist, p));
 for (const p of ['PresetFormat.js', 'PresetAssets.js', 'PresetStorage.js', 'PresetFile.js', 'PresetManager.js', 'PresetView.js', 'presets.css']) await required(join(dist, 'presets', p));
+for (const p of ['account/ApiClient.js', 'account/AccountView.js', 'account/accountRules.js', 'account/account.css', 'ui/el.js']) await required(join(dist, p));
 const forbidden = /(?:\.\.\/src|\.\.\/examples|\.\.\/build|\/api\/test-audio-files)/;
 const secrets = /(?:t3k_cs_|(?:client_secret|secret_key|access_token|refresh_token)\s*[:=]\s*['"][^'"]+)/i;
 for (const p of ['index.html', 'main.js', 'fx-test/index.html', 'fx-test/main.js', 'plugins/nam-wam/index.js', 'plugins/cabinet-wam/index.js']) if (forbidden.test(await readFile(join(dist, p), 'utf8'))) throw Error(`Invalid source/runtime reference in ${p}`);
