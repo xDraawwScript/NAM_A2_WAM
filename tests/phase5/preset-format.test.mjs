@@ -77,3 +77,16 @@ test('presetMetadata never includes the heavy rack state', async () => {
   assert.equal('rack' in metadata, false);
   assert.equal(metadata.summary.amp, 'Twin Clean');
 });
+
+test('portable presets: core modules lose their mode-dependent pluginUri, pedals keep theirs', async () => {
+  const rack = await makeRackState();
+  rack.a.entries[1].pluginUri = '../plugins/nam-wam/index.js';
+  rack.a.entries[2].pluginUri = '../plugins/cabinet-wam/index.js';
+  const preset = createPreset({rack, name: 'Portable', ...fixed});
+  assert.equal(preset.rack.a.entries[1].pluginUri, undefined);
+  assert.equal(preset.rack.a.entries[2].pluginUri, undefined);
+  assert.equal(preset.rack.a.entries[0].pluginUri, './BigMuff/index.js');
+  const old = structuredClone(preset);
+  old.rack.a.entries[1].pluginUri = '../plugins/nam-wam/index.js';
+  assert.equal(validatePreset(old).rack.a.entries[1].pluginUri, undefined, 'presets saved before the rule are cleaned when read');
+});

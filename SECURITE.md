@@ -76,6 +76,9 @@
 | 37 | Un preset ne contient **ni jeton, ni identifiant de carte son, ni gain d'entrée** ; le charger **n'active jamais le micro** | `PresetFormat.js`, `PresetManager.js` | Exigence de la spec du prof (§7.2) ; vie privée | `preset-host-integration.test.mjs` | M1 |
 | 38 | Les modules presets/comptes **n'importent jamais le code des plugins** et ne touchent pas aux appareils audio | — | Respect de la consigne + surface d'attaque réduite | tests d'intégration | M1 |
 | 39 | Confirmation avant les actions irréversibles (supprimer) ou visibles par tous (rendre public, avec rappel que seul le pseudo est montré) | `PresetView.js` | Éviter les erreurs de manipulation | vérifié dans le navigateur | M1 + M4 |
+| 46 | **Presets d'usine** : catalogue validé (format, identifiants `factory:`, **références d'usine uniquement**), figé (`Object.freeze`) et toujours renvoyé en **copie** ; **lecture seule** (aucune écriture possible) | `presets/FactoryPresetStorage.js`, `PresetManager.writableStorage()` | Un son livré avec l'appli ne peut ni être altéré ni pointer vers un fichier extérieur | `factory-presets.test.mjs` | M6 |
+| 47 | Presets d'usine **portables** : aucune URL propre à la machine (`localhost`, origine de la page), contrôlée à la génération et par un test ; seuls les liens publics d'attribution (TONE3000, créateur) sont gardés | `tools/factory-presets/generate-factory-presets.js` | Spec §7.2 : pas d'URL propre au développeur ; crédit des captures conservé | `factory-presets.test.mjs` | M6 |
+| 48 | Un catalogue d'usine invalide ne fait échouer **que l'onglet Factory** (chargement à la demande), jamais l'hôte audio | `FactoryPresetStorage.js`, `main.js` | Disponibilité : une erreur de données ne coupe pas le son | `factory-presets.test.mjs` | CR |
 
 ## 7. Serveur et secrets
 

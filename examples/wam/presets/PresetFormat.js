@@ -41,11 +41,15 @@ export function rackEntries(rack) {
 
 /**
  * Retire du state du rack ce qui ne doit pas voyager dans un preset :
- * le gain d'entrée (`sourceTrim`), qui dépend de la guitare / carte son et non du son.
+ *  - le gain d'entrée (`sourceTrim`), qui dépend de la guitare / carte son et non du son ;
+ *  - l'URI des modules NAM et Cabinet, qui dépend de l'endroit d'où l'appli est servie
+ *    (« ../plugins/nam-wam/… » dans la dist, « ../../../src/nam-wam/… » en mode source). Sans elle,
+ *    l'hôte retrouve ces modules par leur rôle dans le catalogue, quel que soit le mode.
  */
 export function portableRack(rack) {
   const copy = structuredClone(rack);
   delete copy.sourceTrim;
+  for (const entry of rackEntries(copy)) if (entry.kind !== 'effect') delete entry.pluginUri;
   return copy;
 }
 
@@ -141,7 +145,7 @@ export function validatePreset(value) {
   preset.description = clean(preset.description);
   preset.tags = normalizeTags(preset.tags || []);
   validateRack(preset.rack);
-  if ('sourceTrim' in preset.rack) delete preset.rack.sourceTrim;
+  preset.rack = portableRack(preset.rack); // aussi pour les presets enregistrés avant cette règle
   return preset;
 }
 

@@ -16,6 +16,7 @@ import {PresetView} from './presets/PresetView.js';
 import {IndexedDbPresetStorage} from './presets/PresetStorage.js';
 import {FactoryAssets} from './presets/PresetAssets.js';
 import {RemotePresetStorage} from './presets/RemotePresetStorage.js';
+import {FactoryPresetStorage} from './presets/FactoryPresetStorage.js';
 import {ApiClient} from './account/ApiClient.js';
 import {AccountView} from './account/AccountView.js';
 const TONE3000_CALLBACK_CHANNEL = 'nam-a2-wam.tone3000.callback';
@@ -233,6 +234,8 @@ async function initialize() {
     nameForUri:uri=>registry.records.find(record=>record.catalogue?.uri===uri||record.entryUrl===uri)?.name,
     beforeLoad:()=>chainView.close(),interactionTarget:document});
   window.phase3Debug.presets=presetManager;
+  // Presets d'usine (lecture seule) : sons prêts à jouer livrés avec l'appli, chargés à la demande.
+  presetManager.setFactoryStorage(new FactoryPresetStorage(()=>import('./presets/factoryPresets.js').then(module=>module.FACTORY_PRESETS)));
   // Comptes (projet étudiant) : client de l'API server/ + fenêtre Account. La session enregistrée
   // est revérifiée auprès du serveur en arrière-plan (sans bloquer le démarrage de l'audio).
   // Sans URL d'API (ancien config.js), seule la fonction Account est désactivée, pas l'hôte.

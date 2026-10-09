@@ -23,7 +23,7 @@ capturés et restaurés uniquement par les méthodes WAM `getState()` / `setStat
 | Comptes : inscription, connexion, déconnexion, profil (JWT) | ✅ |
 | Presets en ligne, privés ou publics ; copie des presets du navigateur vers le compte | ✅ |
 | Explorer les presets publics (même sans compte) : récents, recherche, aperçu, chargement, copie | ✅ |
-| Presets d'usine (lecture seule) | ⏳ |
+| Presets d'usine (lecture seule) : 7 sons prêts à jouer, niveaux égalisés | ✅ |
 
 ## 3. Interface utilisateur
 
@@ -43,7 +43,7 @@ ouvrent des fenêtres de dialogue ; la fenêtre Presets comporte les onglets *Me
 
 ## 4 bis. Sécurité
 
-45 mesures de sécurité (comptes, jetons, autorisations, validation des données, déni de service,
+48 mesures de sécurité (comptes, jetons, autorisations, validation des données, déni de service,
 XSS, secrets), chacune avec son emplacement dans le code, sa raison et le test qui la vérifie :
 voir [`SECURITE.md`](SECURITE.md). Points clés : mots de passe bcrypt (≤ 72 octets), JWT HS256 avec
 secret hors du code, limite de tentatives (429), presets privés invisibles (404), assets protégés
@@ -78,7 +78,7 @@ une seule fois (`examples/wam/presets/PresetFormat.js`) et utilisé par le navig
 | Suite | Commande | Résultat |
 |---|---|---|
 | Hôte (existants, projet d'origine) | `npm test` | 146 / 146 ✅ (avant modifications) |
-| Hôte (nouveaux, `tests/phase5/`) | `npm test` | 63 / 63 ✅ (missions 1, 3, 4 et 5) — total 209 / 209 |
+| Hôte (nouveaux, `tests/phase5/`) | `npm test` | 73 / 73 ✅ (missions 1, 3, 4, 5 et 6) — total 219 / 219 |
 | Backend (`server/test/`) | `cd server && npm test` | 35 / 35 ✅ (MongoDB en mémoire, dont 6 tests de bout en bout et 4 tests de sécurité) |
 
 ## 8. Utilisation de l'assistant IA
