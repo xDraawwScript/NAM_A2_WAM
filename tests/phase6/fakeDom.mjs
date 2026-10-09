@@ -20,6 +20,7 @@ class FakeElement {
   removeAttribute(name) { this.attributes.delete(name); }
   append(...items) { for (const item of items) {
     const node = typeof item === 'string' ? Object.assign(new FakeElement(this.ownerDocument, '#text'), {textContent: item}) : item; node.parent?.children.splice(node.parent.children.indexOf(node), 1); node.parent = this; this.children.push(node); } }
+  prepend(node) { this.append(node); this.children.unshift(this.children.pop()); }
   replaceChildren(...nodes) { for (const child of [...this.children]) child.remove(); this.append(...nodes); }
   /** Sélecteurs simples seulement : « tag », « .classe » ou « tag[open] ». */
   querySelector(selector) { return this.find(matcher(selector)); }

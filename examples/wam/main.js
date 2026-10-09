@@ -24,6 +24,7 @@ import {mountLanguageSwitch} from './ui/LanguageSwitch.js';
 import {createToaster} from './ui/toast.js';
 import {GettingStarted} from './ui/GettingStarted.js';
 import {mountShortcutsHelp} from './ui/ShortcutsHelp.js';
+import {VisualizerBackground} from './ui/VisualizerBackground.js';
 const TONE3000_CALLBACK_CHANNEL = 'nam-a2-wam.tone3000.callback';
 const TONE3000_CALLBACK_STORAGE_KEY = 'nam-a2-wam.tone3000.callback';
 
@@ -246,6 +247,8 @@ async function initialize() {
   Object.assign(window.phase3Debug,{backingPlayer,backingMix});
   chainView=new FxRackView(rack,message);
   window.phase3Debug.tuner=new TunerView({context,registry,groupId,input:chain.input,button:$('#tunerButton')});
+  // Fond animé (option, désactivé par défaut) : lit ce qu'on entend (ampli + backing track), sans le modifier.
+  window.phase3Debug.visualizer=new VisualizerBackground({button:$('#visualizerButton'),context,source:backingMix.output,notify:message});
   // Presets (projet étudiant) : tout le rack A+B, modèles/IR par référence, stockage IndexedDB.
   const browserPresets=new IndexedDbPresetStorage();
   const presetManager=new PresetManager({rack,storage:browserPresets,
