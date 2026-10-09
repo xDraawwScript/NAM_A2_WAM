@@ -150,14 +150,19 @@ test('setLanguage : mémorise seulement si demandé, prévient les abonnés une 
 });
 
 test('applyTranslations remplit les textes et attributs data-i18n*', () => {
-  const node = (dataset, attributes = {}) => ({dataset, textContent: '', attributes, getAttribute: (name) => attributes[name], setAttribute(name, value) { this.attributes[name] = value; }});
-  const text = node({i18n: 'header.tuner'});
-  const titled = node({}, {'data-i18n-title': 'header.tunerTitle'});
-  const root = {querySelectorAll: (selector) => ({'[data-i18n]': [text], '[data-i18n-title]': [titled]}[selector] ?? [])};
+  const node = (attributes = {}) => ({textContent: '', attributes, getAttribute: (name) => attributes[name] ?? null, setAttribute(name, value) { this.attributes[name] = value; }});
+  const text = node({'data-i18n': 'header.tuner'});
+  const titled = node({'data-i18n-title': 'header.tunerTitle'});
+  // Texte dynamique : ses paramètres (data-i18n-params) sont réutilisés à chaque changement de langue.
+  const dynamic = node({'data-i18n': 'rack.inputTitle', 'data-i18n-params': '{"lane":"B"}'});
+  const broken = node({'data-i18n': 'rack.inputTitle', 'data-i18n-params': '{oops'});
+  const root = {querySelectorAll: (selector) => ({'[data-i18n]': [text, dynamic, broken], '[data-i18n-title]': [titled]}[selector] ?? [])};
   setLanguage('fr');
   applyTranslations(root);
   assert.equal(text.textContent, 'Accordeur');
   assert.equal(titled.attributes.title, 'Ouvrir l\'accordeur');
+  assert.equal(dynamic.textContent, 'ENTRÉE · B');
+  assert.equal(broken.textContent, 'ENTRÉE · {lane}', 'paramètres illisibles : le texte reste affiché, sans planter');
   applyTranslations(null); // sans DOM : ne fait rien
 });
 

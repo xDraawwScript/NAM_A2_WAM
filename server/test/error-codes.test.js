@@ -75,7 +75,11 @@ test("limiteur de tentatives : code rate_login", async () => {
 
 test("presets et assets : codes de validation", async () => {
   const { token } = await ctx.register();
-  expectError(await ctx.api("/api/presets", { method: "POST", token, body: { name: "x", rack: {} } }), 400, "preset_invalid");
+  const invalid = await ctx.api("/api/presets", { method: "POST", token, body: { name: "x", rack: {} } });
+  expectError(invalid, 400, "preset_invalid");
+  // Le code du PresetError accompagne le détail : le client l'affiche dans sa langue.
+  assert.equal(invalid.body.params.detailCode, "rackVersion");
+  assert.match(invalid.body.params.detail, /rack state version/);
   expectError(await ctx.api("/api/assets/xyz", { method: "PUT", token, body: { kind: "nam", data: "{}" } }), 400, "asset_invalid_hash");
   expectError(await ctx.api(`/api/assets/${"a".repeat(64)}`, { token }), 404, "asset_not_found");
 });

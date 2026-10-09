@@ -129,15 +129,56 @@ export function initLanguage() {
   }));
 }
 
+/** « −12,5 dB » : une décimale, au format de la langue ; −∞ sous le plancher. */
+export function formatDb(value, {floor = -Infinity, unit = 'dB'} = {}) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number <= floor) return `−∞ ${unit}`;
+  return `${dbFormat().format(number)} ${unit}`;
+}
+
+// formatDb sert aussi aux vumètres (60 fois par seconde) : un formateur par langue, réutilisé.
+const dbFormats = new Map();
+function dbFormat() {
+  if (!dbFormats.has(current)) dbFormats.set(current, new Intl.NumberFormat(current, {minimumFractionDigits: 1, maximumFractionDigits: 1}));
+  return dbFormats.get(current);
+}
+
 const ATTRIBUTES = [['data-i18n-title', 'title'], ['data-i18n-aria-label', 'aria-label'], ['data-i18n-placeholder', 'placeholder']];
 
-/** Remplit le HTML statique : data-i18n → texte, data-i18n-title / -aria-label / -placeholder → attributs. */
+function readParams(node) {
+  try { return JSON.parse(node.getAttribute('data-i18n-params') || '{}'); } catch { return {}; }
+}
+
+/**
+ * Remplit le HTML : data-i18n → texte, data-i18n-title / -aria-label / -placeholder → attributs,
+ * avec les paramètres de data-i18n-params (JSON) s'il y en a. data-i18n remplace tout le texte du
+ * nœud : il ne se met que sur un élément sans enfant (un <span> autour du texte sinon).
+ */
 export function applyTranslations(root = globalThis.document) {
   if (!root?.querySelectorAll) return;
-  for (const node of root.querySelectorAll('[data-i18n]')) node.textContent = t(node.dataset.i18n);
+  for (const node of root.querySelectorAll('[data-i18n]')) node.textContent = t(node.getAttribute('data-i18n'), readParams(node));
   for (const [data, attribute] of ATTRIBUTES) {
-    for (const node of root.querySelectorAll(`[${data}]`)) node.setAttribute(attribute, t(node.getAttribute(data)));
+    for (const node of root.querySelectorAll(`[${data}]`)) node.setAttribute(attribute, t(node.getAttribute(data), readParams(node)));
   }
+}
+
+/**
+ * Traduit un élément créé en JavaScript ET le marque pour qu'il suive les changements de langue
+ * (applyTranslations le retraduit) : localize(button, {text: 'rack.mute', title: 'rack.muteChain'}, {lane: 'B'}).
+ * Clés possibles : text, title, ariaLabel, placeholder. Renvoie l'élément.
+ */
+export function localize(node, keys, params = null) {
+  if (params) node.setAttribute('data-i18n-params', JSON.stringify(params));
+  else node.removeAttribute('data-i18n-params');
+  const values = params ?? {};
+  for (const [name, key] of Object.entries(keys)) {
+    if (name === 'text') { node.setAttribute('data-i18n', key); node.textContent = t(key, values); continue; }
+    const attribute = {title: 'title', ariaLabel: 'aria-label', placeholder: 'placeholder'}[name];
+    if (!attribute) throw new Error(`localize: unknown target ${name}`);
+    node.setAttribute(`data-i18n-${attribute}`, key);
+    node.setAttribute(attribute, t(key, values));
+  }
+  return node;
 }
 
 function safeStorage() {

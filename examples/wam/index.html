@@ -20,16 +20,16 @@
 
       <section class="host-card" aria-labelledby="source-title">
         <h2 id="source-title"><span class="host-dot violet"></span><span data-i18n="source.input">Input</span></h2>
-        <label>Source <select id="audioSource"><option>Live input</option></select></label>
+        <label><span data-i18n="input.source">Source</span> <select id="audioSource"><option>Live input</option></select></label>
         <div class="embedded-player" id="playerPanel" hidden>
-          <p class="embedded-player-title"><span class="host-dot amber"></span>Audio player</p>
-          <div class="transport" role="group" aria-label="Audio transport">
-            <button class="player-control" id="play" type="button" aria-label="Play">▶</button>
-            <button class="player-control" id="pause" type="button" aria-label="Pause">Ⅱ</button>
-            <button class="player-control" id="stop" type="button" aria-label="Stop">■</button>
-            <label class="loop-control"><input class="player-control" id="loop" type="checkbox"> Loop</label>
+          <p class="embedded-player-title"><span class="host-dot amber"></span><span data-i18n="input.player">Audio player</span></p>
+          <div class="transport" role="group" aria-label="Audio transport" data-i18n-aria-label="input.transport">
+            <button class="player-control" id="play" type="button" aria-label="Play" data-i18n-aria-label="input.play">▶</button>
+            <button class="player-control" id="pause" type="button" aria-label="Pause" data-i18n-aria-label="input.pause">Ⅱ</button>
+            <button class="player-control" id="stop" type="button" aria-label="Stop" data-i18n-aria-label="input.stop">■</button>
+            <label class="loop-control"><input class="player-control" id="loop" type="checkbox"> <span data-i18n="input.loop">Loop</span></label>
           </div>
-          <label class="host-range">Position
+          <label class="host-range"><span data-i18n="input.position">Position</span>
             <input class="player-control" id="seek" type="range" min="0" max="1" step="0.001" value="0">
           </label>
           <audio id="player" preload="metadata"></audio>
@@ -40,21 +40,21 @@
 
       <section class="host-card" aria-labelledby="output-heading">
         <h2 id="output-heading"><span class="host-dot amber"></span><span data-i18n="source.output">Output</span></h2>
-        <button class="host-secondary" id="authorizeOutput" type="button">Choose output</button>
+        <button class="host-secondary" id="authorizeOutput" type="button" data-i18n="input.chooseOutput">Choose output</button>
         <p class="host-help" id="outputSupport"></p>
-        <button class="host-secondary" id="recoverAudio" type="button" hidden>Recover audio</button>
+        <button class="host-secondary" id="recoverAudio" type="button" hidden data-i18n="input.recover">Recover audio</button>
       </section>
 
       <details class="host-card host-advanced">
-        <summary>Session & diagnostics</summary>
+        <summary data-i18n="input.session">Session &amp; diagnostics</summary>
         <div class="host-session-actions">
-          <button id="saveState" type="button">Save WAM state</button>
-          <button id="restoreState" type="button">Restore state</button>
+          <button id="saveState" type="button" data-i18n="input.saveState">Save WAM state</button>
+          <button id="restoreState" type="button" data-i18n="input.restoreState">Restore state</button>
         </div>
         <span class="host-help" id="stateSize"></span>
         <details class="validation-panel">
           <summary>Automated test results</summary>
-          <p class="host-help">Diagnostic report generated only when this page is opened with <code>?auto=1</code>.</p>
+          <p class="host-help" id="autoHelp">Diagnostic report generated only when this page is opened with <code>?auto=1</code>.</p>
           <pre id="automatedResult"></pre>
         </details>
       </details>
@@ -81,7 +81,7 @@
           <button id="accountButton" class="host-account-button" type="button" title="Sign in or create an account" aria-haspopup="dialog" disabled><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span id="accountName" class="host-account-name">Sign in</span></button>
           <button id="visualizerButton" class="host-visualizer-button" type="button" aria-pressed="false" title="Show an animated background that reacts to the sound" data-i18n-title="visualizer.turnOn" disabled><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 12h2l2-6 3 12 3-9 2 5 2-2h4"/></svg><span data-i18n="visualizer.label">Visuals</span></button>
           <button id="uiMode" type="button" aria-pressed="false" title="Switch to full mode to use two chains" disabled>UI mode: beginner</button>
-          <div class="lang-switch" id="languageSwitch" role="group" aria-label="Language"><button type="button" data-lang="fr" lang="fr" aria-pressed="false">FR</button><button type="button" data-lang="en" lang="en" aria-pressed="true">EN</button></div>
+          <div class="lang-switch" id="languageSwitch" role="group" aria-label="Language" data-i18n-aria-label="header.language"><button type="button" data-lang="fr" lang="fr" aria-pressed="false">FR</button><button type="button" data-lang="en" lang="en" aria-pressed="true">EN</button></div>
         </nav>
       </header>
 
@@ -98,7 +98,7 @@
       <section class="fx-rack" aria-label="Processing chain A">
         <aside class="fx-endpoint fx-input-strip" aria-label="Chain A input">
           <strong>INPUT · A</strong>
-          <div class="fx-endpoint-routing"><label class="fx-select-label"><span>Input device</span><select id="inputDevice" title="Input device"></select></label>
+          <div class="fx-endpoint-routing"><label class="fx-select-label"><span data-i18n="rack.inputDevice">Input device</span><select id="inputDevice" title="Input device" data-i18n-title="rack.inputDevice"></select></label>
             <label class="fx-select-label" id="inputChannelRow" hidden><span>Input channel</span><select id="inputChannel" title="Input channel"><option value="0">Input 1</option></select></label></div>
           <div class="fx-endpoint-controls">
             <div class="fx-meter-column">
@@ -106,20 +106,20 @@
               <output id="chainInputLevel">−∞ dBFS</output>
               <button class="fx-gain-reset" id="chainInputReset" aria-label="Reset input gain">Reset</button>
             </div>
-            <label class="fx-gain">Gain<input id="sourceTrim" aria-label="Input gain" aria-orientation="vertical" type="range" min="-48" max="12" step="0.5" value="0"><output id="sourceTrimValue">0.0 dB</output></label>
+            <label class="fx-gain"><span>Gain</span><input id="sourceTrim" aria-label="Input gain" aria-orientation="vertical" type="range" min="-48" max="12" step="0.5" value="0"><output id="sourceTrimValue">0.0 dB</output></label>
           </div>
         </aside>
-        <section class="fx-chain" id="fxChain" aria-label="Effects — drag to swap cards, or Alt + arrow keys"></section>
+        <section class="fx-chain" id="fxChain" aria-label="Chain A effects: drag to swap cards, or Alt + arrow keys" data-i18n-aria-label="rack.effects" data-i18n-params='{"lane":"A"}'></section>
         <aside class="fx-endpoint fx-output-strip" aria-label="Chain A output">
           <strong>OUTPUT · A</strong>
-          <div class="fx-endpoint-routing"><label class="fx-select-label"><span>Output device</span><select id="outputDevice" title="Output device"><option value="">System default</option></select></label></div>
+          <div class="fx-endpoint-routing"><label class="fx-select-label"><span data-i18n="rack.outputDevice">Output device</span><select id="outputDevice" title="Output device" data-i18n-title="rack.outputDevice"><option value="">System default</option></select></label></div>
           <div class="fx-endpoint-controls">
             <div class="fx-meter-column">
               <div class="fx-meter fx-meter-linear" id="chainOutputMeter" role="meter" aria-label="Output level dBFS" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-60"></div>
               <output id="chainOutputLevel">−∞ dBFS</output>
               <button class="fx-gain-reset" id="chainOutputReset" aria-label="Reset output gain">Reset</button>
             </div>
-            <label class="fx-gain">Volume<input id="chainOutputGain" aria-label="Output gain" aria-orientation="vertical" type="range" min="-48" max="12" step="0.5" value="0"><output id="chainOutputGainValue">0.0 dB</output></label>
+            <label class="fx-gain"><span>Volume</span><input id="chainOutputGain" aria-label="Output gain" aria-orientation="vertical" type="range" min="-48" max="12" step="0.5" value="0"><output id="chainOutputGainValue">0.0 dB</output></label>
           </div>
           <label class="fx-pan"><span>L</span><input id="chainOutputPan" type="range" min="-1" max="1" step="0.01" value="0" aria-label="Chain A pan" title="Pan L/R — double-click to center"><span>R</span><output id="chainOutputPanValue">C</output></label>
         </aside>

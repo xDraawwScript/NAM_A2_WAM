@@ -15,8 +15,8 @@ import {collectAssetRefs} from './PresetAssets.js';
 function validateCatalogue(presets) {
   return presets.map((preset) => {
     const valid = validatePreset(preset);
-    if (!valid.id.startsWith('factory:')) throw new PresetError(`Factory preset id must start with "factory:": ${valid.id}`);
-    if (collectAssetRefs(valid.rack).some((ref) => ref.source !== 'factory')) throw new PresetError(`Factory preset "${valid.name}" references a non-factory asset`);
+    if (!valid.id.startsWith('factory:')) throw new PresetError(`Factory preset id must start with "factory:": ${valid.id}`, 'factoryId', {id: valid.id});
+    if (collectAssetRefs(valid.rack).some((ref) => ref.source !== 'factory')) throw new PresetError(`Factory preset "${valid.name}" references a non-factory asset`, 'factoryAsset', {name: valid.name});
     return Object.freeze(valid);
   });
 }
