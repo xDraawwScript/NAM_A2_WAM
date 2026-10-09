@@ -115,3 +115,12 @@ test('NAM and Cabinet entries carry no pluginUri (it depends on source vs dist m
     for (const entry of rackEntries(preset.rack).filter((item) => item.kind !== 'effect')) assert.equal(entry.pluginUri, undefined, `${preset.name}: ${entry.kind}`);
   }
 });
+
+test('buttons shown for each tab: a factory preset only offers Load (no "Copy to account" bug)', async () => {
+  const {presetActions} = await import('../../examples/wam/presets/presetText.js');
+  assert.deepEqual(presetActions({source: 'factory', readOnly: true, signedIn: true}), ['load'], 'factory, even when signed in');
+  assert.deepEqual(presetActions({source: 'factory', readOnly: true, signedIn: false}), ['load']);
+  assert.deepEqual(presetActions({source: 'browser', signedIn: true}), ['load', 'rename', 'copy', 'export', 'delete']);
+  assert.deepEqual(presetActions({source: 'browser', signedIn: false}), ['load', 'rename', 'export', 'delete'], 'no copy without an account');
+  assert.deepEqual(presetActions({source: 'account', signedIn: true}), ['load', 'rename', 'visibility', 'export', 'delete']);
+});
