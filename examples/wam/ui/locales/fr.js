@@ -13,8 +13,31 @@ export default {
       fr: 'Afficher l\'interface en français',
     },
   },
+  confirm: {
+    ok: 'OK',
+    cancel: 'Annuler',
+  },
   presets: {
     count: {one: '{count} preset', other: '{count} presets'},
+    confirm: {
+      overwrite: {title: 'Mettre à jour « {name} » ?', message: 'La version enregistrée sera remplacée par le son actuel.', action: 'Mettre à jour'},
+      load: {title: 'Abandonner les modifications ?', message: '« {current} » a des modifications non enregistrées. Charger « {name} » quand même ?', action: 'Charger quand même'},
+      makePublic: {title: 'Rendre « {name} » public ?', message: 'Tout le monde pourra le trouver, le charger et le copier. Votre pseudo est affiché, jamais votre e-mail.', action: 'Rendre public'},
+      copyAll: {
+        title: {one: 'Copier {count} preset sur votre compte ?', other: 'Copier {count} presets sur votre compte ?'},
+        message: 'Ils resteront aussi dans ce navigateur.',
+        action: 'Copier',
+      },
+      delete: {
+        title: 'Supprimer « {name} » ?',
+        messageAccount: 'Il sera supprimé de votre compte. C\'est définitif : exportez-le d\'abord pour en garder une copie.',
+        messageBrowser: 'Il sera supprimé de ce navigateur. C\'est définitif : exportez-le d\'abord pour en garder une copie.',
+        action: 'Supprimer',
+      },
+    },
+  },
+  chain: {
+    confirmRemove: {title: 'Retirer {name} ?', message: 'Ce plugin et ses réglages seront retirés de la chaîne.', action: 'Retirer'},
   },
   errors: {
     notSignedIn: 'Connectez-vous d\'abord.',

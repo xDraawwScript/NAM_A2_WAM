@@ -3,7 +3,7 @@ const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className
 export class FxRackView {
   constructor(rack,report){
     Object.assign(this,{rack,report});this.root=document.querySelector('.fx-rack');this.root.setAttribute('aria-label','Processing chains');
-    const input=this.root.querySelector('[aria-label="Chain A input"]'),output=this.root.querySelector('[aria-label="Chain A output"]'),strip=document.querySelector('#fxChain');
+    const input=this.root.querySelector('.fx-input-strip'),output=this.root.querySelector('.fx-output-strip'),strip=document.querySelector('#fxChain');
     const header=el('div','fx-rack-controls');this.toggle=el('button','','☷  1 / 2 chains');this.toggle.id='toggleChains';this.toggle.setAttribute('aria-expanded','false');
     header.append(document.getElementById('enableLive'),this.toggle);
     for(const id of ['inputDevice','outputDevice']){const label=document.getElementById(id).closest('label');label.className='fx-device-label';header.append(label);}
@@ -29,7 +29,7 @@ export class FxRackView {
     this.bLeft=cell(this.inputB);this.bRight=cell(this.outputB);this.left.append(this.bLeft);this.right.append(this.bRight);
     this.muteA=el('button','fx-lane-enable','Mute');output.querySelector('.fx-endpoint-routing').append(this.muteA);
     this.enableB=el('button','fx-lane-enable','Mute');this.outputB.querySelector('.fx-endpoint-routing').append(this.enableB);
-    this.dialog=el('dialog','fx-confirm fx-routing-dialog');document.body.append(this.dialog);
+    this.dialog=el('dialog','fx-confirm fx-routing-dialog');this.dialog.setAttribute('aria-labelledby','fxRouteTitle');document.body.append(this.dialog);
     this.aView=new FxChainView(rack.a,strip,report,{onRoute:(index,button)=>this.routeMenu(index,button),onLayout:()=>this.scheduleLayout(),onOpen:()=>this.bView?.close()});
     this.toggle.onclick=async()=>{
       this.toggle.disabled=true;this.toggle.textContent='Loading…';
@@ -113,7 +113,7 @@ export class FxRackView {
     if(!this.rack.activeB){this.report('Click 1 / 2 chains to show B first.');return;}
     const order=this.rack.a.entries.map(e=>e.id).join('|');
     this.preview={index};this.layout();this.dialog.replaceChildren();
-    const title=el('h3','',existing?'A → B route':this.rack.route?'Replace A → B route':'Split A → B');
+    const title=el('h3','',existing?'A → B route':this.rack.route?'Replace A → B route':'Split A → B');title.id='fxRouteTitle';
     const text=el('p','','A continues normally. B starts here; its physical input is disconnected. Existing B effects shift right.');
     const cancel=el('button','','Cancel'),connect=el('button','',existing?'Keep route':'Connect');
     const close=()=>{this.preview=null;this.dialog.close();this.layout();trigger?.focus();};

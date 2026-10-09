@@ -15,8 +15,31 @@ export default {
       fr: 'Show the interface in French',
     },
   },
+  confirm: {
+    ok: 'OK',
+    cancel: 'Cancel',
+  },
   presets: {
     count: {one: '{count} preset', other: '{count} presets'},
+    confirm: {
+      overwrite: {title: 'Update “{name}”?', message: 'The saved version will be replaced by the current sound.', action: 'Update'},
+      load: {title: 'Discard unsaved changes?', message: '“{current}” has unsaved changes. Load “{name}” anyway?', action: 'Load anyway'},
+      makePublic: {title: 'Make “{name}” public?', message: 'Everyone will be able to find it, load it and copy it. Your username is shown, never your email.', action: 'Make public'},
+      copyAll: {
+        title: {one: 'Copy {count} preset to your account?', other: 'Copy {count} presets to your account?'},
+        message: 'They will also stay in this browser.',
+        action: 'Copy',
+      },
+      delete: {
+        title: 'Delete “{name}”?',
+        messageAccount: 'It will be deleted from your account. This cannot be undone: export it first to keep a copy.',
+        messageBrowser: 'It will be deleted from this browser. This cannot be undone: export it first to keep a copy.',
+        action: 'Delete',
+      },
+    },
+  },
+  chain: {
+    confirmRemove: {title: 'Remove {name}?', message: 'This plugin and its settings will be removed from the chain.', action: 'Remove'},
   },
   errors: {
     notSignedIn: 'Please sign in first.',
