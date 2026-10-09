@@ -170,3 +170,48 @@ test('importing a file that lacks an asset: warning in the browser, clear refusa
   assert.deepEqual(await fresh.account.list(), [], 'nothing half-imported online');
   assert.ok(account);
 });
+
+// --- Mission 5 : catalogue public (lecture seule) ----------------------------------------------
+test('public presets: load without account, but never update, rename, delete or save into them', async () => {
+  const {rack, manager, account} = await setupTwoSources({externalModel: true});
+  // Le « catalogue public » est simulé par une IndexedDB contenant un preset d'un autre utilisateur.
+  const catalogue = new IndexedDbPresetStorage({indexedDB: new IDBFactory(), name: 'public'});
+  manager.setAccountStorage(account);
+  const theirs = await manager.saveAs({name: 'Their tone'});
+  const copyInCatalogue = await catalogue.save({...(await account.get(theirs.id)), id: 'pub-1'});
+  for (const hash of await account.listAssetHashes()) await catalogue.putAsset(await account.getAsset(hash));
+  manager.setAccountStorage(null);
+  manager.setPublicStorage(catalogue);
+  manager.setSource('public');
+
+  const {warnings} = await manager.load(copyInCatalogue.id, 'public');
+  assert.deepEqual(warnings, []);
+  assert.deepEqual(manager.current, {id: 'pub-1', name: 'Their tone', source: 'public'});
+  rack.state.a.entries[1].state.parameterValues.bass.value = 2;
+  await assert.rejects(manager.overwrite(), /read-only/);
+  await assert.rejects(manager.rename('pub-1', 'Mine now'), /read-only/);
+  await assert.rejects(manager.remove('pub-1'), /read-only/);
+  await assert.rejects(manager.saveAs({name: 'x'}), /read-only/);
+  await assert.rejects(manager.copyPublic('pub-1'), /Sign in/);
+  assert.equal((await catalogue.get('pub-1')).name, 'Their tone', 'the public preset is untouched');
+});
+
+test('signing in while exploring stays on Explore; signing out keeps Explore available', async () => {
+  const {manager, account} = await setupTwoSources();
+  manager.setPublicStorage(new IndexedDbPresetStorage({indexedDB: new IDBFactory(), name: 'public'}));
+  manager.setSource('public');
+  manager.setAccountStorage(account);
+  assert.equal(manager.source, 'public');
+  manager.setAccountStorage(null);
+  assert.equal(manager.source, 'public');
+  manager.setPublicStorage(null);
+  assert.equal(manager.source, 'browser');
+});
+
+test('signalPath shows the order of the signal, bypassed modules in brackets', async () => {
+  const {signalPath, describe} = await import('../../examples/wam/presets/presetText.js');
+  assert.equal(signalPath([{name: 'BigMuff'}, {name: 'Twin', bypass: false}, {name: 'V30', bypass: true}]), 'BigMuff → Twin → (V30)');
+  assert.equal(signalPath(), '');
+  assert.equal(describe({amp: 'Twin', effects: ['BigMuff'], chains: 2}), 'Amp: Twin · 1 effect: BigMuff · Chains A + B');
+  assert.equal(describe({amp: 'Twin', cabinet: 'V30', effects: []}), 'Amp: Twin · Cab: V30 · No effect');
+});
