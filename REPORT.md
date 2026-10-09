@@ -41,6 +41,14 @@ ouvrent des fenêtres de dialogue ; la fenêtre Presets comporte les onglets *Me
 - backend Express 5 + Mongoose + MongoDB Atlas, authentification JWT, mots de passe bcrypt ;
 - conformité à `SPECIFICATION_FX_CHAIN.md` §7.2 (spec du projet d'origine).
 
+## 4 bis. Sécurité
+
+45 mesures de sécurité (comptes, jetons, autorisations, validation des données, déni de service,
+XSS, secrets), chacune avec son emplacement dans le code, sa raison et le test qui la vérifie :
+voir [`SECURITE.md`](SECURITE.md). Points clés : mots de passe bcrypt (≤ 72 octets), JWT HS256 avec
+secret hors du code, limite de tentatives (429), presets privés invisibles (404), assets protégés
+par preuve de possession, hash recalculé côté serveur, aucun HTML utilisateur interprété.
+
 ## 5. Architecture
 
 ```
