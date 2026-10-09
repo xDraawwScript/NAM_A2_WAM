@@ -25,6 +25,8 @@ Web, M1 MIAGE) : améliorer **l'hôte** WAM pour gérer **utilisateurs, connexio
    preset**, **le chargement d'un preset n'active jamais l'entrée live**.
 6. **Pas de secret dans le code** : `server/.env` (non versionné) contient `MONGODB_URI` et
    `JWT_SECRET` ; fournir `server/.env.example`.
+7. **Toute mesure de sécurité** (nouvelle ou corrigée) est notée dans [`SECURITE.md`](SECURITE.md) :
+   où, pourquoi, quel test la vérifie.
 
 ## Git
 
