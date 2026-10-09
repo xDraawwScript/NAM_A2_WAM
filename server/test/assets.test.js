@@ -103,3 +103,24 @@ test("les assets envoyés mais jamais utilisés sont supprimés après 24 h", as
   assert.ok((await removeOrphanAssets(Date.now() + 25 * 3600 * 1000)).includes(hash));
   assert.equal((await ctx.api(`/api/assets/${hash}`, { method: "HEAD", token })).status, 404);
 });
+
+test("deux utilisateurs avec le même fichier : stocké une fois, utilisable par les deux après preuve de possession", async () => {
+  const { Asset } = await import("../src/models/Asset.js");
+  const first = await ctx.register("SameFileA");
+  const second = await ctx.register("SameFileB");
+  const data = JSON.stringify({ architecture: "WaveNet", shared: "same capture" });
+  const hash = await sha256Hex(data);
+  const body = { kind: "nam", name: "capture.nam", data };
+  assert.equal((await ctx.api(`/api/assets/${hash}`, { method: "PUT", token: first.token, body })).status, 201);
+  // Pour le second, l'asset « n'existe pas » tant qu'il n'a pas prouvé posséder le contenu.
+  assert.equal((await ctx.api(`/api/assets/${hash}`, { method: "HEAD", token: second.token })).status, 404);
+  assert.equal((await ctx.api(`/api/assets/${hash}`, { token: second.token })).status, 404);
+  const wrong = await ctx.api(`/api/assets/${hash}`, { method: "PUT", token: second.token, body: { ...body, data: data + " " } });
+  assert.equal(wrong.status, 400, "un faux contenu ne donne aucun droit");
+  const proof = await ctx.api(`/api/assets/${hash}`, { method: "PUT", token: second.token, body });
+  assert.equal(proof.status, 200);
+  assert.equal(proof.body.created, false);
+  assert.equal((await ctx.api(`/api/assets/${hash}`, { method: "HEAD", token: second.token })).status, 200);
+  assert.equal((await ctx.api(`/api/assets/${hash}`, { token: second.token })).status, 200);
+  assert.equal(await Asset.countDocuments({ hash }), 1, "toujours un seul exemplaire");
+});
