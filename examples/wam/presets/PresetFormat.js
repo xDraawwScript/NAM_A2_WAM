@@ -26,6 +26,12 @@ export function normalizeName(name) {
   return value;
 }
 
+export function normalizeDescription(description = '') {
+  const value = clean(description);
+  if (value.length > DESCRIPTION_MAX) throw new PresetError(`Description is limited to ${DESCRIPTION_MAX} characters`);
+  return value;
+}
+
 export function normalizeTags(tags = []) {
   if (!Array.isArray(tags)) throw new PresetError('Tags must be a list');
   const unique = [...new Set(tags.map((tag) => clean(tag).toLocaleLowerCase('en-US').replace(/\s+/gu, ' ')).filter(Boolean))];
@@ -107,14 +113,12 @@ export function summarize(rack, nameForUri = null) {
 export function createPreset({rack, name, description = '', tags = [], nameForUri = null, id = crypto.randomUUID(), now = new Date()}) {
   const portable = validateRack(portableRack(rack));
   const timestamp = now.toISOString();
-  const text = clean(description);
-  if (text.length > DESCRIPTION_MAX) throw new PresetError(`Description is limited to ${DESCRIPTION_MAX} characters`);
   return {
     format: PRESET_FORMAT,
     version: PRESET_VERSION,
     id,
     name: normalizeName(name),
-    description: text,
+    description: normalizeDescription(description),
     tags: normalizeTags(tags),
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -142,7 +146,7 @@ export function validatePreset(value) {
   const preset = migratePreset(value);
   if (!clean(preset.id)) throw new PresetError('Preset ID is missing');
   preset.name = normalizeName(preset.name);
-  preset.description = clean(preset.description);
+  preset.description = normalizeDescription(preset.description);
   preset.tags = normalizeTags(preset.tags || []);
   validateRack(preset.rack);
   preset.rack = portableRack(preset.rack); // aussi pour les presets enregistrés avant cette règle

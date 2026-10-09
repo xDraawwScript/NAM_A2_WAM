@@ -12,6 +12,11 @@
 
 import {rackEntries} from './PresetFormat.js';
 
+/** Les deux sortes d'assets : modèle d'ampli (.nam) et réponse impulsionnelle de cabinet (IR). */
+export const ASSET_KINDS = ['nam', 'ir'];
+/** Identifiant d'un asset externe : son empreinte SHA-256 en hexadécimal (64 caractères). */
+export const HASH_PATTERN = /^[a-f0-9]{64}$/;
+
 const toHex = (buffer) => Array.from(new Uint8Array(buffer), (byte) => byte.toString(16).padStart(2, '0')).join('');
 
 /** SHA-256 en hexadécimal d'un texte, d'un ArrayBuffer ou d'un tableau typé (Web Crypto). */
@@ -39,6 +44,17 @@ export class FactoryAssets {
   constructor({namManifestUrl, irManifestUrl, fetch = globalThis.fetch?.bind(globalThis), decodeAudio}) {
     Object.assign(this, {namManifestUrl: String(namManifestUrl), irManifestUrl: String(irManifestUrl), fetch, decodeAudio});
     this.manifests = new Map();
+    this.loads = new Map(); // `kind:id` → promesse : un modèle/une IR d'usine n'est téléchargé et décodé qu'une fois
+  }
+
+  /** Mémorise la promesse de chargement ; une erreur n'est pas mémorisée (on pourra réessayer). */
+  cached(key, load) {
+    if (!this.loads.has(key)) {
+      const promise = load();
+      this.loads.set(key, promise);
+      promise.catch(() => this.loads.delete(key));
+    }
+    return this.loads.get(key);
   }
 
   /**
@@ -80,12 +96,15 @@ export class FactoryAssets {
     return response;
   }
 
-  async loadNamText(id) { return (await this.fetchAsset('nam', id)).text(); }
+  loadNamText(id) { return this.cached(`nam:${id}`, async () => (await this.fetchAsset('nam', id)).text()); }
 
   async loadIrSamples(id) {
     if (!this.decodeAudio) throw new Error('no audio decoder available');
-    const audio = await this.decodeAudio(await (await this.fetchAsset('ir', id)).arrayBuffer());
-    return new Float32Array(audio.getChannelData(0));
+    const samples = await this.cached(`ir:${id}`, async () => {
+      const audio = await this.decodeAudio(await (await this.fetchAsset('ir', id)).arrayBuffer());
+      return new Float32Array(audio.getChannelData(0));
+    });
+    return new Float32Array(samples); // copie : le cache n'est jamais modifié par l'appelant
   }
 }
 
@@ -160,7 +179,8 @@ export async function dehydrateRack(rack, {factory = null, saveAsset}) {
 export async function hydrateRack(rack, {factory = null, loadAsset}) {
   const copy = structuredClone(rack);
   const warnings = [];
-  for (const entry of rackEntries(copy)) {
+  // Les modèles et IR de toutes les entrées sont chargés EN PARALLÈLE (2 chaînes = jusqu'à 4 fichiers).
+  await Promise.all(rackEntries(copy).map(async (entry) => {
     const state = entry.state;
     if (state?.model?.assetRef) {
       const {assetRef, ...model} = state.model;
@@ -184,7 +204,7 @@ export async function hydrateRack(rack, {factory = null, loadAsset}) {
         warnings.push(`Cabinet IR "${ir.name || assetRef.id || assetRef.hash}" unavailable (${error.message}); the current IR was kept.`);
       }
     }
-  }
+  }));
   return {rack: copy, warnings};
 }
 

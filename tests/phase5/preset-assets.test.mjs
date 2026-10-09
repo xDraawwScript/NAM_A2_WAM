@@ -87,3 +87,27 @@ test('FactoryAssets reads plugin manifests and builds encoded asset URLs', async
   await assert.rejects(factory.loadNamText('factory:unknown.nam'), /not found/);
   assert.throws(() => factoryAssetUrl('http://x/m.json', 'models', '../secret'), /Invalid factory asset path/);
 });
+
+test('FactoryAssets downloads and decodes each factory asset only once, and returns copies', async () => {
+  let fetches = 0;
+  let decodes = 0;
+  const manifests = {
+    'models-manifest.json': {assets: [{id: 'factory:a.nam', relativePath: 'a.nam', contentHash: 'h1'}]},
+    'irs-manifest.json': {assets: [{id: 'factory:c.wav', relativePath: 'c.wav', contentHash: 'h2'}]},
+  };
+  const factory = new FactoryAssets({namManifestUrl: 'http://x/nam/models-manifest.json', irManifestUrl: 'http://x/cab/irs-manifest.json',
+    fetch: async (url) => {
+      const name = String(url).split('/').at(-1);
+      if (manifests[name]) return {ok: true, json: async () => manifests[name]};
+      fetches++;
+      return {ok: true, text: async () => 'MODEL', arrayBuffer: async () => new ArrayBuffer(8)};
+    },
+    decodeAudio: async () => { decodes++; return {getChannelData: () => Float32Array.from([0.5, 0.25])}; }});
+  await Promise.all([factory.loadNamText('factory:a.nam'), factory.loadNamText('factory:a.nam')]);
+  const first = await factory.loadIrSamples('factory:c.wav');
+  first[0] = 99;
+  const second = await factory.loadIrSamples('factory:c.wav');
+  assert.equal(fetches, 2, 'one download per asset');
+  assert.equal(decodes, 1, 'one decode per IR');
+  assert.equal(second[0], 0.5, 'the cached samples are never modified by a caller');
+});

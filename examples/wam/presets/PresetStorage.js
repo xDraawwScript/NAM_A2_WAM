@@ -12,8 +12,8 @@
 //   presets : un preset complet par clé `id`
 //   assets  : modèles .nam et IR externes, par clé `hash` (SHA-256), partagés entre presets
 
-import {validatePreset, presetMetadata, normalizeName, normalizeTags, DESCRIPTION_MAX, PresetError} from './PresetFormat.js';
-import {referencedStoreHashes} from './PresetAssets.js';
+import {validatePreset, presetMetadata, normalizeName, normalizeDescription, normalizeTags, PresetError} from './PresetFormat.js';
+import {referencedStoreHashes, ASSET_KINDS} from './PresetAssets.js';
 
 const DB_VERSION = 1;
 
@@ -25,11 +25,8 @@ const promisify = (request) => new Promise((resolve, reject) => {
 export class IndexedDbPresetStorage {
   constructor({indexedDB = globalThis.indexedDB, name = 'nam-a2-wam-presets', now = () => new Date()} = {}) {
     Object.assign(this, {indexedDB, name, now});
-    this.kind = 'local';
     this.dbPromise = null;
   }
-
-  get available() { return Boolean(this.indexedDB); }
 
   open() {
     if (!this.indexedDB) return Promise.reject(new Error('IndexedDB is not available in this browser'));
@@ -85,17 +82,12 @@ export class IndexedDbPresetStorage {
     const preset = await this.get(id);
     if (!preset) throw new PresetError('Preset not found');
     if ('name' in changes) preset.name = normalizeName(changes.name);
-    if ('description' in changes) {
-      preset.description = String(changes.description ?? '').trim();
-      if (preset.description.length > DESCRIPTION_MAX) throw new PresetError(`Description is limited to ${DESCRIPTION_MAX} characters`);
-    }
+    if ('description' in changes) preset.description = normalizeDescription(changes.description);
     if ('tags' in changes) preset.tags = normalizeTags(changes.tags);
     if ('rack' in changes) { preset.rack = changes.rack; preset.summary = changes.summary ?? preset.summary; }
     preset.updatedAt = this.now().toISOString();
     return this.save(preset);
   }
-
-  rename(id, name) { return this.update(id, {name}); }
 
   /**
    * Supprime un preset, puis les assets que plus aucun preset n'utilise (« ramasse-miettes »).
@@ -119,7 +111,7 @@ export class IndexedDbPresetStorage {
 
   /** Ajoute un asset s'il n'existe pas déjà (même hash = même contenu). */
   async putAsset(asset) {
-    if (!asset?.hash || !['nam', 'ir'].includes(asset.kind)) throw new PresetError('Invalid asset');
+    if (!asset?.hash || !ASSET_KINDS.includes(asset.kind)) throw new PresetError('Invalid asset');
     return this.transaction('assets', 'readwrite', async (store) => {
       if (await promisify(store.getKey(asset.hash)) !== undefined) return false;
       store.put({...asset, savedAt: this.now().toISOString()});
