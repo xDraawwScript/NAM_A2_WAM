@@ -9,6 +9,7 @@ import jwt from "jsonwebtoken";
  * de passe (un JWT est signé, pas chiffré : son contenu est lisible par le client).
  */
 const TOKEN_LIFETIME = "12h";
+const ALGORITHM = "HS256"; // imposé à la signature ET à la vérification (défense en profondeur)
 
 /** Erreur HTTP « attendue » (validation, droits…) transmise au gestionnaire central. */
 export class HttpError extends Error {
@@ -25,7 +26,7 @@ function secret() {
 }
 
 export function signToken(user) {
-  return jwt.sign({ sub: user.id }, secret(), { expiresIn: TOKEN_LIFETIME });
+  return jwt.sign({ sub: user.id }, secret(), { expiresIn: TOKEN_LIFETIME, algorithm: ALGORITHM });
 }
 
 /** Lit le jeton s'il est présent. Retourne l'identifiant de l'utilisateur ou null. */
@@ -34,7 +35,7 @@ function readToken(req) {
   if (!raw) return null;
   if (!raw.startsWith("Bearer ")) throw new HttpError(401, "Authentication required");
   try {
-    return jwt.verify(raw.slice(7), secret()).sub;
+    return jwt.verify(raw.slice(7), secret(), { algorithms: [ALGORITHM] }).sub;
   } catch (error) {
     console.warn(`[auth] Jeton refusé pour ${req.method} ${req.path} : ${error.name}`);
     throw new HttpError(401, "Invalid or expired token");
