@@ -53,3 +53,41 @@ test('onglets Presets et Compte : role=tabpanel, aria-controls et flèches du cl
   assert.match(account, /bindTabKeys\(tablist\)/u);
   assert.match(account, /id: 'accountTabPanel'/u);
 });
+
+test('header en trois zones, guide et barre d\'outils du rack ; aucun ancien identifiant perdu', async () => {
+  const html = await read('examples/wam/index.html');
+  // Identifiants utilisés par main.js, les vues et les tests navigateur avant la refonte.
+  const before = ['accountButton', 'accountName', 'audioSource', 'authorizeOutput', 'automatedResult', 'chainInputLevel', 'chainInputMeter',
+    'chainInputReset', 'chainOutputGain', 'chainOutputGainValue', 'chainOutputLevel', 'chainOutputMeter', 'chainOutputPan', 'chainOutputPanValue',
+    'chainOutputReset', 'discovery', 'enableLive', 'fxChain', 'hostSidebar', 'hostStatus', 'inputChannel', 'inputChannelRow', 'inputChannelStatus',
+    'inputDevice', 'loop', 'outputDevice', 'outputSupport', 'pause', 'play', 'player', 'playerPanel', 'presetCurrent', 'presetsButton',
+    'recoverAudio', 'restoreState', 'saveState', 'seek', 'source-title', 'sourceTrim', 'sourceTrimValue', 'stateSize', 'stop', 'toggleSidebar',
+    'tunerButton', 'uiMode'];
+  for (const id of before) assert.match(html, new RegExp(`id="${id}"`, 'u'), id);
+  for (const id of new Set([...html.matchAll(/id="([^"]+)"/gu)].map(([, id]) => id))) {
+    assert.equal(html.split(`id="${id}"`).length, 2, `identifiant en double : ${id}`);
+  }
+  const start = html.indexOf('<header class="host-header"');
+  const header = html.slice(start, html.indexOf('</header>', start));
+  for (const zone of ['host-brand', 'host-now', 'host-actions']) assert.match(header, new RegExp(`class="${zone}"`, 'u'), zone);
+  assert.match(header, /id="presetLine"[^>]*hidden/u, 'ligne du preset cachée tant qu\'aucun preset');
+  assert.doesNotMatch(html.slice(html.indexOf('id="presetsButton"'), html.indexOf('</button>', html.indexOf('id="presetsButton"'))), /presetCurrent/u,
+    'le nom du preset n\'est plus dans le bouton');
+  assert.match(html, /<section[^>]*id="gettingStarted"[^>]*hidden/u);
+  assert.match(html, /id="rackToolbar"/u);
+  assert.match(html, /id="shortcutsButton"/u);
+  assert.match(html, /id="hostStatus" class="sr-only" role="status"/u);
+  // Le panneau source se ferme par un vrai bouton nommé, pas seulement par Échap.
+  assert.match(html, /id="closeSidebar"[^>]*data-i18n-aria-label="source\.close"/u);
+});
+
+test('main.js : guide relié aux vraies actions, messages aussi en toast', async () => {
+  const main = await read('examples/wam/main.js');
+  for (const step of ['source', 'live', 'preset']) assert.match(main, new RegExp(`guide\\??\\.complete\\('${step}'\\)`, 'u'), step);
+  assert.match(main, /toaster\.show\(/u);
+  assert.match(main, /mountShortcutsHelp\(/u);
+  // setSource() ne renvoie pas toujours une promesse : jamais de .catch() directement dessus.
+  assert.doesNotMatch(main, /setSource\([^)]*\)\.catch/u);
+  const build = await read('tools/build-static-dist.mjs');
+  for (const file of ['ui/toast.js', 'ui/GettingStarted.js', 'ui/ShortcutsHelp.js', 'ui/confirmDialog.js', 'ui/tabs.js']) assert.ok(build.includes(`'${file}'`), file);
+});

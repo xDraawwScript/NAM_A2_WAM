@@ -21,6 +21,9 @@ import {ApiClient} from './account/ApiClient.js';
 import {AccountView} from './account/AccountView.js';
 import {initLanguage, applyTranslations, onLanguageChange} from './ui/i18n.js';
 import {mountLanguageSwitch} from './ui/LanguageSwitch.js';
+import {createToaster} from './ui/toast.js';
+import {GettingStarted} from './ui/GettingStarted.js';
+import {mountShortcutsHelp} from './ui/ShortcutsHelp.js';
 const TONE3000_CALLBACK_CHANNEL = 'nam-a2-wam.tone3000.callback';
 const TONE3000_CALLBACK_STORAGE_KEY = 'nam-a2-wam.tone3000.callback';
 
@@ -44,25 +47,33 @@ let selectedDeviceId = audioPreferences.inputDeviceId;
 let selectedInputChannel = audioPreferences.inputChannel;
 let liveInputEnabled = false;
 let outputDeviceManager;
-let chain, chainView, rack, backingPlayer, backingMix;
+let chain, chainView, rack, backingPlayer, backingMix, guide;
 
-
+// Panneau « Source audio » (entrée, fichier, sortie, session) : s'ouvre à gauche du rack.
+// Son bouton garde son texte visible ; aria-expanded indique s'il est ouvert.
 const sidebarToggle = $('#toggleSidebar');
-sidebarToggle.onclick = () => {
+function setSidebarOpen(open) {
   const sidebar = $('#hostSidebar');
-  sidebar.hidden = !sidebar.hidden;
-  $('.host-shell').classList.toggle('sidebar-collapsed', sidebar.hidden);
-  sidebarToggle.setAttribute('aria-expanded', String(!sidebar.hidden));
-  sidebarToggle.setAttribute('aria-label', sidebar.hidden ? 'Change audio source' : 'Close audio source panel');
-};
+  sidebar.hidden = !open;
+  $('.host-shell').classList.toggle('sidebar-collapsed', !open);
+  sidebarToggle.setAttribute('aria-expanded', String(open));
+  if (open) guide?.complete('source');
+}
+sidebarToggle.onclick = () => setSidebarOpen($('#hostSidebar').hidden);
+$('#closeSidebar').onclick = () => { setSidebarOpen(false); sidebarToggle.focus(); };
 $('#hostSidebar').addEventListener('keydown', event => {
-  if (event.key === 'Escape') { sidebarToggle.click(); sidebarToggle.focus(); }
+  if (event.key === 'Escape') { setSidebarOpen(false); sidebarToggle.focus(); }
 });
 
+// Messages de l'hôte : notification visible (toast) + #hostStatus, lu par les lecteurs d'écran.
+const toaster = createToaster();
 function message(text, error = false) {
   $('#hostStatus').textContent = text;
   $('#hostStatus').classList.toggle('error', error);
+  toaster.show(text, {error});
 }
+// Aide des raccourcis (bouton « ? Raccourcis » ou touche « ? ») ; elle permet aussi de revoir le guide.
+mountShortcutsHelp({button: $('#shortcutsButton'), onShowGuide: () => guide?.show()});
 
 async function discoverFiles() {
   let files=[];
@@ -170,6 +181,7 @@ async function activateSelectedLiveInput() {
   liveInputEnabled = true;
   syncLiveInputButton();
   syncSourceTrim();
+  guide?.complete('live');
   message(`Live input active: ${activeInput?.label || $('#inputDevice').selectedOptions[0]?.textContent || selectedDeviceId} · input ${Number(activeInput?.channelIndex || 0) + 1}/${activeInput?.channelCount || 1}`);
   return true;
 }
@@ -268,7 +280,6 @@ async function initialize() {
     modeButton.disabled=true;chainView.close();
     try{
       await rack.setUiMode(rack.uiMode==='beginner'?'full':'beginner');
-      if(rack.uiMode==='beginner'&&!$('#hostSidebar').hidden)sidebarToggle.click();
       document.body.dataset.uiMode=rack.uiMode;
       modeButton.textContent=`UI mode: ${rack.uiMode}`;
       modeButton.setAttribute('aria-pressed',String(rack.uiMode==='full'));
@@ -424,6 +435,16 @@ async function initialize() {
     message('WAM state restored');
   };
   message('Chain ready. Click a photo to edit, or + to insert an effect.');
+  // Guide de démarrage : chaque étape fait l'action, et se coche quand elle a vraiment eu lieu.
+  guide=new GettingStarted({root:$('#gettingStarted'),actions:{
+    source:()=>{setSidebarOpen(true);$('#audioSource').focus();},
+    live:()=>$('#enableLive').click(),
+    // setSource() ne renvoie pas toujours une promesse : try/await plutôt que .catch().
+    preset:async()=>{try{await presetManager.setSource('factory');}catch{/* onglet indisponible : la fenêtre s'ouvre quand même */}$('#presetsButton').click();},
+  }});
+  presetManager.addEventListener('change',()=>{if(presetManager.current)guide.complete('preset');});
+  $('#player').addEventListener('play',()=>guide.complete('live'));
+  $('#audioSource').addEventListener('change',()=>guide.complete('source'));
   // Programmatic selection during refreshDevices does not fire onchange.
   // Probe the initially displayed device too, after all controls are ready.
   if (!new URLSearchParams(location.search).has('auto')) void detectSelectedInputChannels();

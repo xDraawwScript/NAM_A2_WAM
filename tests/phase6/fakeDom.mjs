@@ -18,7 +18,11 @@ class FakeElement {
   getAttribute(name) { return name === 'id' ? this.id || null : this.attributes.get(name) ?? null; }
   hasAttribute(name) { return this.attributes.has(name); }
   removeAttribute(name) { this.attributes.delete(name); }
-  append(...nodes) { for (const node of nodes) { node.parent?.children.splice(node.parent.children.indexOf(node), 1); node.parent = this; this.children.push(node); } }
+  append(...items) { for (const item of items) {
+    const node = typeof item === 'string' ? Object.assign(new FakeElement(this.ownerDocument, '#text'), {textContent: item}) : item; node.parent?.children.splice(node.parent.children.indexOf(node), 1); node.parent = this; this.children.push(node); } }
+  replaceChildren(...nodes) { for (const child of [...this.children]) child.remove(); this.append(...nodes); }
+  /** Sélecteurs simples seulement : « tag », « .classe » ou « tag[open] ». */
+  querySelector(selector) { return this.find(matcher(selector)); }
   remove() { if (this.parent) { this.parent.children.splice(this.parent.children.indexOf(this), 1); this.parent = null; } }
   addEventListener(type, listener) { if (!this.listeners.has(type)) this.listeners.set(type, []); this.listeners.get(type).push(listener); }
   dispatchEvent(event) { for (const listener of this.listeners.get(event.type) ?? []) listener.call(this, event); return !event.defaultPrevented; }
@@ -33,8 +37,16 @@ class FakeElement {
   find(predicate) { return this.all.find(predicate) ?? null; }
 }
 
+function matcher(selector) {
+  const [, tag, cls, attr] = /^([a-z]*)(?:\.([\w-]+))?(?:\[(\w+)\])?$/u.exec(selector);
+  return (node) => (!tag || node.tagName === tag.toUpperCase()) && (!cls || node.className.split(' ').includes(cls)) && (!attr || Boolean(node[attr]));
+}
+
 export function createFakeDocument() {
-  const doc = {activeElement: null};
+  const doc = {activeElement: null, listeners: new Map()};
+  doc.addEventListener = (type, listener) => { if (!doc.listeners.has(type)) doc.listeners.set(type, []); doc.listeners.get(type).push(listener); };
+  doc.dispatchEvent = (event) => { for (const listener of doc.listeners.get(event.type) ?? []) listener(event); return !event.defaultPrevented; };
+  doc.querySelector = (selector) => doc.body.querySelector(selector);
   doc.createElement = (tag) => new FakeElement(doc, tag);
   doc.body = new FakeElement(doc, 'body');
   return doc;
