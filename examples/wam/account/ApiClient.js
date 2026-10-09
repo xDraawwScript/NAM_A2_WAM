@@ -35,7 +35,10 @@ export class ApiError extends Error {
  */
 export function serverErrorMessage(status, data) {
   const code = typeof data?.code === 'string' ? data.code : null;
-  if (code && hasKey(`errors.server.${code}`, 'en')) return t(`errors.server.${code}`, data.params ?? {});
+  const params = {...(data?.params ?? {})};
+  // Preset refusé : le détail (anglais) est remplacé par sa traduction quand le serveur donne son code.
+  if (typeof params.detailCode === 'string' && hasKey(`errors.preset.${params.detailCode}`, 'en')) params.detail = t(`errors.preset.${params.detailCode}`, params.detailParams ?? {});
+  if (code && hasKey(`errors.server.${code}`, 'en')) return t(`errors.server.${code}`, params);
   return data?.message || t('errors.http', {status});
 }
 

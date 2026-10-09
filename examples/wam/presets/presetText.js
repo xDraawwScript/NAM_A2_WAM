@@ -1,6 +1,7 @@
 // Textes d'affichage partagés par PresetView (mes presets) et ExplorePanel (presets publics).
 
 import {el} from '../ui/el.js';
+import {t, formatDate as formatLocalDate} from '../ui/i18n.js';
 
 /**
  * Boutons d'un preset dans la liste « mes presets », selon l'onglet (fonction pure, testée).
@@ -17,16 +18,14 @@ export function presetActions({source, readOnly = false, signedIn = false}) {
 /** Les tags d'un preset sous forme de pastilles (null s'il n'y en a pas). */
 export const tagList = (tags = []) => (tags.length ? el('span', {class: 'presets-tags'}, ...tags.map((tag) => el('span', {class: 'presets-tag', text: tag}))) : null);
 
-export const formatDate = (iso) => {
-  try { return new Date(iso).toLocaleString('en-GB', {dateStyle: 'medium', timeStyle: 'short'}); } catch { return ''; }
-};
+export const formatDate = (iso) => formatLocalDate(iso, {dateStyle: 'medium', timeStyle: 'short'});
 
 /** Résumé d'une ligne : « Amp: … · Cab: … · 2 effects: BigMuff, Delay · Chains A + B ». */
 export const describe = (summary = {}) => [
-  summary.amp && `Amp: ${summary.amp}`,
-  summary.cabinet && `Cab: ${summary.cabinet}`,
-  summary.effects?.length ? `${summary.effects.length} effect${summary.effects.length > 1 ? 's' : ''}: ${summary.effects.join(', ')}` : 'No effect',
-  summary.chains === 2 && 'Chains A + B',
+  summary.amp && t('presets.summary.amp', {name: summary.amp}),
+  summary.cabinet && t('presets.summary.cab', {name: summary.cabinet}),
+  summary.effects?.length ? t('presets.summary.effects', {count: summary.effects.length, list: summary.effects.join(', ')}) : t('presets.summary.noEffect'),
+  summary.chains === 2 && t('presets.summary.chains'),
 ].filter(Boolean).join(' · ');
 
 /** Ordre du signal d'une chaîne : « BigMuff → Twin Clean → V30 » (les modules bypassés entre parenthèses). */

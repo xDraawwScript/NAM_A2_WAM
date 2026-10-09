@@ -902,7 +902,7 @@ refonte complète de la mise en page ; **maquette HTML avant de coder**.
 | 2 | Thème : design tokens (`ui/theme.css`), polices, réécriture des CSS | ✅ |
 | 3 | Internationalisation : `ui/i18n.js`, `ui/locales/{en,fr}.js`, codes d'erreur du serveur, tests | ✅ |
 | 4 | Nouvelle mise en page, guide de démarrage, confirmations thémées, accessibilité, fond animé Butterchurn (option) | ✅ |
-| 5 | Traduction de tous les textes de l'hôte | ⏳ |
+| 5 | Traduction de tous les textes de l'hôte, retraduction en direct, codes des `PresetError` | ✅ |
 | 6 | Audit accessibilité, relecture des textes, parcours FR/EN, `/code-review`, `/simplify` | ⏳ |
 | 7 | SUIVI, REPORT, SECURITE, merge dans `develop` | ⏳ |
 
@@ -1237,6 +1237,50 @@ retirée) fait bien échouer la suite.
 capture à 1366 px, `npm run dist` (fichiers identiques octet pour octet dans la dist), aucune erreur console.
 
 **Résultats 4c** : hôte **268/268**, serveur **43/43**.
+
+#### Étape 5 : toute l'interface en français et en anglais (2026-10-10)
+
+Tous les textes de l'hôte passent maintenant par `t()` : fenêtres Presets / Explorer / Compte /
+Accordeur, rack (bandes A et B, routage A → B), cartes d'effets et leur éditeur, menu d'ajout,
+lecteur de backing tracks, panneau Source audio, messages et notifications. **Changer de langue
+retraduit tout en direct**, fenêtres ouvertes comprises, sans recharger la page ni effacer ce qui
+est tapé dans les champs.
+
+**Comment ça marche**
+
+| Mécanisme | Rôle |
+|---|---|
+| `data-i18n` + `data-i18n-params` (JSON) | un texte « à trous » garde ses paramètres : `ENTRÉE · {lane}` reste « ENTRÉE · B » après un changement de langue |
+| `localize(élément, {text, title, ariaLabel, placeholder}, params)` | traduit un élément créé en JavaScript **et** le marque pour `applyTranslations` |
+| `onLanguageChange` dans chaque vue | ce qui est calculé (listes, statuts, compteurs, dB) est recalculé ; les statuts sont gardés sous forme de fonction (`setStatus(() => t(…))`) pour être retraduits |
+| `formatDb()` | « −12,0 dB » / « -12.0 dB » selon la langue (formateur mis en cache : il sert aussi aux vumètres) |
+| `ui/hostMessages.js` | le code du moteur (FxChain, SourceManager, OutputDeviceManager, BackingTrack…) **n'est pas modifié** : ses messages anglais connus sont traduits à l'affichage (`localizeMessage`, table + motifs) |
+| `PresetError(message, code, params)` | le message reste anglais (serveur, tests du prof) ; `errorText()` affiche `errors.preset.<code>` |
+| `detailCode` (serveur) | un preset refusé par le serveur renvoie aussi le code de l'erreur : le détail s'affiche traduit |
+| `NotAllowedError` | le refus d'accès au micro est traduit d'après le nom de l'erreur (le texte du navigateur varie) |
+
+**Ce qui reste volontairement en anglais** : les messages des `PresetError` et du serveur (contrat
+d'API, tests), la page de test des effets `fx-test/` (outil de développement), les noms des sons,
+plugins et tags. Dans `index.html`, les textes exigés par les tests du prof (« Enable live input »,
+« Automated test results », `opened with <code>?auto=1</code>`, « Sign in ») restent écrits en
+anglais : c'est le JavaScript qui les traduit au chargement.
+
+La bande B est une copie de la bande A : ses textes sont reposés avec `{lane: 'B'}` après la copie
+(l'ancien code préfixait « Chain B » aux libellés anglais). Les descriptions des 7 presets d'usine
+sont traduites (`presets.factory.<id>`).
+
+**Tests** : `tests/phase6/host-i18n.test.mjs` (12 tests) : chaque message traduit par `hostMessages`
+existe vraiment dans le code ; chaque `new PresetError(…)` a un code traduit en EN et FR ; aucune vue
+n'écrit de texte anglais en dur ; les clés posées par `localize` existent ; chaque vue s'abonne au
+changement de langue ; résumé de preset et dB en français ; `detailCode` du serveur. Contre-épreuve :
+un `PresetError` sans code ou un texte en dur remis dans l'accordeur font échouer la suite. Serveur :
+`error-codes.test.js` vérifie `detailCode`.
+**Navigateur** (dist) : chargement en FR, bascule FR ↔ EN avec le mode complet (bandes A et B,
+bouton 1 / 2 chaînes, routage), fenêtre Presets ouverte (onglets, description d'usine, statut
+« « Clean Deluxe » chargé. » → « Loaded “Clean Deluxe”. »), Compte (onglet Créer un compte, aide du
+pseudo), Accordeur, lecteur de backing tracks ; aucune nouvelle erreur console.
+
+**Résultats 5** : hôte **279/279**, serveur **43/43**.
 
 ---
 

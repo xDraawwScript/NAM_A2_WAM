@@ -97,7 +97,8 @@ export function presetInput(body = {}, { partial = false } = {}) {
       Object.assign(output, { rack, size, assetHashes: assertDehydrated(rack), summary: cleanSummary(body.summary, rack), format: PRESET_FORMAT, version: body.version ?? PRESET_VERSION });
     }
   } catch (error) {
-    if (error instanceof PresetError) throw new HttpError(400, error.message, "preset_invalid", { detail: error.message });
+    // detailCode / detailParams : le client affiche le détail dans sa langue (errors.preset.<code>).
+    if (error instanceof PresetError) throw new HttpError(400, error.message, "preset_invalid", { detail: error.message, ...(error.code ? { detailCode: error.code, detailParams: error.params } : {}) });
     throw error;
   }
   if (wanted("visibility")) {

@@ -19,7 +19,8 @@ import {RemotePresetStorage} from './presets/RemotePresetStorage.js';
 import {FactoryPresetStorage} from './presets/FactoryPresetStorage.js';
 import {ApiClient} from './account/ApiClient.js';
 import {AccountView} from './account/AccountView.js';
-import {initLanguage, applyTranslations, onLanguageChange} from './ui/i18n.js';
+import {initLanguage, applyTranslations, onLanguageChange, t, localize, formatDb, formatNumber} from './ui/i18n.js';
+import {localizeMessage, errorText} from './ui/hostMessages.js';
 import {mountLanguageSwitch} from './ui/LanguageSwitch.js';
 import {createToaster} from './ui/toast.js';
 import {GettingStarted} from './ui/GettingStarted.js';
@@ -32,7 +33,7 @@ const $ = (selector) => document.querySelector(selector);
 // Langue de l'interface (?lang=, choix mémorisé ou langue du navigateur), puis textes statiques du HTML.
 initLanguage();
 applyTranslations();
-onLanguageChange(() => applyTranslations());
+onLanguageChange(() => { applyTranslations(); relabelHost(); });
 mountLanguageSwitch($('#languageSwitch'));
 // Factory and TONE3000 NAM A2 captures are published at 48 kHz. Request the
 // same rate so the WASM core does not reject otherwise valid models.
@@ -68,7 +69,9 @@ $('#hostSidebar').addEventListener('keydown', event => {
 
 // Messages de l'hôte : notification visible (toast) + #hostStatus, lu par les lecteurs d'écran.
 const toaster = createToaster();
+// Les messages anglais connus du moteur (FxChain, SourceManager…) sont affichés dans la langue choisie.
 function message(text, error = false) {
+  text = localizeMessage(text);
   $('#hostStatus').textContent = text;
   $('#hostStatus').classList.toggle('error', error);
   toaster.show(text, {error});
@@ -76,14 +79,57 @@ function message(text, error = false) {
 // Aide des raccourcis (bouton « ? Raccourcis » ou touche « ? ») ; elle permet aussi de revoir le guide.
 mountShortcutsHelp({button: $('#shortcutsButton'), onShowGuide: () => guide?.show()});
 
+// Textes calculés par l'hôte (pas de data-i18n possible) : recalculés à chaque changement de langue.
+let discoveryText = () => '';
+let channelStatus = () => t('input.channels.hint');
+let channelNaming = null;
+const detail = (error) => errorText(error);
+function setChannelStatus(text) { channelStatus = text; $('#inputChannelStatus').textContent = text(); }
+function channelLabel(index, {scarlett2i2}) {
+  if (!scarlett2i2) return t('input.channels.numbered', {n: index + 1});
+  return index < 2 ? t('input.channels.physical', {n: index + 1}) : t('input.channels.loopback', {n: index - 1});
+}
+function deviceOption(device, index, key) {
+  const option = new Option(device.label || t(key, {n: index + 1}), device.deviceId);
+  if (!device.label) Object.assign(option.dataset, {fallbackKey: key, fallbackN: String(index + 1)});
+  return option;
+}
+// « Automated test results » et l'aide ?auto=1 gardent leur HTML anglais (tests) ; on les traduit ici.
+function relabelValidation() {
+  const summary = $('.validation-panel > summary');
+  if (summary) summary.textContent = t('input.automated');
+  const help = $('#autoHelp');
+  if (help) { const code = document.createElement('code'); code.textContent = '?auto=1'; help.replaceChildren(t('input.autoHelpBefore'), ' ', code, '.'); }
+}
+function relabelHost() {
+  relabelValidation();
+  $('#discovery').textContent = discoveryText();
+  $('#inputChannelStatus').textContent = channelStatus();
+  const live = $('#audioSource').options[0];
+  if (live?.value === 'live') live.text = t('input.live');
+  const systemDefault = $('#outputDevice').options[0];
+  if (systemDefault?.value === '') systemDefault.text = t('rack.systemDefault');
+  for (const option of document.querySelectorAll('#inputDevice option[data-fallback-key], #outputDevice option[data-fallback-key]')) option.text = t(option.dataset.fallbackKey, {n: option.dataset.fallbackN});
+  if (channelNaming) for (const option of $('#inputChannel').options) if (/^\d+$/u.test(option.value)) option.text = channelLabel(Number(option.value), channelNaming);
+  syncLiveInputButton();
+  syncModeButton();
+  if (outputSupport) $('#outputSupport').textContent = outputSupport();
+  $('#sourceTrimValue').textContent = formatDb($('#sourceTrim').value);
+  if (savedState) showStateSize();
+}
+let outputSupport = null;
+function setOutputSupport(text) { outputSupport = text; $('#outputSupport').textContent = text(); }
+relabelValidation();
+
 async function discoverFiles() {
   let files=[];
   try { const response = await fetch('/api/test-audio-files', {cache: 'no-store'}); if (response.ok) files=await response.json(); }
   catch { /* Optional development-host audio catalog; Factory catalogs are plugin manifests. */ }
   const selector = $('#audioSource');
-  selector.replaceChildren(new Option('Live input', 'live'));
+  selector.replaceChildren(new Option(t('input.live'), 'live'));
   for (const filename of files) selector.add(new Option(filename, `file:${filename}`));
-  $('#discovery').textContent = files.length ? `${files.length} dry guitar audio file(s) discovered dynamically` : 'Optional audio catalog unavailable; use Live input or plugin Factory browsers';
+  discoveryText = () => (files.length ? t('input.filesFound', {count: files.length}) : t('input.noCatalog'));
+  $('#discovery').textContent = discoveryText();
   return files;
 }
 
@@ -92,45 +138,46 @@ async function refreshDevices(requestPermission = false) {
   const inputs = await sourceManager.enumerateInputs({requestPermission});
   const selector = $('#inputDevice');
   selector.replaceChildren();
-  inputs.forEach((device, index) => selector.add(new Option(device.label || `Audio input ${index + 1}`, device.deviceId)));
+  inputs.forEach((device, index) => selector.add(deviceOption(device, index, 'input.device')));
   const choice = resolveInputPreference(inputs, previous, selectedInputChannel);
   selector.value = choice.deviceId;
   selectedInputChannel = choice.channel;
   selectedDeviceId = selector.value;
-  if (!inputs.length) message('No audio input device is available', true);
+  if (!inputs.length) message(t('status.noInput'), true);
   return inputs;
 }
 
 async function refreshOutputs(options = {}) {
   const outputs = await outputDeviceManager.refresh(options);
   const selector = $('#outputDevice');
-  selector.replaceChildren(new Option('System default', ''));
-  outputs.forEach((device, index) => selector.add(new Option(device.label || `Audio output ${index + 1}`, device.deviceId)));
+  selector.replaceChildren(new Option(t('rack.systemDefault'), ''));
+  outputs.forEach((device, index) => selector.add(deviceOption(device, index, 'input.outputDevice')));
   selector.value = outputs.some((device) => device.deviceId === outputDeviceManager.selectedDeviceId) ? outputDeviceManager.selectedDeviceId : '';
   if (outputs.length && outputs.every((device) => !device.label)) {
-    $('#outputSupport').textContent = 'Output names are hidden by the browser until output permission is granted. Click “Choose / authorize output”.';
+    setOutputSupport(() => t('input.hiddenOutputs'));
   }
   return outputs;
 }
 
 function refreshInputChannels(channelCount=1,deviceLabel='') {
   const count=Math.max(1,Math.trunc(Number(channelCount)||1)),selector=$('#inputChannel'),scarlett2i2=/scarlett\s*2i2/iu.test(deviceLabel)&&count>=4;
-  selector.replaceChildren(...Array.from({length:count},(_,index)=>new Option(scarlett2i2?(index<2?`Physical input ${index+1}`:`Loopback ${index-1} — do not use`):`Input ${index+1}`,String(index))));
+  channelNaming={scarlett2i2};
+  selector.replaceChildren(...Array.from({length:count},(_,index)=>new Option(channelLabel(index,channelNaming),String(index))));
   selectedInputChannel=Math.min(selectedInputChannel,count-1);
   selector.value=String(selectedInputChannel);
   $('#inputChannelRow').hidden=false;
   if(chain)chain.lane.input.channelIndex=selectedInputChannel;
   rack?.changed();
-  $('#inputChannelStatus').textContent=count===1?'The browser opened a mono stream (1 channel). Check the interface and macOS audio configuration if you expect two inputs.':`${count} capture channels available. Each chain can select an available input channel.`;
+  setChannelStatus(()=>count===1?t('input.channels.mono'):t('input.channels.available',{count}));
 }
 
 async function detectSelectedInputChannels() {
   if (liveInputEnabled || $('#audioSource').value !== 'live' || !$('#inputDevice').options.length) return;
   const probingDevice = selectedDeviceId;
-  $('#inputChannel').replaceChildren(new Option('Detecting channels…', ''));
+  $('#inputChannel').replaceChildren(localize(new Option('', ''), {text: 'input.channels.detecting'}));
   $('#inputChannel').disabled = true;
   $('#inputChannelRow').hidden = false;
-  $('#inputChannelStatus').textContent='Detecting input channels (monitoring off)…';
+  setChannelStatus(()=>t('input.channels.detectingStatus'));
   try {
     const input = await sourceManager.activateLive(probingDevice, 0, {monitor:false});
     if (input && selectedDeviceId === probingDevice && !liveInputEnabled && $('#audioSource').value === 'live') {
@@ -139,8 +186,8 @@ async function detectSelectedInputChannels() {
     }
   } catch(error) {
     if (selectedDeviceId === probingDevice && !liveInputEnabled && $('#audioSource').value === 'live') {
-      $('#inputChannel').replaceChildren(new Option('Channels unavailable', ''));
-      $('#inputChannelStatus').textContent=`Cannot detect channels: ${error.message}`;
+      $('#inputChannel').replaceChildren(localize(new Option('', ''), {text: 'input.channels.unavailable'}));
+      setChannelStatus(()=>t('input.channels.cannotDetect',{detail:detail(error)}));
     }
   }
 }
@@ -149,7 +196,19 @@ function syncSourceTrim() {
   const value = sourceManager.activeTrimDb;
   $('#sourceTrim').value = value;
   $('#sourceTrim').dispatchEvent(new Event('change'));
-  $('#sourceTrimValue').textContent = `${value.toFixed(1)} dB`;
+  $('#sourceTrimValue').textContent = formatDb(value);
+}
+
+function showStateSize() {
+  $('#stateSize').textContent = t('input.stateBytes', {count: new TextEncoder().encode(JSON.stringify(savedState)).byteLength});
+}
+
+function syncModeButton() {
+  const modeButton = $('#uiMode');
+  if (!rack) return;
+  modeButton.textContent = t(`ui.mode.${rack.uiMode}`);
+  modeButton.setAttribute('aria-pressed', String(rack.uiMode === 'full'));
+  modeButton.title = t(`ui.modeTitle.${rack.uiMode}`);
 }
 
 function setPlayerEnabled(enabled) {
@@ -162,32 +221,32 @@ function setPlayerEnabled(enabled) {
 
 function syncLiveInputButton() {
   const button = $('#enableLive');
-  button.textContent = liveInputEnabled ? 'Disable live input' : 'Enable live input';
+  button.textContent = localizeMessage(liveInputEnabled ? 'Disable live input' : 'Enable live input');
   button.setAttribute('aria-pressed', String(liveInputEnabled));
   button.classList.toggle('live-active', liveInputEnabled);
 }
 
 async function activateSelectedLiveInput() {
   if (!selectedDeviceId) await refreshDevices(true);
-  if (!selectedDeviceId) throw new Error('No audio input device is available');
+  if (!selectedDeviceId) throw new Error(t('status.noInput'));
   const stream = await sourceManager.activateLive(selectedDeviceId, selectedInputChannel);
   if (!stream) return false;
   const activeInput = sourceManager.liveInput;
   refreshInputChannels(activeInput?.channelCount, activeInput?.label);
   $('#inputChannel').disabled = false;
   if (activeInput?.channelCount === 1) {
-    const detail = sourceManager.captureDiagnostics;
-    $('#inputChannelStatus').textContent = `${activeInput.label || 'Selected input'}: requested ${detail.requestedChannels} channels, browser supplied 1. ${detail.channelNegotiationError || 'The browser did not provide a stereo stream.'}`;
+    const diagnostics = sourceManager.captureDiagnostics;
+    setChannelStatus(() => t('input.channels.monoDetail', {device: activeInput.label || t('input.channels.selected'), requested: diagnostics.requestedChannels, detail: diagnostics.channelNegotiationError ? localizeMessage(diagnostics.channelNegotiationError) : t('input.channels.noStereo')}));
   }
   liveInputEnabled = true;
   syncLiveInputButton();
   syncSourceTrim();
   guide?.complete('live');
-  message(`Live input active: ${activeInput?.label || $('#inputDevice').selectedOptions[0]?.textContent || selectedDeviceId} · input ${Number(activeInput?.channelIndex || 0) + 1}/${activeInput?.channelCount || 1}`);
+  message(t('live.active', {device: activeInput?.label || $('#inputDevice').selectedOptions[0]?.textContent || selectedDeviceId, channel: Number(activeInput?.channelIndex || 0) + 1, count: activeInput?.channelCount || 1}));
   return true;
 }
 
-async function disableLiveInput(status = 'Live input disabled') {
+async function disableLiveInput(status = t('live.disabled')) {
   await sourceManager.disconnectCurrent();
   liveInputEnabled = false;
   syncLiveInputButton();
@@ -198,7 +257,7 @@ async function selectSource() {
   const value = $('#audioSource').value;
   if (value === 'live') {
     setPlayerEnabled(false);
-    await disableLiveInput('Live input ready. Click Enable live input to start monitoring.');
+    await disableLiveInput(t('live.ready'));
   } else {
     liveInputEnabled = false;
     syncLiveInputButton();
@@ -206,13 +265,13 @@ async function selectSource() {
     const filename = value.slice(5);
     await sourceManager.activateFile(`./assets/audio/${encodeURIComponent(filename)}`);
     syncSourceTrim();
-    message(`Dry guitar audio ready: ${filename}`);
+    message(t('status.fileReady', {file: filename}));
   }
 }
 
 async function initialize() {
   if (context.sampleRate !== 48000) {
-    message(`Audio context is ${context.sampleRate} Hz; NAM A2 models require 48000 Hz. Reload with a browser/device that supports a 48 kHz AudioContext.`);
+    message(t('status.sampleRate', {rate: formatNumber(context.sampleRate)}));
   }
   NamPlugin.configureTone3000(window.NAM_A2_WAM_CONFIG?.tone3000 || {});
   CabinetPlugin.configureTone3000(window.NAM_A2_WAM_CONFIG?.tone3000 || {});
@@ -221,7 +280,7 @@ async function initialize() {
   node = plugin.audioNode;
   cabinetPlugin = await CabinetPlugin.createInstance(groupId, context, {});
   cabinetNode = cabinetPlugin.audioNode;
-  node.onprocessorerror = (event) => { window.phase3ProcessorError = 'AudioWorklet processor error'; message(window.phase3ProcessorError, true); };
+  node.onprocessorerror = (event) => { window.phase3ProcessorError = 'AudioWorklet processor error'; message(t('status.processorError'), true); };
   const registry=new WamPluginRegistry();
   try{await registry.load(new URL('./wamPlugins/plugins.json',import.meta.url));}catch(error){message(error.message,true);}
   chain=new FxChain({context,registry,groupId});
@@ -276,17 +335,15 @@ async function initialize() {
     const syncAccount=()=>{if(api.loggedIn===signedIn)return;signedIn=api.loggedIn;accountPresets.clear();presetManager.setAccountStorage(signedIn?accountPresets:null);};
     api.addEventListener('change',syncAccount);syncAccount();
     // Une session refusée (401) est déjà signalée par l'événement 'expired' de l'AccountView.
-    api.refresh().catch(error=>{if(error.status!==401)message(`Account: ${error.message}`,true);});
-  }else $('#accountButton').title='Account server not configured (config.js → api.baseUrl)';
+    api.refresh().catch(error=>{if(error.status!==401)message(t('account.failed',{detail:error.message}),true);});
+  }else{$('#accountButton').title=t('account.unconfigured');onLanguageChange(()=>{$('#accountButton').title=t('account.unconfigured');});}
   const modeButton=$('#uiMode');modeButton.disabled=false;
   modeButton.onclick=async()=>{
     modeButton.disabled=true;chainView.close();
     try{
       await rack.setUiMode(rack.uiMode==='beginner'?'full':'beginner');
       document.body.dataset.uiMode=rack.uiMode;
-      modeButton.textContent=`UI mode: ${rack.uiMode}`;
-      modeButton.setAttribute('aria-pressed',String(rack.uiMode==='full'));
-      modeButton.title=rack.uiMode==='beginner'?'Switch to full mode to use two chains':'Switch to beginner mode (chain A only)';
+      syncModeButton();
     }catch(error){message(error.message,true);}finally{modeButton.disabled=false;}
   };
   await discoverFiles();
@@ -298,15 +355,16 @@ async function initialize() {
       catch { await outputDeviceManager.select(''); }
       await refreshOutputs();
     }
-    $('#outputSupport').textContent = 'Output selection uses AudioContext.setSinkId().';
+    setOutputSupport(() => t('input.outputSupported'));
   } else {
     $('#outputDevice').disabled = true;
     $('#authorizeOutput').disabled = true;
-    $('#outputSupport').textContent = 'This browser does not support AudioContext output-device selection; using system default.';
+    setOutputSupport(() => t('input.outputUnsupported'));
   }
   $('#authorizeOutput').hidden = !outputDeviceManager.authorizationSupported;
   setPlayerEnabled(false);
   syncLiveInputButton();
+  syncModeButton();
   let deviceRefresh = Promise.resolve();
   let wasRunning = context.state === 'running';
   let recovery = null;
@@ -319,11 +377,11 @@ async function initialize() {
       let timer;
       try {
         await Promise.race([outputDeviceManager.recover(), new Promise((_, reject) => {
-          timer = setTimeout(() => reject(new Error('Audio recovery timed out. Reconnect the output and reload the page if recovery still fails.')), 4000);
+          timer = setTimeout(() => reject(new Error(t('status.recoveryTimeout'))), 4000);
         })]);
         $('#outputDevice').value = '';
         $('#recoverAudio').hidden = true;
-        message('Audio recovered using the system default output.');
+        message(t('status.recovered'));
       } catch (error) { message(error.message, true); }
       finally { clearTimeout(timer); $('#recoverAudio').disabled = false; recovery = null; }
     })();
@@ -333,7 +391,7 @@ async function initialize() {
   context.addEventListener('statechange', () => {
     if (context.state === 'running') { wasRunning = true; return; }
     if (wasRunning && (liveInputEnabled || !$('#player').paused || backingPlayer?.engine.playing)) {
-      message(`Audio engine ${context.state}. Attempting recovery…`, true);
+      message(t('status.engineState', {state: context.state}), true);
       recoverAudio();
     }
   });
@@ -343,21 +401,21 @@ async function initialize() {
     const old = selectedDeviceId;
     const devices = await refreshDevices(false);
     if (wasLive && !devices.some((device) => device.deviceId === old)) {
-      await disableLiveInput('Selected input disconnected. Select an input and enable live input again.');
+      await disableLiveInput(t('live.disconnected'));
       refreshInputChannels();
     }
     if (outputDeviceManager.supported) await refreshOutputs({includeAuthorized: false});
     if (wasRunning && context.state !== 'running') await recoverAudio();
-    }).catch(async (error) => { message(`Audio device change failed: ${error.message}`, true); await recoverAudio(); });
+    }).catch(async (error) => { message(t('status.deviceChangeFailed', {detail: detail(error)}), true); await recoverAudio(); });
   });
   $('#audioSource').onchange = () => selectSource().catch((error) => message(error.message, true));
   $('#chainOutputGain').oninput=()=>{
     const db=chain.setOutputDb($('#chainOutputGain').value);
-    $('#chainOutputGainValue').textContent=`${db.toFixed(1)} dB`;
+    $('#chainOutputGainValue').textContent=formatDb(db);
   };
   $('#sourceTrim').oninput = () => {
     const value = sourceManager.setTrimDb(Number($('#sourceTrim').value), $('#audioSource').value === 'live' ? 'live' : 'file');
-    $('#sourceTrimValue').textContent = `${value.toFixed(1)} dB`;
+    $('#sourceTrimValue').textContent = formatDb(value);
   };
   $('#chainInputReset').onclick=()=>{
     const mode=$('#audioSource').value==='live'?'live':'file';
@@ -393,7 +451,7 @@ async function initialize() {
     selectedInputChannel=0;
     saveAudioDevicePreferences({inputDeviceId:selectedDeviceId,inputChannel:0});
     refreshInputChannels();
-    $('#inputChannelStatus').textContent='Enable live input to detect the channels of this device.';
+    setChannelStatus(()=>t('input.channels.deviceHint'));
     if ($('#audioSource').value !== 'live') return;
     if (!liveInputEnabled) {
       await detectSelectedInputChannels();
@@ -402,7 +460,7 @@ async function initialize() {
     try {
       await context.resume();
       await activateSelectedLiveInput();
-    } catch(error) { await disableLiveInput(); message(`Cannot select audio input: ${error.message}`,true); }
+    } catch(error) { await disableLiveInput(); message(t('status.selectInputFailed',{detail:detail(error)}),true); }
   };
   $('#inputChannel').onchange=async()=>{
     selectedInputChannel=Math.max(0,Number($('#inputChannel').value)||0);
@@ -410,15 +468,15 @@ async function initialize() {
     saveAudioDevicePreferences({inputDeviceId:selectedDeviceId,inputChannel:selectedInputChannel});
     if($('#audioSource').value!=='live'||!selectedDeviceId||!liveInputEnabled)return;
     try{sourceManager.selectLiveChannel(selectedInputChannel);}
-    catch(error){await disableLiveInput();message(`Cannot select input channel: ${error.message}`,true);}
+    catch(error){await disableLiveInput();message(t('status.selectChannelFailed',{detail:detail(error)}),true);}
   };
   $('#outputDevice').onchange = async () => {
     try { await outputDeviceManager.select($('#outputDevice').value); saveAudioDevicePreferences({outputDeviceId:outputDeviceManager.selectedDeviceId}); }
-    catch (error) { message(`Cannot select audio output: ${error.message}`, true); await refreshOutputs(); }
+    catch (error) { message(t('status.selectOutputFailed', {detail: detail(error)}), true); await refreshOutputs(); }
   };
   $('#authorizeOutput').onclick = async () => {
     try { await context.resume(); await outputDeviceManager.authorize(); await refreshOutputs(); saveAudioDevicePreferences({outputDeviceId:outputDeviceManager.selectedDeviceId}); }
-    catch (error) { message(`Audio output authorization failed: ${error.message}`, true); }
+    catch (error) { message(t('status.authorizeFailed', {detail: detail(error)}), true); }
   };
   $('#play').onclick = async () => { await context.resume(); await $('#player').play(); };
   $('#pause').onclick = () => $('#player').pause();
@@ -428,16 +486,16 @@ async function initialize() {
   $('#player').ontimeupdate = () => { if (Number.isFinite($('#player').duration) && $('#player').duration) $('#seek').value = $('#player').currentTime / $('#player').duration; };
   $('#saveState').onclick = async () => {
     savedState = {...await rack.getState(),backingTrack:backingPlayer.getState()};
-    $('#stateSize').textContent = `${new TextEncoder().encode(JSON.stringify(savedState)).byteLength.toLocaleString()} serialized bytes`;
+    showStateSize();
   };
   $('#restoreState').onclick = async () => {
-    if (!savedState) return message('Save state first', true);
+    if (!savedState) return message(t('status.saveStateFirst'), true);
     chainView.close();
     try{await rack.setState(savedState);syncSourceTrim();if(savedState.backingTrack)await backingPlayer.setState(savedState.backingTrack);}
-    catch(error){message(`Session restore: ${error.message}`,true);return;}
-    message('WAM state restored');
+    catch(error){message(t('status.restoreFailed',{detail:detail(error)}),true);return;}
+    message(t('status.restored'));
   };
-  message('Chain ready. Click a photo to edit, or + to insert an effect.');
+  message(t('status.ready'));
   // Guide de démarrage : chaque étape fait l'action, et se coche quand elle a vraiment eu lieu.
   guide=new GettingStarted({root:$('#gettingStarted'),actions:{
     source:()=>{setSidebarOpen(true);$('#audioSource').focus();},
@@ -556,7 +614,10 @@ if (tone3000PopupCallback && (tone3000HasOpener || tone3000PopupMode || !tone300
     window.setTimeout(() => channel.close(), 1500);
   }
   if (window.opener && !window.opener.closed) window.opener.postMessage(callback, window.location.origin);
-  document.body.innerHTML = '<p style="font:16px system-ui;padding:2rem">Returning to NAM A2 WAM…</p>';
+  const note = document.createElement('p');
+  note.style.cssText = 'font:16px system-ui;padding:2rem';
+  note.textContent = t('status.returning');
+  document.body.replaceChildren(note);
   window.setTimeout(() => window.close(), 1600);
 } else {
   // Some embedded browsers collapse window.open() into the current tab. In
