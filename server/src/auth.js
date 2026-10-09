@@ -11,11 +11,17 @@ import jwt from "jsonwebtoken";
 const TOKEN_LIFETIME = "12h";
 const ALGORITHM = "HS256"; // imposé à la signature ET à la vérification (défense en profondeur)
 
-/** Erreur HTTP « attendue » (validation, droits…) transmise au gestionnaire central. */
+/**
+ * Erreur HTTP « attendue » (validation, droits…) transmise au gestionnaire central.
+ * `code` : identifiant stable (liste dans errorCodes.js) que l'interface traduit ;
+ * `params` : valeurs à insérer dans la traduction.
+ */
 export class HttpError extends Error {
-  constructor(status, message) {
+  constructor(status, message, code, params) {
     super(message);
     this.status = status;
+    this.code = code;
+    this.params = params;
   }
 }
 
@@ -33,12 +39,12 @@ export function signToken(user) {
 function readToken(req) {
   const raw = req.headers.authorization;
   if (!raw) return null;
-  if (!raw.startsWith("Bearer ")) throw new HttpError(401, "Authentication required");
+  if (!raw.startsWith("Bearer ")) throw new HttpError(401, "Authentication required", "auth_required");
   try {
     return jwt.verify(raw.slice(7), secret(), { algorithms: [ALGORITHM] }).sub;
   } catch (error) {
     console.warn(`[auth] Jeton refusé pour ${req.method} ${req.path} : ${error.name}`);
-    throw new HttpError(401, "Invalid or expired token");
+    throw new HttpError(401, "Invalid or expired token", "auth_invalid_token");
   }
 }
 
@@ -46,7 +52,7 @@ function readToken(req) {
 export function requireAuth(req, _res, next) {
   try {
     req.userId = readToken(req);
-    if (!req.userId) throw new HttpError(401, "Authentication required");
+    if (!req.userId) throw new HttpError(401, "Authentication required", "auth_required");
     next();
   } catch (error) {
     next(error);

@@ -19,10 +19,17 @@ import {RemotePresetStorage} from './presets/RemotePresetStorage.js';
 import {FactoryPresetStorage} from './presets/FactoryPresetStorage.js';
 import {ApiClient} from './account/ApiClient.js';
 import {AccountView} from './account/AccountView.js';
+import {initLanguage, applyTranslations, onLanguageChange} from './ui/i18n.js';
+import {mountLanguageSwitch} from './ui/LanguageSwitch.js';
 const TONE3000_CALLBACK_CHANNEL = 'nam-a2-wam.tone3000.callback';
 const TONE3000_CALLBACK_STORAGE_KEY = 'nam-a2-wam.tone3000.callback';
 
 const $ = (selector) => document.querySelector(selector);
+// Langue de l'interface (?lang=, choix mémorisé ou langue du navigateur), puis textes statiques du HTML.
+initLanguage();
+applyTranslations();
+onLanguageChange(() => applyTranslations());
+mountLanguageSwitch($('#languageSwitch'));
 // Factory and TONE3000 NAM A2 captures are published at 48 kHz. Request the
 // same rate so the WASM core does not reject otherwise valid models.
 const context = new AudioContext({latencyHint: 'interactive', sampleRate: 48000});

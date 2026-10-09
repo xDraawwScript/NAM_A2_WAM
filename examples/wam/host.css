@@ -109,3 +109,10 @@ body[data-ui-mode="beginner"] .fx-route-label { display:none!important; }
 
 body[data-ui-mode="beginner"] #toggleSidebar { display:none; }
 
+
+/* ---- Sélecteur de langue FR | EN ---- */
+.lang-switch { display:inline-flex;border:1px solid var(--line);border-radius:var(--radius-s);overflow:hidden; }
+.lang-switch button { min-height:34px;padding:0 12px;border:0;border-radius:0;background:transparent;color:var(--text-muted);font-size:var(--fs-s);font-weight:700; }
+.lang-switch button + button { border-left:1px solid var(--line); }
+.lang-switch button[aria-pressed="true"] { color:var(--accent-ink);background:var(--accent); }
+.lang-switch button:focus-visible { outline-offset:-3px; }

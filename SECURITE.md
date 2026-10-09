@@ -91,6 +91,7 @@
 | 43 | Les logs ne contiennent **jamais** de mot de passe ni de jeton | `routes/*.js`, `auth.js` | Les logs ne doivent pas devenir une fuite | M2 |
 | 44 | `server/.env` **ignoré par Git**, `.env.example` fourni ; `config.js` (public) ne contient aucun secret | `.gitignore`, `config.js` | Aucun secret dans le dépôt GitHub | M0 + M3 (test « no secret in config.js ») |
 | 45 | Assets servis avec `Cache-Control: private` | `routes/assets.js` | Pas de mise en cache par un proxy partagé | M2 |
+| 50 | Codes d'erreur stables : une erreur 500 ne renvoie que `{ message: "Internal server error", code: "internal" }` (jamais de `params`) ; les `params` ne contiennent que des limites publiques (`min`, `max`, `count`) ou le message du validateur, déjà visible avant | `errorCodes.js`, `app.js` | Traduire les erreurs sans exposer plus d'informations qu'avant | M8 |
 
 ## 8. Limites connues (assumées et documentées)
 
