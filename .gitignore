@@ -29,5 +29,12 @@
 *.swp
 *.swo
 
+# Local Windows build helper (runs npm run dist through WSL)
+/build.bat
+
+# Backend (server/) : secrets and dependencies are never committed
+/server/.env
+/server/node_modules/
+
 # Local scratch file
 /H
