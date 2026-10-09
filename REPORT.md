@@ -71,7 +71,7 @@ une seule fois (`examples/wam/presets/PresetFormat.js`) et utilisé par le navig
 |---|---|---|
 | Hôte (existants, projet d'origine) | `npm test` | 146 / 146 ✅ (avant modifications) |
 | Hôte (nouveaux, `tests/phase5/`) | `npm test` | 59 / 59 ✅ (missions 1, 3 et 4) — total 205 / 205 |
-| Backend (`server/test/`) | `cd server && npm test` | 30 / 30 ✅ (MongoDB en mémoire, dont 5 tests de bout en bout navigateur ↔ serveur) |
+| Backend (`server/test/`) | `cd server && npm test` | 34 / 34 ✅ (MongoDB en mémoire, dont 5 tests de bout en bout et 4 tests de sécurité) |
 
 ## 8. Utilisation de l'assistant IA
 

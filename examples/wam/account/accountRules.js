@@ -6,4 +6,7 @@ export const USERNAME_CHARS = 'A-Za-z0-9_.\\-';
 export const USERNAME_PATTERN = new RegExp(`^[${USERNAME_CHARS}]{${USERNAME_MIN},${USERNAME_MAX}}$`);
 export const USERNAME_HINT = `${USERNAME_MIN}–${USERNAME_MAX} characters: letters, digits, . _ -`;
 export const PASSWORD_MIN = 8;
-export const PASSWORD_MAX = 128;
+// bcrypt ne prend en compte que les 72 premiers octets : au-delà, deux mots de passe différents
+// qui commencent pareil seraient tous les deux acceptés. On limite donc à 72 octets (UTF-8).
+export const PASSWORD_MAX = 72;
+export const passwordBytes = (password) => new TextEncoder().encode(String(password)).length;

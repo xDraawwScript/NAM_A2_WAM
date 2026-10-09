@@ -5,6 +5,8 @@
 import {el} from '../ui/el.js';
 import {USERNAME_MIN, USERNAME_MAX, USERNAME_CHARS, USERNAME_HINT, PASSWORD_MIN, PASSWORD_MAX} from './accountRules.js';
 
+const isLocalApi = (url) => { try { return ['localhost', '127.0.0.1', '[::1]'].includes(new URL(url).hostname); } catch { return false; } };
+
 const usernameInput = {minlength: String(USERNAME_MIN), maxlength: String(USERNAME_MAX), pattern: `[${USERNAME_CHARS}]{${USERNAME_MIN},${USERNAME_MAX}}`, title: USERNAME_HINT};
 const passwordInput = {minlength: String(PASSWORD_MIN), maxlength: String(PASSWORD_MAX)};
 
@@ -92,7 +94,8 @@ export class AccountView {
         field('Email', {name: 'email', type: 'email', autocomplete: 'email'}),
         field('Password', {name: 'password', type: 'password', autocomplete: 'current-password'}),
         el('button', {type: 'submit', class: 'presets-primary', text: 'Sign in'}),
-        el('p', {class: 'host-help', text: 'Demo account: demo@example.com / Demo1234!'}))
+        // Le compte démo n'existe qu'en développement : l'indice n'est montré qu'avec une API locale.
+        isLocalApi(this.api.baseUrl) ? el('p', {class: 'host-help', text: 'Demo account: demo@example.com / Demo1234!'}) : null)
       : el('form', {class: 'account-form', onsubmit: (event) => { event.preventDefault(); this.register(event.target.elements); }},
         field('Username (public)', {name: 'username', type: 'text', autocomplete: 'username', ...usernameInput}),
         el('p', {class: 'host-help', text: `${USERNAME_HINT}. Shown as the author of your public presets.`}),
