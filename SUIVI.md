@@ -69,6 +69,7 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 | 2 | Backend presets + assets (`feature/backend-presets`) | ✅ | 2026-10-09 | voir `git log feature/backend-presets` |
 | 3 | Comptes dans l'hôte (`feature/comptes`) | ✅ | 2026-10-10 | voir `git log feature/comptes` |
 | 4 | Presets en ligne (`feature/presets-en-ligne`) | ✅ | 2026-10-10 | voir `git log feature/presets-en-ligne` |
+| S | Revue de sécurité avancée (`feature/revue-securite`) | ✅ | 2026-10-10 | voir `git log feature/revue-securite` |
 | 5 | Explorer les presets publics (`feature/explorer-public`) | ⏳ | | |
 | 6 | Presets d'usine (`feature/presets-usine`) | ⏳ | | |
 | 7 | Finitions, relectures, REPORT.md (`feature/finitions`) | ⏳ | | |
@@ -597,6 +598,40 @@ onglet compte désactivé).
 4. Enregistrer un preset en cochant *Public* ; essayer *Make private*, *Rename*, *Load*.
 5. Le bandeau propose de copier le preset du navigateur → *Copy it to my account*.
 6. Ouvrir la page dans un autre navigateur, se connecter : les presets en ligne y sont.
+
+### Revue de sécurité (`feature/revue-securite`, 2026-10-10)
+
+Prévue en mission 7, **avancée à la demande de l'étudiant** : toute la partie sensible (comptes,
+JWT, droits, assets) existait déjà, et la mission 5 ouvre les presets publics à tout le monde.
+
+**Méthode** : la skill `/security-review` ne peut pas tourner ici (la session Claude n'est pas
+ouverte dans le dossier du dépôt Git, et la déplacer aurait fait perdre la mémoire du projet). La
+revue a donc été faite à la main avec la même grille : authentification, autorisations (accès aux
+données d'un autre), injections (NoSQL, expressions régulières, HTML), secrets, déni de service,
+fuite d'informations.
+
+| # | Gravité | Problème | Correction |
+|---|---|---|---|
+| 1 | Moyenne | Aucune limite de tentatives : force brute sur la connexion, création de comptes en masse (pour remplir la base) | `server/src/rateLimit.js` : 10 connexions / 15 min et 5 inscriptions / heure par IP → `429` + `Retry-After` |
+| 2 | Moyenne | Le compte démo (mot de passe public, affiché dans l'interface) serait créé aussi sur un serveur déployé | Jamais créé si `NODE_ENV=production` ; l'indice n'apparaît qu'avec une API locale |
+| 3 | Faible | **bcrypt ne lit que 72 octets** : avec un mot de passe de 80 caractères, n'importe quelle fin après le 72ᵉ était acceptée (vérifié par l'expérience) | Mot de passe limité à 72 octets (règle partagée `accountRules.js`) |
+| 4 | Faible | L'algorithme du JWT n'était pas imposé à la vérification | `HS256` imposé à la signature et à la vérification |
+
+**Vérifié et sain** : pas d'injection NoSQL (entrées converties, identifiants validés, recherche
+échappée) ; toutes les routes filtrent par propriétaire (un preset privé d'un autre répond 404) ;
+aucun HTML utilisateur interprété (XSS) ; mots de passe hachés et jamais renvoyés ; secrets hors du
+code ; CORS limité ; tailles de requêtes bornées ; erreurs 500 sans détail. Compromis assumé et
+documenté : jeton dans le localStorage (mission 3).
+
+**Explication — la force brute** : sans limite, un script peut essayer des milliers de mots de
+passe par minute sur un compte. Le limiteur compte les requêtes par adresse IP dans une fenêtre de
+temps ; au-delà du seuil, le serveur répond `429 Too Many Requests` et indique dans `Retry-After`
+combien de secondes attendre.
+
+**Tests** : 4 tests ajoutés (11ᵉ connexion → 429, 6ᵉ inscription → 429, mot de passe de 73 octets
+refusé, jeton signé avec un autre algorithme refusé). Les tests créent beaucoup de comptes depuis
+127.0.0.1 : leurs outils remettent les compteurs à zéro entre deux appels, sauf dans les tests du
+limiteur. Résultats : backend **34/34**, hôte **205/205**.
 
 ---
 

@@ -56,13 +56,15 @@ jamais leurs données.
 Corps : `{ "username": "Jimi", "email": "jimi@example.com", "password": "…" }`
 - `username` : 3 à 24 caractères `A-Z a-z 0-9 . _ -`, unique sans tenir compte de la casse ;
 - `email` : valide, unique (stocké en minuscules) ;
-- `password` : 8 à 128 caractères (stocké haché avec bcrypt).
+- `password` : 8 caractères minimum, **72 octets** maximum (limite de bcrypt ; stocké haché).
 
-Réponses : `201 { token, user: User }` · `400` champ invalide · `409` pseudo ou email déjà pris.
+Réponses : `201 { token, user: User }` · `400` champ invalide · `409` pseudo ou email déjà pris ·
+`429` plus de 5 inscriptions par heure depuis la même adresse IP (en-tête `Retry-After`).
 
 ### POST `/auth/login`
 Corps : `{ "email", "password" }` → `200 { token, user: User }` · `401` « Incorrect email or password »
-(même message que le compte existe ou non).
+(même message que le compte existe ou non) · `429` plus de 10 tentatives en 15 minutes depuis la
+même adresse IP (anti force brute, en-tête `Retry-After`).
 
 ### GET `/users/me` (JWT)
 → `200 User` · `401` jeton absent, invalide ou expiré.

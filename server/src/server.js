@@ -22,8 +22,10 @@ if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET manque dans server/.env
 await mongoose.connect(uri, { dbName });
 console.log(`[startup] Connecté à MongoDB, base « ${dbName} »`);
 
-// Compte de démonstration pour tester rapidement (désactivable avec SEED_DEMO=false).
-if (process.env.SEED_DEMO !== "false" && !(await User.exists({ email: "demo@example.com" }))) {
+// Compte de démonstration pour tester rapidement. Son mot de passe est public : il n'est JAMAIS
+// créé en production (NODE_ENV=production), et peut être désactivé avec SEED_DEMO=false.
+const seedDemo = process.env.SEED_DEMO !== "false" && process.env.NODE_ENV !== "production";
+if (seedDemo && !(await User.exists({ email: "demo@example.com" }))) {
   await User.create({ username: "demo", email: "demo@example.com", password: "Demo1234!" });
   console.log("[startup] Compte de démonstration créé : demo@example.com / Demo1234!");
 }

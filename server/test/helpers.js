@@ -3,6 +3,7 @@
 import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import { createApp } from "../src/app.js";
+import { loginLimiter, registerLimiter } from "../src/routes/auth.js";
 import { dehydrateRack } from "../../examples/wam/presets/PresetAssets.js";
 import { floatsToBase64 } from "../../examples/wam/presets/PresetFile.js";
 import { createPreset } from "../../examples/wam/presets/PresetFormat.js";
@@ -23,8 +24,12 @@ export async function startApi() {
   await new Promise((resolve) => server.once("listening", resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
 
-  /** Appel JSON de l'API. Retourne {status, body, headers}. */
-  async function api(path, { method = "GET", token, body, headers = {} } = {}) {
+  /** Remet à zéro les compteurs anti force brute (les tests créent beaucoup de comptes depuis 127.0.0.1). */
+  const resetLimits = () => { loginLimiter.reset(); registerLimiter.reset(); };
+
+  /** Appel JSON de l'API. Retourne {status, body, headers}. `keepLimits` pour tester le limiteur. */
+  async function api(path, { method = "GET", token, body, headers = {}, keepLimits = false } = {}) {
+    if (!keepLimits) resetLimits();
     const response = await fetch(base + path, {
       method,
       headers: { ...(body !== undefined ? { "Content-Type": "application/json" } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...headers },
