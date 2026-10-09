@@ -68,7 +68,7 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 | 1 | Format + presets locaux IndexedDB + assets par hash (`feature/presets-locaux`) | ✅ | 2026-10-08 | voir `git log feature/presets-locaux` |
 | 2 | Backend presets + assets (`feature/backend-presets`) | ✅ | 2026-10-09 | voir `git log feature/backend-presets` |
 | 3 | Comptes dans l'hôte (`feature/comptes`) | ✅ | 2026-10-10 | voir `git log feature/comptes` |
-| 4 | Presets en ligne (`feature/presets-en-ligne`) | ⏳ | | |
+| 4 | Presets en ligne (`feature/presets-en-ligne`) | ✅ | 2026-10-10 | voir `git log feature/presets-en-ligne` |
 | 5 | Explorer les presets publics (`feature/explorer-public`) | ⏳ | | |
 | 6 | Presets d'usine (`feature/presets-usine`) | ⏳ | | |
 | 7 | Finitions, relectures, REPORT.md (`feature/finitions`) | ⏳ | | |
@@ -121,6 +121,20 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 - ✅ Vérification dans le navigateur avec le vrai backend
 - ✅ Relecture `/code-review` : 8 points traités
 - ✅ Tests : hôte 190/190, backend 24/24 — commit, push, merge dans `develop`
+
+### Détail mission 4
+
+- ✅ Ménage : `import` mal placé dans `server/src/routes/auth.js`
+- ✅ Décisions : copier (pas déplacer) vers le compte ; enregistrement sur le compte par défaut une fois connecté
+- ✅ `RemotePresetStorage.js` (adaptateur en ligne, même interface qu'IndexedDB) + tests
+- ✅ `PresetManager` : deux sources (navigateur / compte), copie vers le compte, preset courant lié à sa source
+- ✅ `PresetView` : onglets, « Public », badges, Make public/private, Copy to account, bandeau de copie
+- ✅ Test de bout en bout navigateur ↔ serveur (`server/test/host-integration.test.js`)
+- ✅ **Bug trouvé par ce test et corrigé** : même fichier chez deux utilisateurs → preuve de possession
+- ✅ Bandeau de copie qui proposait de recopier des presets déjà copiés → corrigé
+- ✅ Vérification dans le navigateur (vrais plugins + vrai backend, base temporaire)
+- ✅ Relecture `/code-review` : 6 points traités
+- ✅ Tests : hôte 205/205, backend 30/30 — commit, push, merge dans `develop`
 
 ---
 
@@ -504,6 +518,85 @@ déconnexion, mauvais mot de passe, connexion au compte démo, **backend éteint
 2. `build.bat`, puis Live Server sur `dist/NAM_A2_WAM/index.html` (port 5500).
 3. Bouton **Sign in** → *Create account* (ou compte démo `demo@example.com` / `Demo1234!`).
 4. Recharger la page : toujours connecté. Couper le backend : le message « unreachable » apparaît.
+
+### Mission 4 — Presets en ligne (`feature/presets-en-ligne`, 2026-10-10)
+
+**Fait** : une fois connecté, la fenêtre **Presets** s'ouvre sur l'onglet **My account** : les
+presets sont enregistrés sur le compte (en ligne), **privés** ou **publics** (case *Public*, boutons
+*Make public / Make private*). L'onglet **This browser** reste disponible (mode invité). Les presets du
+navigateur peuvent être **copiés** sur le compte (un bouton par preset + un bandeau « N presets from
+this browser are not on your account yet → Copy them »). Ils restent aussi dans le navigateur.
+
+**Choix de l'étudiant** : *copier* plutôt que *déplacer* (aucune perte possible) ; une fois connecté,
+on enregistre **sur le compte par défaut**.
+
+**Fichiers**
+
+| Fichier | Rôle |
+|---|---|
+| `presets/RemotePresetStorage.js` (nouveau) | Adaptateur « en ligne » : **mêmes méthodes** qu'`IndexedDbPresetStorage` (`list`, `get`, `save`, `update`, `delete`, `putAsset`, `getAsset`) mais via l'API |
+| `presets/PresetManager.js` | Deux stockages (`browser`, `account`), onglet actif `source`, preset courant lié à **sa** source, `copyToAccount()` |
+| `presets/PresetView.js` + `presets.css` | Onglets, case *Public*, badges, *Copy to account*, bandeau de copie |
+| `main.js` | Branche le stockage du compte à la connexion, le débranche à la déconnexion |
+| `server/src/models/Asset.js`, `routes/assets.js` | Assets à **plusieurs propriétaires** (preuve de possession, voir plus bas) |
+| `server/test/host-integration.test.js` (nouveau) | Test de bout en bout : le code du navigateur contre le vrai serveur |
+
+**Explication — le patron « adaptateur »** : `PresetManager` appelle `storage.save(…)`,
+`storage.get(…)`… sans savoir si `storage` est l'IndexedDB du navigateur ou l'API. Ajouter le mode
+en ligne n'a donc presque pas touché à la logique d'enregistrement / chargement écrite en mission 1 :
+on a seulement ajouté un second objet de stockage avec les mêmes méthodes.
+```
+PresetManager ──► storage.save(preset)
+                    ├─ IndexedDbPresetStorage → IndexedDB du navigateur
+                    └─ RemotePresetStorage    → HEAD/PUT /api/assets/:hash (modèles/IR manquants)
+                                                → POST /api/presets (le serveur donne l'identifiant)
+```
+
+**Explication — envoyer un modèle seulement s'il manque** : avant d'enregistrer un preset en ligne,
+chaque modèle/IR externe est proposé au serveur. `HEAD /api/assets/<hash>` demande « puis-je déjà
+utiliser ce fichier ? ». Si oui, rien n'est envoyé ; sinon le contenu part avec `PUT`. Pendant une
+session, un hash déjà confirmé n'est plus redemandé.
+
+**Bug trouvé par le test de bout en bout — « même fichier, deux utilisateurs »**
+Scénario : deux guitaristes ont téléchargé **la même capture** (même hash). Le second demandait
+« ce fichier existe ? » → « oui » (envoyé par le premier), ne l'envoyait donc pas… puis le serveur
+refusait son preset, car l'asset « appartenait » au premier (protection ajoutée en mission 2).
+**Correction : la preuve de possession.** Un asset a maintenant une liste de **propriétaires**.
+`HEAD` ne répond « oui » que si l'utilisateur peut *déjà* l'utiliser ; sinon il envoie le contenu, le
+serveur **vérifie le hash**, et l'ajoute aux propriétaires **sans stocker de doublon**. Avoir le
+contenu prouve qu'on a le droit de s'en servir ; connaître seulement le hash ne suffit toujours pas.
+
+**Autre défaut corrigé** : le bandeau de copie proposait de recopier des presets déjà copiés (risque
+de doublons). Il ne compte maintenant que les presets du navigateur absents du compte (même nom et
+même son).
+
+**Relecture de code (`/code-review`)** : 6 points traités.
+1. Le cache mémoire des modèles n'était jamais vidé : un autre utilisateur du même onglet aurait pu
+   réutiliser les modèles privés du précédent → vidé à chaque connexion/déconnexion, et limité aux
+   16 derniers modèles (test ajouté).
+2. Une requête `HEAD` par modèle et par preset lors d'une copie → une seule par session (test ajouté).
+3. Importer sur le compte un fichier incomplet échouait avec une erreur serveur peu claire → message
+   explicite, rien n'est envoyé (test ajouté).
+4. Le quota ignorait les assets créés avant la notion de propriétaires → corrigé.
+5. Téléchargement d'un asset : deux lectures MongoDB → une seule.
+6. `SUIVI.md` pas tenu pendant la mission → ce journal.
+
+**Vérifié dans le navigateur** (vrais plugins, vrai backend sur MongoDB locale, base temporaire
+supprimée ensuite) : preset invité avec modèle externe → connexion (bascule sur *My account*) →
+preset public enregistré puis **rechargé à l'identique** → copie du preset invité sur le compte (il
+reste dans le navigateur) → rechargement de la page (toujours connecté, bandeau masqué car déjà
+copié) → nouveau preset local (bandeau « 1 preset… ») → déconnexion (retour sur *This browser*,
+onglet compte désactivé).
+
+**Résultats** : hôte **205/205** · backend **30/30** (dont 5 tests de bout en bout navigateur ↔ serveur).
+
+**Comment tester soi-même**
+1. `cd server` puis `npm start` ; `build.bat` ; Live Server sur `dist/NAM_A2_WAM/index.html`.
+2. Sans compte : *Presets* → enregistrer un preset dans *This browser*.
+3. *Account* → se connecter (ou `demo@example.com` / `Demo1234!`) → *Presets* s'ouvre sur *My account*.
+4. Enregistrer un preset en cochant *Public* ; essayer *Make private*, *Rename*, *Load*.
+5. Le bandeau propose de copier le preset du navigateur → *Copy it to my account*.
+6. Ouvrir la page dans un autre navigateur, se connecter : les presets en ligne y sont.
 
 ---
 

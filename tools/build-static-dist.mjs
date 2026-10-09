@@ -67,7 +67,7 @@ const irs = JSON.parse(await readFile(join(dist, 'plugins/cabinet-wam/irs-manife
 for (const a of nam.assets) await required(join(dist, 'plugins/nam-wam/models', ...a.relativePath.split('/')));
 for (const a of irs.assets) await required(join(dist, 'plugins/cabinet-wam/IRs', ...a.relativePath.split('/')));
 for (const p of ['index.html', 'config.js', 'host.css', 'main.js', 'plugins/nam-wam/index.js', 'plugins/nam-wam/models-manifest.json', 'plugins/nam-wam/nam-simd.wasm', 'plugins/cabinet-wam/index.js', 'plugins/cabinet-wam/irs-manifest.json', 'plugins/cabinet-wam/neuralwamp-cabinet-logo.svg', 'plugins/cabinet-wam/nam-simd.wasm', 'WamPluginRegistry.js', 'PluginCard.js', 'fx-test/index.html', 'fx-test/main.js', 'fx-test/style.css', 'wamPlugins/plugins.json']) await required(join(dist, p));
-for (const p of ['PresetFormat.js', 'PresetAssets.js', 'PresetStorage.js', 'PresetFile.js', 'PresetManager.js', 'PresetView.js', 'presets.css']) await required(join(dist, 'presets', p));
+for (const p of ['PresetFormat.js', 'PresetAssets.js', 'PresetStorage.js', 'RemotePresetStorage.js', 'PresetFile.js', 'PresetManager.js', 'PresetView.js', 'presets.css']) await required(join(dist, 'presets', p));
 for (const p of ['account/ApiClient.js', 'account/AccountView.js', 'account/accountRules.js', 'account/account.css', 'ui/el.js']) await required(join(dist, p));
 const forbidden = /(?:\.\.\/src|\.\.\/examples|\.\.\/build|\/api\/test-audio-files)/;
 const secrets = /(?:t3k_cs_|(?:client_secret|secret_key|access_token|refresh_token)\s*[:=]\s*['"][^'"]+)/i;

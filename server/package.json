@@ -19,6 +19,7 @@
     "mongoose": "^9.0.0"
   },
   "devDependencies": {
+    "fake-indexeddb": "^6.2.5",
     "mongodb-memory-server": "^10.2.0"
   }
 }

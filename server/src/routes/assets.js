@@ -9,8 +9,10 @@ import { HASH_PATTERN } from "../validation.js";
 /*
  * Modèles .nam et IR externes, adressés par leur hash SHA-256.
  *   PUT  /api/assets/:hash  (JWT)       envoie un asset ; le serveur RECALCULE le hash et refuse
- *                                       s'il ne correspond pas (on ne fait pas confiance au client)
- *   HEAD /api/assets/:hash  (JWT)       existe-t-il déjà ? (évite de renvoyer 300 Ko pour rien)
+ *                                       s'il ne correspond pas (on ne fait pas confiance au client).
+ *                                       S'il existe déjà, l'envoi du bon contenu ajoute simplement
+ *                                       l'utilisateur à ses propriétaires (preuve de possession).
+ *   HEAD /api/assets/:hash  (JWT)       puis-je déjà utiliser cet asset ? (évite de renvoyer 300 Ko)
  *   GET  /api/assets/:hash  (JWT opt.)  lit un asset, seulement s'il est utilisé par un preset
  *                                       public ou par un preset de l'utilisateur
  *
@@ -68,27 +70,34 @@ export async function removeOrphanAssets(now = Date.now()) {
 
 const missingMessage = (hashes) => `Missing asset(s), upload them first: ${hashes.map((hash) => hash.slice(0, 12)).join(", ")}`;
 
+const isOwner = (asset, userId) => Boolean(userId) && [asset.uploadedBy, ...(asset.owners || [])].some((id) => String(id) === String(userId));
+
+/** Parmi `hashes`, ceux que l'utilisateur peut utiliser : il en est propriétaire, ou ils servent déjà à un preset public ou à lui. */
+async function usableHashes(hashes, userId) {
+  const assets = await Asset.find({ hash: { $in: hashes } }).select("hash uploadedBy owners").lean();
+  const usable = new Set(assets.filter((asset) => isOwner(asset, userId)).map((asset) => asset.hash));
+  const others = assets.map((asset) => asset.hash).filter((hash) => !usable.has(hash));
+  if (others.length) {
+    const readable = await Preset.distinct("assetHashes", { assetHashes: { $in: others }, $or: [{ visibility: "public" }, ...(userId ? [{ ownerId: userId }] : [])] });
+    for (const hash of readable) if (others.includes(hash)) usable.add(hash);
+  }
+  return { usable, existing: new Set(assets.map((asset) => asset.hash)) };
+}
+
 /**
- * Vérifie que l'utilisateur peut utiliser les assets référencés par son preset : ils doivent
- * exister, et être à lui (il les a envoyés) ou déjà lisibles par lui (preset public ou à lui).
- * Sinon, connaître le hash d'un modèle privé suffirait pour se l'approprier.
+ * Vérifie que l'utilisateur peut utiliser les assets référencés par son preset. Sinon, connaître le
+ * hash d'un modèle privé suffirait pour se l'approprier : il doit d'abord en envoyer le contenu.
  */
 export async function assertAssetsUsable(hashes = [], userId) {
   if (!hashes.length) return;
-  const assets = await Asset.find({ hash: { $in: hashes } }).select("hash uploadedBy").lean();
-  const found = new Map(assets.map((asset) => [asset.hash, asset]));
-  const missing = hashes.filter((hash) => !found.has(hash));
-  if (missing.length) throw new HttpError(400, missingMessage(missing));
-  const foreign = hashes.filter((hash) => String(found.get(hash).uploadedBy) !== String(userId));
-  if (!foreign.length) return;
-  const readable = new Set(await Preset.distinct("assetHashes", { assetHashes: { $in: foreign }, $or: [{ visibility: "public" }, { ownerId: userId }] }));
-  const denied = foreign.filter((hash) => !readable.has(hash));
+  const { usable } = await usableHashes(hashes, userId);
+  const denied = hashes.filter((hash) => !usable.has(hash));
   if (denied.length) throw new HttpError(400, missingMessage(denied));
 }
 
 async function assertQuota(userId, extraBytes) {
   const [usage] = await Asset.aggregate([
-    { $match: { uploadedBy: new mongoose.Types.ObjectId(String(userId)) } },
+    { $match: { $or: [{ owners: new mongoose.Types.ObjectId(String(userId)) }, { uploadedBy: new mongoose.Types.ObjectId(String(userId)) }] } },
     { $group: { _id: null, bytes: { $sum: "$size" } } },
   ]);
   if ((usage?.bytes ?? 0) + extraBytes > USER_QUOTA_BYTES) throw new HttpError(413, "Asset quota reached (200 MB per user)");
@@ -99,14 +108,23 @@ assetsRouter.put("/:hash", requireAuth, express.json({ limit: "12mb" }), async (
   try {
     const { hash } = req.params;
     assertHash(hash);
-    if (await Asset.exists({ hash })) return res.status(200).json({ hash, created: false });
+    const existing = await Asset.findOne({ hash }).select("uploadedBy owners").lean();
+    if (existing && isOwner(existing, req.userId)) return res.status(200).json({ hash, created: false });
+    // Contenu vérifié AVANT toute écriture : c'est la preuve que l'utilisateur possède le fichier.
     const bytes = decodeAsset(hash, req.body);
     await assertQuota(req.userId, bytes.length);
+    if (existing) {
+      await Asset.updateOne({ hash }, { $addToSet: { owners: req.userId } });
+      console.log(`[assets] Nouveau propriétaire pour l'asset ${hash.slice(0, 12)} (déjà stocké, pas de doublon)`);
+      return res.status(200).json({ hash, created: false });
+    }
     try {
-      await Asset.create({ hash, kind: req.body.kind, name: String(req.body.name || req.body.kind).slice(0, 200), size: bytes.length, bytes, uploadedBy: req.userId });
+      await Asset.create({ hash, kind: req.body.kind, name: String(req.body.name || req.body.kind).slice(0, 200), size: bytes.length, bytes, uploadedBy: req.userId, owners: [req.userId] });
     } catch (error) {
-      if (error?.code === 11000) return res.status(200).json({ hash, created: false }); // envoyé en parallèle
-      throw error;
+      if (error?.code !== 11000) throw error;
+      // Envoyé en parallèle par quelqu'un d'autre : le document existe, on s'ajoute aux propriétaires.
+      await Asset.updateOne({ hash }, { $addToSet: { owners: req.userId } });
+      return res.status(200).json({ hash, created: false });
     }
     console.log(`[assets] Asset ${req.body.kind} enregistré : ${hash.slice(0, 12)} (${bytes.length} octets)`);
     res.status(201).json({ hash, created: true });
@@ -118,7 +136,10 @@ assetsRouter.put("/:hash", requireAuth, express.json({ limit: "12mb" }), async (
 assetsRouter.head("/:hash", requireAuth, async (req, res, next) => {
   try {
     assertHash(req.params.hash);
-    res.status((await Asset.exists({ hash: req.params.hash })) ? 200 : 404).end();
+    // 200 seulement si l'utilisateur peut DÉJÀ utiliser l'asset ; sinon 404 et le client envoie le
+    // contenu (PUT). On ne révèle pas qu'un asset privé d'un autre utilisateur existe.
+    const { usable } = await usableHashes([req.params.hash], req.userId);
+    res.status(usable.has(req.params.hash) ? 200 : 404).end();
   } catch (error) {
     next(error);
   }
@@ -128,13 +149,11 @@ assetsRouter.get("/:hash", optionalAuth, async (req, res, next) => {
   try {
     const { hash } = req.params;
     assertHash(hash);
+    // Lecture autorisée si l'utilisateur en est propriétaire, ou si l'asset sert à un preset public
+    // ou à un de ses presets. Sinon 404 (on ne révèle pas son existence).
     const asset = await Asset.findOne({ hash }).select("+bytes").lean();
-    // Lecture autorisée si l'asset sert à un preset public, à un preset de l'utilisateur,
-    // ou s'il l'a envoyé lui-même. Sinon 404 (on ne révèle pas son existence).
-    const allowed = asset && (
-      (req.userId && String(asset.uploadedBy) === req.userId)
-      || await Preset.exists({ assetHashes: hash, $or: [{ visibility: "public" }, ...(req.userId ? [{ ownerId: req.userId }] : [])] })
-    );
+    const allowed = asset && (isOwner(asset, req.userId)
+      || await Preset.exists({ assetHashes: hash, $or: [{ visibility: "public" }, ...(req.userId ? [{ ownerId: req.userId }] : [])] }));
     if (!allowed) throw new HttpError(404, "Asset not found");
     const bytes = Buffer.from(asset.bytes.buffer ?? asset.bytes);
     res.set("Cache-Control", "private, max-age=86400");

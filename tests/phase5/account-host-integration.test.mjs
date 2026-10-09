@@ -10,7 +10,7 @@ test('host exposes an Account button and wires the API client', async () => {
   assert.match(html, /id="accountButton"[^>]*aria-haspopup="dialog"[^>]*disabled/u);
   assert.match(html, /id="accountName"[^>]*>Sign in</u);
   assert.match(html, /href="\.\/account\/account\.css"/u);
-  assert.match(main, /const apiUrl=window\.NAM_A2_WAM_CONFIG\?\.api\?\.baseUrl;\s*if\(apiUrl\)\{\s*const api=new ApiClient\(\{baseUrl:apiUrl\}\)/u);
+  assert.match(main, /const apiUrl=window\.NAM_A2_WAM_CONFIG\?\.api\?\.baseUrl;\s*const api=apiUrl\?new ApiClient\(\{baseUrl:apiUrl\}\):null;/u);
   assert.match(main, /new AccountView\(\{api,button:\$\('#accountButton'\)/u);
   assert.match(config, /api:\s*\{\s*baseUrl:\s*'http:\/\/localhost:3000\/api'/u);
   // Contrat du prof (tests/phase4a2) : pas d'URL d'API de modèles/IR dans main.js.

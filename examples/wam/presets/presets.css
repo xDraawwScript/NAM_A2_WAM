@@ -48,3 +48,16 @@
   .host-preset-current { display:none; }
   .presets-actions { width:100%; }
 }
+
+/* Mission 4 : onglets « This browser » / « My account », visibilité, copie vers le compte. */
+.presets-tabs { display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px; }
+.presets-tab.active { color:#fff;background:#2a2440;border-color:var(--host-accent); }
+.presets-where { color:var(--host-muted);font-size:11px; }
+.presets-public { display:flex;align-items:center;gap:7px;color:#aaa4b4;font-size:12px; }
+.presets-public[hidden] { display:none; }
+.presets-title { display:flex;flex-wrap:wrap;align-items:center;gap:8px; }
+.presets-badge { padding:1px 8px;font-size:10px;font-weight:700;border-radius:99px; }
+.presets-badge.private { color:#c9c3d4;background:#2b2a31; }
+.presets-badge.public { color:#bff0cf;background:#1d3b2a; }
+.presets-migration { display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;margin-bottom:10px;color:#e8dcff;font-size:12px;background:#221d33;border:1px dashed #6d58c9;border-radius:12px; }
+.presets-migration[hidden] { display:none; }
