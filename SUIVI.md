@@ -898,10 +898,10 @@ refonte complète de la mise en page ; **maquette HTML avant de coder**.
 | Étape | Contenu | État |
 |---|---|---|
 | 0 | Branche, inventaire de l'interface, plan | ✅ |
-| 1 | Maquette HTML avec 3 ambiances rock (`docs/maquette/`) → choix de l'étudiant | 🔄 maquette prête, en attente du choix |
-| 2 | Thème : design tokens (`ui/theme.css`), polices, réécriture des CSS | ⏳ |
+| 1 | Maquette HTML avec 3 ambiances rock (`docs/maquette/`) → choix de l'étudiant | ✅ choix : **Tolex & Lampes** |
+| 2 | Thème : design tokens (`ui/theme.css`), polices, réécriture des CSS | ✅ |
 | 3 | Internationalisation : `ui/i18n.js`, `ui/locales/{en,fr}.js`, tests | ⏳ |
-| 4 | Nouvelle mise en page, guide de démarrage, confirmations thémées, accessibilité | ⏳ |
+| 4 | Nouvelle mise en page, guide de démarrage, confirmations thémées, accessibilité, fond animé Butterchurn (option) | ⏳ |
 | 5 | Traduction de tous les textes de l'hôte | ⏳ |
 | 6 | Audit accessibilité, relecture des textes, parcours FR/EN, `/code-review`, `/simplify` | ⏳ |
 | 7 | SUIVI, REPORT, SECURITE, merge dans `develop` | ⏳ |
@@ -971,7 +971,66 @@ seront **auto-hébergées** dans `ui/fonts/` (étape 2, téléchargement après 
 - pas de défilement horizontal en 1366 px ni en 375 px (mobile : le rack passe en colonne) ;
 - onglets Presets : les flèches gauche/droite déplacent la sélection et le focus.
 
-**Prochaine action** : l'étudiant choisit une ambiance (ou un mélange), puis on passe à l'étape 2.
+**Choix de l'étudiant (2026-10-09)** : **Tolex & Lampes**. Il demande aussi s'il est possible d'ajouter une option « fond Butterchurn » (visualiseur audio façon Milkdrop) : **accepté** et ajouté au plan, à l'étape 4 : option désactivée par défaut, branchée en lecture seule sur la sortie de l'hôte, derrière la texture et assombrie (contraste inchangé), presets calmes uniquement, coupée si « réduire les animations », 30 images/s max, chargée seulement à l'activation, Butterchurn hébergé dans le projet (`ui/vendor/butterchurn/`).
+
+**Rappel de l'étudiant** : il n'y a **qu'un seul thème, Tolex & Lampes**. Pas de sélecteur d'ambiance dans l'appli ;
+la seule option visuelle sera le bouton « fond animé » Butterchurn (étape 4).
+
+#### Étape 2 : le thème Tolex (2026-10-09)
+
+**Principe : les design tokens.** Toutes les couleurs, polices, rayons et ombres sont des **variables CSS**
+déclarées une seule fois dans `examples/wam/ui/theme.css` (`--bg`, `--panel`, `--surface-2`, `--text`,
+`--text-muted`, `--accent`, `--ok`, `--clip`, `--error`, `--font-title`…). Les autres feuilles ne font que
+les utiliser : `color: var(--text-muted)`. Pour changer une couleur, on modifie une seule ligne.
+
+**Fichiers**
+- `ui/theme.css` (nouveau) : tokens Tolex, `@font-face` des polices.
+- `ui/fonts/` (nouveau) : Barlow (texte), Oswald (titres), Yellowtail (logo), en woff2, 130 Ko,
+  **téléchargées avec l'accord de l'étudiant** depuis Google Fonts, avec leurs licences (OFL, Apache 2.0).
+  L'appli n'appelle jamais Google à l'exécution.
+- `host.css`, `fx-chain.css`, `presets/presets.css`, `account/account.css` : réécrits sur les tokens. La mise en page
+  ne change pas encore (étape 4). CSS mort supprimé (`.rack-grid`, `.rack-slot`, `.rack-connector`, `.host-dot.rose`).
+- `backing-track-player.css` : c'est un composant **de l'hôte**, pas un plugin. Chaque couleur devient
+  `var(--token, ancienne valeur)` : thémé dans l'appli, identique à avant sur sa page de validation autonome.
+  La couleur de la forme d'onde est lue dans `--bt-wave` (1 ligne de `BackingTrackPlayerElement.js`).
+- `index.html` : charge `ui/theme.css` avant les autres feuilles.
+- `tools/build-static-dist.mjs` : vérifie que `ui/theme.css` et les 6 polices sont dans la dist.
+- `.gitattributes` : `*.woff2` marqué binaire.
+
+**Les plugins gardent leur apparence : comment c'est garanti.** Problème découvert en cours de route :
+les règles globales de l'hôte (`button { … }`, `select { … }`) s'appliquaient aussi aux interfaces des plugins
+affichées dans l'éditeur et l'accordeur. Les changer aurait recoloré les boutons des plugins qui n'ont pas leur
+propre style. Solution :
+1. les styles de base de l'hôte sont écrits `:where(button):where(:not(.fx-editor-mount *, .tuner-mount *))` :
+   ils **excluent** les zones des plugins, et `:where()` leur donne une spécificité nulle ;
+2. dans `.fx-editor-mount` et `.tuner-mount`, l'hôte **fige l'ancien environnement** (police Inter, couleur
+   héritée, anciens styles de base des boutons) ;
+3. on ne redéfinit ni `--nam-accent` ni `--cab-accent`, et la vignette d'une carte n'est plus jamais
+   filtrée : avant, une carte en bypass avait son image grisée (`opacity .45`, `saturate .3`). Maintenant c'est le
+   **cadre** qui devient gris et en pointillés, l'image du plugin reste intacte ;
+4. le cadre des dialogs garde une bordure transparente de 1 px, pour que l'interface du plugin ait au pixel près
+   la même largeur qu'avant.
+
+**Vérification « avant / après » des plugins** (navigateur, dist, fenêtre de 1366 px) : pour chaque interface
+ouverte, on relève 23 propriétés calculées (couleurs, polices, tailles, bordures, ombres, largeur, hauteur) de
+**chaque élément**, shadow DOM compris, d'abord avec le nouveau CSS, puis en rechargeant l'ancien CSS (celui du
+commit précédent). Résultat : **0 différence** sur NAM (872 éléments), Cabinet (770), pédale Chorus (37)
+et accordeur (26).
+
+**Tests** : `tests/phase6/theme.test.mjs` (7 tests, ajoutés à `npm test`) :
+- `theme.css` est chargé avant les autres feuilles ;
+- **contraste WCAG AA calculé** (4,5:1) pour chaque couleur de texte sur chaque surface, pour le texte posé sur
+  l'accent, le vert et le rouge, et pour le texte gravé sur chaque teinte de la plaque en métal brossé ;
+- pas de couleur en dur dans les feuilles de l'hôte (sauf le cadran crème du VU et les faders, listés) ;
+- pas de texte sous 12 px dans `host.css`, Presets et Compte (le rack sera traité à l'étape 4) ;
+- polices auto-hébergées (aucune URL externe) et licences présentes ;
+- plugins protégés : variables non redéfinies, aucune règle de filtre ou d'opacité sur `.fx-photo img`,
+  styles de base excluant les zones des plugins, pas de sélecteur universel dans le thème ;
+- CSS mort supprimé.
+
+**Résultats** : suite de l'hôte **230/230** (dont les 7 nouveaux) ; `npm run dist` OK ; axe-core 4.10.2 sur la dist
+(rack, dialog Presets, dialog Compte) : **0 violation** WCAG A/AA ; aucune erreur dans la console.
+Captures : `docs/screenshots/mission8/`.
 
 ---
 
