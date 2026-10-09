@@ -20,6 +20,9 @@ const schema = new mongoose.Schema(
     size: { type: Number, required: true, min: 1 },
     bytes: { type: Buffer, required: true, select: false },
     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    // Utilisateurs qui ont prouvé posséder ce fichier en envoyant son contenu (preuve de
+    // possession). Deux utilisateurs avec la même capture partagent UN document, sans doublon.
+    owners: { type: [mongoose.Schema.Types.ObjectId], ref: "User", default: [], index: true },
   },
   { timestamps: true },
 );
