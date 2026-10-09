@@ -2,8 +2,6 @@
 
 .host-presets-button { display:flex;align-items:center;gap:8px;font-size:var(--fs-s); }
 .host-presets-button[aria-expanded="true"] { border-color:var(--accent); }
-.host-preset-current { max-width:160px;overflow:hidden;color:var(--accent);text-overflow:ellipsis;white-space:nowrap; }
-.host-preset-current:empty { display:none; }
 
 .host-presets { width:min(640px, calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:18px 20px;color:var(--text);background:var(--bg-texture),var(--panel);border:0;border-radius:var(--radius-l);box-shadow:var(--frame-piping),var(--shadow-panel); }
 .host-presets::backdrop { background:var(--backdrop); }
@@ -46,7 +44,6 @@
 .presets-note { margin:10px 0 0;color:var(--text-muted);font-size:var(--fs-xs); }
 
 @media (max-width: 720px) {
-  .host-preset-current { display:none; }
   .presets-actions { width:100%; }
 }
 

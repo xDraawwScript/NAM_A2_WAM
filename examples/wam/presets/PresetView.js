@@ -172,7 +172,15 @@ export class PresetView {
     this.importButton.hidden = readOnly;
     this.search.placeholder = readOnly ? 'Filter factory presets' : 'Filter my presets';
     this.overwriteButton.textContent = current ? `Update “${current.name}”` : '';
-    if (this.label) this.label.textContent = current ? `${current.name}${dirty ? ' •' : ''}` : '';
+    if (this.label) {
+      // Header : « Preset : Ambient Clean • modifié » (ligne #presetLine, masquée sans preset).
+      const line = this.label.closest('.host-preset-line');
+      this.label.textContent = current ? `${current.name}${dirty && !line ? ' •' : ''}` : '';
+      if (line) {
+        line.hidden = !current;
+        line.classList.toggle('is-dirty', Boolean(current && dirty));
+      }
+    }
     this.mine.hidden = source === 'public';
     this.explore.root.hidden = source !== 'public';
     const tabs = [[this.tabFactory, 'factory'], [this.tabBrowser, 'browser'], [this.tabAccount, 'account'], [this.tabExplore, 'public']];

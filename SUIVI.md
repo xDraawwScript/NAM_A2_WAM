@@ -901,7 +901,7 @@ refonte complète de la mise en page ; **maquette HTML avant de coder**.
 | 1 | Maquette HTML avec 3 ambiances rock (`docs/maquette/`) → choix de l'étudiant | ✅ choix : **Tolex & Lampes** |
 | 2 | Thème : design tokens (`ui/theme.css`), polices, réécriture des CSS | ✅ |
 | 3 | Internationalisation : `ui/i18n.js`, `ui/locales/{en,fr}.js`, codes d'erreur du serveur, tests | ✅ |
-| 4 | Nouvelle mise en page, guide de démarrage, confirmations thémées, accessibilité, fond animé Butterchurn (option) | 🔄 4a fait |
+| 4 | Nouvelle mise en page, guide de démarrage, confirmations thémées, accessibilité, fond animé Butterchurn (option) | 🔄 4a, 4b faits |
 | 5 | Traduction de tous les textes de l'hôte | ⏳ |
 | 6 | Audit accessibilité, relecture des textes, parcours FR/EN, `/code-review`, `/simplify` | ⏳ |
 | 7 | SUIVI, REPORT, SECURITE, merge dans `develop` | ⏳ |
@@ -1138,6 +1138,74 @@ une fois traduits, ces textes auraient cassé le rack. Ils sont retrouvés par u
   enregistré puis supprimé en FR et en EN via la nouvelle fenêtre.
 
 **Résultats 4a** : hôte **251/251**.
+
+##### 4b : nouvelle mise en page, guide, notifications
+
+**Header en trois zones** (`index.html`, `host.css` réécrit) :
+- **marque** à gauche (« NAM A2 » + sous-titre) ;
+- **au centre, ce qu'on entend** : la chaîne du signal (entrée → ampli → baffle → sortie) et le **preset
+  chargé** avec « • modifié » s'il a changé. Avant, le nom du preset était serré dans le bouton Presets et
+  disparaissait sur petit écran ;
+- **actions** à droite : Presets, Accordeur, Compte, mode, langue.
+
+**Panneau « Source audio »** : la colonne de gauche devient un tiroir avec un vrai titre, un bouton ×
+et Échap pour le fermer, et deux cartes **Entrée** / **Sortie**. Le bouton qui l'ouvre affiche son texte
+(« Source audio ») au lieu d'une simple icône.
+
+**Barre d'outils du rack** (`#rackToolbar`) : Source audio, Activer l'entrée live, 1 / 2 chaînes et les
+périphériques (mode complet), l'astuce « glisser une carte » et le bouton **? Raccourcis**. `FxRackView`
+s'y insère s'il la trouve (sinon il garde son ancien comportement : la page de labo n'a pas de barre).
+
+**Guide de démarrage** (`ui/GettingStarted.js`, nouveau) : au premier lancement, trois étapes sous le
+header : 1. choisir une source, 2. activer l'entrée live, 3. charger un preset d'usine. Chaque étape est un
+bouton qui **fait l'action** (ouvre le panneau, active l'entrée, ouvre les presets d'usine) ; elle n'est
+cochée que quand l'action a **vraiment** eu lieu (`main.js` appelle `guide.complete('live')` quand l'entrée
+démarre, etc.). L'état est gardé dans `localStorage` (`nam-a2-guide`) ; une fois tout fait, le guide ne
+revient plus, mais on peut le rouvrir depuis l'aide des raccourcis. La partie « calcul » (`guideModel`) est
+une fonction pure, testée sans navigateur.
+
+**Notifications** (`ui/toast.js`, nouveau) : les messages (« Preset chargé », erreurs…) apparaissent en
+bas de l'écran. Une information disparaît après 4,5 s ; une **erreur reste** jusqu'à ce qu'on la ferme ;
+3 au plus, un message répété est relancé au lieu d'être empilé. Les lecteurs d'écran continuent de lire
+`#hostStatus` (`role=status`, caché visuellement) : la zone des toasts n'est pas « live », sinon chaque
+message serait annoncé deux fois.
+
+**Aide des raccourcis** (`ui/ShortcutsHelp.js`, nouveau) : touche **?** ou bouton « ? Raccourcis ». Liste
+les raccourcis qui existaient déjà (Alt + ← / → pour déplacer une carte, flèches dans les onglets, Échap,
+Début pour recentrer un panoramique). La touche est ignorée quand on écrit dans un champ et dans les
+interfaces des plugins, qui gardent leurs propres raccourcis.
+
+**Lisibilité du rack** : plus aucun texte sous 12 px dans `fx-chain.css` et le lecteur (avant : 7 à 11 px).
+Les rangées passent de 225 à 240 px pour garder la même place aux contrôles. Seule exception : les
+graduations du VU-mètre, du texte SVG décoratif (`aria-hidden`) dont la taille est en unités du dessin.
+
+**Responsive** : header sur 3 colonnes, 2 sous 1180 px, 1 sous 720 px ; sous 560 px, l'entrée et la
+sortie se placent côte à côte au-dessus des cartes. Aucun défilement horizontal à 375, 1024 et 1366 px.
+
+**Bugs trouvés en vérifiant dans le navigateur**
+- L'étape « preset » du guide ne faisait rien : `presetManager.setSource()` ne renvoie pas toujours une
+  promesse, et `.catch()` dessus plantait. Corrigé avec `try { await … }` ; un test interdit le motif.
+- Le nom du preset était invisible dans la nouvelle ligne : d'anciennes règles de `presets.css` (prévues
+  pour le bouton Presets) le limitaient à 160 px et le cachaient sous 720 px. Supprimées.
+
+**Les plugins ne changent pas** : toutes les nouvelles règles visent des classes de l'hôte ; les styles
+de base (`button`, `kbd`…) excluent toujours `.fx-editor-mount` et `.tuner-mount`.
+
+**Tests**
+- `tests/phase6/host-ui.test.mjs` (7 tests) : toasts (information qui disparaît, erreur qui reste, limite
+  de 3, pas de doublon, texte jamais interprété comme du HTML) ; guide (modèle pur, stockage bloqué ou
+  corrompu, bouton = action sans cocher, `complete()` mémorisé, re-rendu au changement de langue, masqué une
+  fois tout fait puis réouvrable) ; raccourcis (touche ignorée pendant la saisie et dans les plugins,
+  fenêtre traduite, focus rendu au bouton).
+- `layout.test.mjs` (+2) : header en trois zones, **aucun ancien identifiant perdu** ni en double, guide
+  relié aux vraies actions, nouveaux fichiers dans la dist.
+- `theme.test.mjs` : la règle « pas de texte sous 12 px » couvre maintenant `fx-chain.css` et le lecteur.
+- `fakeDom.mjs` : `replaceChildren`, `querySelector` simple, événements du document, nœuds texte.
+- Navigateur (dist, FR) : guide complet (panneau ouvert puis Échap → focus rendu au bouton, presets d'usine
+  ouverts, preset chargé → étape cochée et nom affiché), touche ? et « Revoir le guide », toast d'un
+  changement de source, mode complet avec 2 chaînes, aucune erreur console.
+
+**Résultats 4b** : hôte **260/260**, serveur **43/43**.
 
 ---
 

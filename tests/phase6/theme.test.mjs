@@ -73,13 +73,20 @@ test('les feuilles de l\'hôte n\'écrivent pas de couleurs en dur (hors matièr
   assert.deepEqual(hexes(fx).filter((hex) => !allowed.has(hex.toLowerCase())), [], 'fx-chain.css');
 });
 
-test('aucun texte sous 12 px dans les dialogs Presets et Compte ni dans host.css', async () => {
-  for (const path of ['examples/wam/host.css', 'examples/wam/presets/presets.css', 'examples/wam/account/account.css']) {
-    const css = await read(path);
-    for (const [, px] of css.matchAll(/font-size:\s*(\d+)px/gu)) assert.ok(Number(px) >= 12, `${path} : ${px}px`);
-    const t = await tokens();
-    for (const [name, value] of Object.entries(t)) if (name.startsWith('fs-')) assert.ok(parseInt(value, 10) >= 12, `--${name}`);
+test('aucun texte sous 12 px dans l\'hôte : header, rack, lecteur, dialogs Presets et Compte', async () => {
+  const files = ['examples/wam/host.css', 'examples/wam/presets/presets.css', 'examples/wam/account/account.css',
+    'examples/wam/fx-chain.css', 'examples/wam/backing-track-player/backing-track-player.css'];
+  for (const path of files) {
+    // Une règle par bloc « sélecteur{…} » (fx-chain.css en met plusieurs par ligne).
+    for (const [, selector, body] of (await read(path)).matchAll(/([^{}]+)\{([^{}]*)\}/gu)) {
+      // Seule exception : les graduations du VU-mètre, du texte SVG décoratif (aria-hidden)
+      // dont la taille est en unités du viewBox, agrandi avec le cadran.
+      if (/\.fx-meter\b/u.test(selector)) continue;
+      for (const [, px] of body.matchAll(/font(?:-size)?:[^;]*?(\d+(?:\.\d+)?)px/gu)) assert.ok(Number(px) >= 12, `${path} : ${selector.trim()} ${px}px`);
+    }
   }
+  const t = await tokens();
+  for (const [name, value] of Object.entries(t)) if (name.startsWith('fs-')) assert.ok(parseInt(value, 10) >= 12, `--${name}`);
 });
 
 test('les polices sont auto-hébergées, avec leurs licences', async () => {

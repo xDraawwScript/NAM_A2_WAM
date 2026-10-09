@@ -4,11 +4,13 @@ export class FxRackView {
   constructor(rack,report){
     Object.assign(this,{rack,report});this.root=document.querySelector('.fx-rack');this.root.setAttribute('aria-label','Processing chains');
     const input=this.root.querySelector('.fx-input-strip'),output=this.root.querySelector('.fx-output-strip'),strip=document.querySelector('#fxChain');
-    const header=el('div','fx-rack-controls');this.toggle=el('button','','☷  1 / 2 chains');this.toggle.id='toggleChains';this.toggle.setAttribute('aria-expanded','false');
-    header.append(document.getElementById('enableLive'),this.toggle);
-    for(const id of ['inputDevice','outputDevice']){const label=document.getElementById(id).closest('label');label.className='fx-device-label';header.append(label);}
+    // Barre d'outils du rack : celle du HTML (#rackToolbar) si elle existe ; ses éléments de droite restent à droite.
+    const header=document.getElementById('rackToolbar')||el('div','fx-rack-controls'),aside=header.querySelector('.rack-toolbar-aside'),put=(...nodes)=>aside?aside.before(...nodes):header.append(...nodes);
+    this.toggle=el('button','','☷  1 / 2 chains');this.toggle.id='toggleChains';this.toggle.setAttribute('aria-expanded','false');
+    if(!header.contains(document.getElementById('enableLive')))put(document.getElementById('enableLive'));put(this.toggle);
+    for(const id of ['inputDevice','outputDevice']){const label=document.getElementById(id).closest('label');label.className='fx-device-label';put(label);}
     output.querySelector('.fx-endpoint-routing').append(output.querySelector('#chainOutputReset'));
-    this.status=el('span','fx-rack-status');header.append(this.status);this.root.before(header);
+    this.status=el('span','fx-rack-status');put(this.status);if(!header.isConnected)this.root.before(header);
     this.left=el('div','fx-endpoints');this.right=el('div','fx-endpoints');
     const cell=panel=>{const c=el('div','fx-endpoint-cell');c.append(panel);return c;};this.left.append(cell(input));this.right.append(cell(output));
     this.scroller=el('div','fx-scroll');this.track=el('div','fx-track');this.scroller.append(this.track);this.track.append(strip);
