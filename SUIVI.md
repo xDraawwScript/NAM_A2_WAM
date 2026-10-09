@@ -72,7 +72,7 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 | S | Revue de sécurité avancée (`feature/revue-securite`) | ✅ | 2026-10-10 | voir `git log feature/revue-securite` |
 | 5 | Explorer les presets publics (`feature/explorer-public`) | ✅ | 2026-10-10 | voir `git log feature/explorer-public` |
 | 6 | Presets d'usine (`feature/presets-usine`) | ✅ | 2026-10-10 | voir `git log feature/presets-usine` |
-| 7 | Finitions, relectures, REPORT.md (`feature/finitions`) | ⏳ | | |
+| 7 | Finitions, relectures, REPORT.md (`feature/finitions`) | ✅ | 2026-10-10 | voir `git log feature/finitions` |
 
 ### Détail mission 0
 
@@ -159,6 +159,18 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 - ✅ Tests + vérification dans le navigateur (7 sons, aller-retour d'un preset perso)
 - ✅ Relecture `/code-review` : 6 points traités
 - ✅ Tests : hôte 219/219, backend 35/35 — commit, push, merge dans `develop`
+
+### Détail mission 7
+
+- ✅ `/simplify` : 4 relectures (réutilisation, simplification, efficacité, « altitude »), ~30 remarques
+- ✅ Lot 1 (hôte) : règle de description unique, encodeur d'assets unique, code mort supprimé
+- ✅ Lot 2 (hôte) : lecture seule = capacité du stockage, `setStorage`, chargement partagé, efficacité
+- ✅ Lot 3 (serveur) : validation champ par champ, règles partagées, une seule règle d'accès aux assets,
+  propriété par `owners` + migration, ménage après l'ouverture du port
+- ✅ Bug évité grâce à un nouveau test : option Mongoose manquante (le serveur n'aurait pas démarré)
+- ✅ Vérification complète dans le navigateur + 5 captures d'écran (`docs/screenshots/projet/`)
+- ✅ `REPORT.md` final, `SECURITE.md` (mesure 49), ce journal
+- ✅ Tests : hôte 222/222, backend 37/37 — commit, push, merge dans `develop`
 
 ---
 
@@ -781,6 +793,56 @@ un son d'usine enregistré comme preset perso puis rechargé à l'identique.
 
 **Comment tester soi-même** : *Presets* → onglet **Factory** → *Load* sur chaque son ; tourner un
 bouton, aller dans *This browser*, *Save* : le son est à toi, le preset d'usine n'a pas changé.
+
+### Mission 7 — Finitions (`feature/finitions`, 2026-10-10)
+
+**Fait** : nettoyage du code avec `/simplify`, vérification complète, captures d'écran et
+[`REPORT.md`](REPORT.md) final (le rendu pour le prof).
+
+**`/simplify`** : quatre relectures en parallèle sur tout le code ajouté par le projet
+(`main...develop`) — **réutilisation** (code qui refait ce qui existe déjà), **simplification**
+(complexité inutile, code mort), **efficacité** (travail gaspillé) et **altitude** (corriger la cause
+plutôt que le symptôme). Environ 30 remarques, souvent les mêmes vues sous plusieurs angles.
+
+**Ce qui a été appliqué**
+
+| Thème | Avant | Après |
+|---|---|---|
+| Règle de la description | Vérifiée à 4 endroits (dont une limite « 500 » écrite en dur côté serveur) | `normalizeDescription()` dans `PresetFormat.js`, utilisée partout |
+| Encodage des assets (fichier exporté / API) | Écrit deux fois | `encodeAsset` / `decodeAsset` dans `PresetFile.js` |
+| Règles pseudo / limites / hash | Messages et nombres recopiés côté serveur | Importés de `accountRules.js`, `PresetFormat.js`, `PresetAssets.js` |
+| Code mort | `rename`, `setVisibility`, `available`, `kind`… jamais appelés | Supprimés (les tests passent par `update`) |
+| Lecture seule | Liste de noms de sources (`'public'`, `'factory'`) testée à ~20 endroits | **Capacité** du stockage (`readOnly`) ; un seul `setStorage(source, storage)` |
+| Chargement d'un preset | Écrit deux fois (Presets et Explore) | Une seule méthode partagée ; pastilles de tags partagées (`tagList`) |
+| Validation serveur | Un « faux preset » de substitution pour réutiliser la validation | Validation **champ par champ** avec les fonctions partagées |
+| Accès aux assets | Règle écrite deux fois (HEAD et GET) | **Une seule** (`usableHashes`) |
+| Propriété des assets | `uploadedBy` **et** `owners` vérifiés partout | `owners` seulement (index utilisé par le quota) + migration au démarrage |
+| Efficacité | Capture complète du rack à chaque touche tapée dans une fenêtre ; 2ᵉ capture après chaque enregistrement ; modèles/IR d'usine retéléchargés à chaque chargement ; chargements en série ; asset partagé relu pour chaque preset copié ; ménage qui retardait le démarrage | Frappe dans les fenêtres ignorée ; capture réutilisée ; cache des assets d'usine ; chargements en parallèle ; un asset partagé lu une fois ; ménage après l'ouverture du port + index |
+
+**Ce qui n'a pas été appliqué (et pourquoi)**
+- Retirer les `try/catch` des routes (Express 5 les gère) : le TP enseigne explicitement ce modèle
+  (`best-practices.md`), on garde la cohérence avec le cours.
+- Sortir le câblage de `main.js` dans un module et ne plus tester son texte exact : changement plus
+  large que le nettoyage ; noté dans les perspectives.
+- Désactiver les contrôles avec un `<fieldset>` : changerait la structure HTML des fenêtres, gain faible.
+- Mettre en cache les assets en ligne dans IndexedDB : contradictoire avec l'isolation entre comptes
+  (cache vidé à chaque changement d'utilisateur, mesure de sécurité n° 36).
+
+**Problèmes attrapés par les tests pendant le nettoyage**
+1. Un nouveau test de la migration a montré qu'un **ancien asset sans le champ `owners`** faisait
+   planter la vérification d'accès (erreur 500) → corrigé.
+2. Le même test a révélé que la migration utilisait une mise à jour « pipeline » que **Mongoose 9
+   refuse sans l'option `updatePipeline`** : **le serveur n'aurait pas démarré** → corrigé, et le
+   démarrage réel du serveur a été vérifié.
+
+**Rapport final** : `REPORT.md` contient l'objectif, les fonctionnalités, **5 captures d'écran**
+(`docs/screenshots/projet/`), les choix techniques, la sécurité, l'architecture, le découpage, les
+tests, **l'utilisation de l'IA** (ce que l'IA a fait, ce que l'étudiant a décidé, ses limites) et les
+limites/perspectives.
+
+**Résultats** : hôte **222/222** · backend **37/37** · parcours complet vérifié dans le navigateur
+(usine, navigateur, compte, copie, preset public rechargé à l'identique, Explore en invité, lecture
+seule).
 
 ---
 
