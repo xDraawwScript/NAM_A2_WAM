@@ -32,12 +32,12 @@ export function signToken(user) {
 function readToken(req) {
   const raw = req.headers.authorization;
   if (!raw) return null;
-  if (!raw.startsWith("Bearer ")) throw new HttpError(401, "Authentification requise");
+  if (!raw.startsWith("Bearer ")) throw new HttpError(401, "Authentication required");
   try {
     return jwt.verify(raw.slice(7), secret()).sub;
   } catch (error) {
     console.warn(`[auth] Jeton refusé pour ${req.method} ${req.path} : ${error.name}`);
-    throw new HttpError(401, "Jeton invalide ou expiré");
+    throw new HttpError(401, "Invalid or expired token");
   }
 }
 
@@ -45,7 +45,7 @@ function readToken(req) {
 export function requireAuth(req, _res, next) {
   try {
     req.userId = readToken(req);
-    if (!req.userId) throw new HttpError(401, "Authentification requise");
+    if (!req.userId) throw new HttpError(401, "Authentication required");
     next();
   } catch (error) {
     next(error);

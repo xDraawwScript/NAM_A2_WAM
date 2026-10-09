@@ -4,7 +4,7 @@ Base : `http://localhost:3000/api`. Toutes les réponses sont en JSON (sauf `204
 Authentification : en-tête `Authorization: Bearer <token>` (JWT valable 12 h, obtenu à
 l'inscription ou à la connexion). Sur les routes « JWT optionnel », un jeton expiré ou invalide est
 ignoré (la requête est traitée comme celle d'un visiteur). Les erreurs ont toujours la forme
-`{ "message": "…" }`.
+`{ "message": "…" }`, avec un message **en anglais** (affiché tel quel par l'interface de l'hôte).
 
 CORS : seules les origines listées dans `CORS_ORIGINS` (par défaut Live Server
 `http://127.0.0.1:5500` et `http://localhost:5500`) peuvent appeler l'API depuis un navigateur.
@@ -61,8 +61,8 @@ Corps : `{ "username": "Jimi", "email": "jimi@example.com", "password": "…" }`
 Réponses : `201 { token, user: User }` · `400` champ invalide · `409` pseudo ou email déjà pris.
 
 ### POST `/auth/login`
-Corps : `{ "email", "password" }` → `200 { token, user: User }` · `401` « Email ou mot de passe
-incorrect » (même message que le compte existe ou non).
+Corps : `{ "email", "password" }` → `200 { token, user: User }` · `401` « Incorrect email or password »
+(même message que le compte existe ou non).
 
 ### GET `/users/me` (JWT)
 → `200 User` · `401` jeton absent, invalide ou expiré.
