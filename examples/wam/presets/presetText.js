@@ -2,6 +2,18 @@
 
 import {el} from '../ui/el.js';
 
+/**
+ * Boutons d'un preset dans la liste « mes presets », selon l'onglet (fonction pure, testée).
+ *   - lecture seule (usine) : seulement Load ;
+ *   - compte : Rename, Make public/private, Export, Delete ;
+ *   - navigateur : Rename, Copy to account (si connecté), Export, Delete.
+ */
+export function presetActions({source, readOnly = false, signedIn = false}) {
+  if (readOnly) return ['load'];
+  const online = source === 'account';
+  return ['load', 'rename', online && 'visibility', !online && signedIn && 'copy', 'export', 'delete'].filter(Boolean);
+}
+
 /** Les tags d'un preset sous forme de pastilles (null s'il n'y en a pas). */
 export const tagList = (tags = []) => (tags.length ? el('span', {class: 'presets-tags'}, ...tags.map((tag) => el('span', {class: 'presets-tag', text: tag}))) : null);
 

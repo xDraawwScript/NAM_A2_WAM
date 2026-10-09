@@ -7,7 +7,7 @@
 
 import {presetFileName} from './PresetFile.js';
 import {el} from '../ui/el.js';
-import {describe, formatDate, tagList} from './presetText.js';
+import {describe, formatDate, tagList, presetActions} from './presetText.js';
 import {ExplorePanel} from './ExplorePanel.js';
 
 /**
@@ -209,6 +209,7 @@ export class PresetView {
     const source = this.manager.source;
     const online = source === 'account';
     const factory = Boolean(this.manager.storage?.readOnly);
+    const actions = new Set(presetActions({source, readOnly: factory, signedIn: Boolean(this.manager.storages.account)}));
     const isCurrent = this.manager.isCurrent(preset.id, source);
     const title = this.renaming === preset.id
       ? el('form', {class: 'presets-rename', onsubmit: (event) => { event.preventDefault(); this.rename(preset.id, event.target.elements.name.value); }},
@@ -225,11 +226,11 @@ export class PresetView {
         factory ? null : el('span', {class: 'presets-date', text: `Updated ${formatDate(preset.updatedAt)}`})),
       el('div', {class: 'presets-actions'},
         el('button', {type: 'button', class: 'presets-primary', text: 'Load', 'aria-label': `Load ${preset.name}`, onclick: () => this.load(preset)}),
-        factory ? null : el('button', {type: 'button', text: 'Rename', 'aria-label': `Rename ${preset.name}`, onclick: () => { this.renaming = preset.id; this.renderList(); this.list.querySelector('.presets-rename input')?.select(); }}),
-        online ? el('button', {type: 'button', text: preset.visibility === 'public' ? 'Make private' : 'Make public', 'aria-label': `${preset.visibility === 'public' ? 'Make private' : 'Make public'}: ${preset.name}`, onclick: () => this.toggleVisibility(preset)}) : null,
-        !online && this.manager.storages.account ? el('button', {type: 'button', text: 'Copy to account', 'aria-label': `Copy ${preset.name} to my account`, onclick: () => this.copyToAccount([preset.id])}) : null,
-        factory ? null : el('button', {type: 'button', text: 'Export', 'aria-label': `Export ${preset.name}`, onclick: () => this.export(preset)}),
-        factory ? null : el('button', {type: 'button', class: 'presets-danger', text: 'Delete', 'aria-label': `Delete ${preset.name}`, onclick: () => this.remove(preset)})));
+        actions.has('rename') ? el('button', {type: 'button', text: 'Rename', 'aria-label': `Rename ${preset.name}`, onclick: () => { this.renaming = preset.id; this.renderList(); this.list.querySelector('.presets-rename input')?.select(); }}) : null,
+        actions.has('visibility') ? el('button', {type: 'button', text: preset.visibility === 'public' ? 'Make private' : 'Make public', 'aria-label': `${preset.visibility === 'public' ? 'Make private' : 'Make public'}: ${preset.name}`, onclick: () => this.toggleVisibility(preset)}) : null,
+        actions.has('copy') ? el('button', {type: 'button', text: 'Copy to account', 'aria-label': `Copy ${preset.name} to my account`, onclick: () => this.copyToAccount([preset.id])}) : null,
+        actions.has('export') ? el('button', {type: 'button', text: 'Export', 'aria-label': `Export ${preset.name}`, onclick: () => this.export(preset)}) : null,
+        actions.has('delete') ? el('button', {type: 'button', class: 'presets-danger', text: 'Delete', 'aria-label': `Delete ${preset.name}`, onclick: () => this.remove(preset)}) : null));
   }
 
   tags() { return this.tagsInput.value.split(',').map((tag) => tag.trim()).filter(Boolean); }
