@@ -74,6 +74,7 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 | 6 | Presets d'usine (`feature/presets-usine`) | ✅ | 2026-10-10 | voir `git log feature/presets-usine` |
 | 7 | Finitions, relectures, REPORT.md (`feature/finitions`) | ✅ | 2026-10-10 | voir `git log feature/finitions` |
 | F | Correctif « Copy to account » sur les presets d'usine (`feature/fix-copie-usine`) | ✅ | 2026-10-09 | voir `git log feature/fix-copie-usine` |
+| 8 | Refonte de l'interface : thème rock, FR/EN, ergonomie (`feature/interface-design`) | 🔄 | 2026-10-09 | |
 
 ### Détail mission 0
 
@@ -882,6 +883,95 @@ apparaît. Onglet **This browser** : *Copy to account* est là quand on est conn
 après la déconnexion.
 
 **Résultats** : hôte **223/223** · vérifié dans le navigateur (les trois cas du tableau ci-dessus).
+
+### Mission 8 — Refonte de l'interface (`feature/interface-design`, à partir du 2026-10-09)
+
+**Demande** : une appli « très belle, la plus ergonomique », **compréhensible**, **traduite (FR/EN)**,
+avec un **thème rock mais lisible**, qui reprend **toutes** les fonctionnalités existantes.
+`develop` a d'abord été fusionnée dans `main` (accord explicite de l'étudiant, commit `5d9fc7e`).
+
+**Choix validés** : français + anglais (langue du navigateur par défaut, choix mémorisé) ;
+refonte complète de la mise en page ; **maquette HTML avant de coder**.
+
+**Avancement**
+
+| Étape | Contenu | État |
+|---|---|---|
+| 0 | Branche, inventaire de l'interface, plan | ✅ |
+| 1 | Maquette HTML avec 3 ambiances rock (`docs/maquette/`) → choix de l'étudiant | 🔄 maquette prête, en attente du choix |
+| 2 | Thème : design tokens (`ui/theme.css`), polices, réécriture des CSS | ⏳ |
+| 3 | Internationalisation : `ui/i18n.js`, `ui/locales/{en,fr}.js`, tests | ⏳ |
+| 4 | Nouvelle mise en page, guide de démarrage, confirmations thémées, accessibilité | ⏳ |
+| 5 | Traduction de tous les textes de l'hôte | ⏳ |
+| 6 | Audit accessibilité, relecture des textes, parcours FR/EN, `/code-review`, `/simplify` | ⏳ |
+| 7 | SUIVI, REPORT, SECURITE, merge dans `develop` | ⏳ |
+
+**Inventaire de départ** (fait avant de coder, pour ne perdre aucune fonctionnalité) :
+- environ **600 textes anglais** répartis dans environ 25 fichiers, sans aucune i18n ;
+- thème violet, environ 275 couleurs écrites en dur, textes de 7 à 10 px par endroits ;
+- 5 `confirm()` natifs du navigateur (impossibles à styler ou traduire) dans `PresetView.js` ;
+- `FxRackView.js` retrouve des panneaux **par le texte** de leur `aria-label` (« Chain A input ») :
+  la traduction le casserait, il faudra passer par des classes ;
+- le script de build réécrit `discoverFiles` de `main.js` avec des textes anglais en dur.
+
+**Limite importante** : les interfaces **des plugins** (sélecteur de modèle NAM, IR du Cabinet,
+pédales, accordeur) font partie du code des plugins, qu'on ne touche pas. Elles restent en anglais ;
+l'hôte n'habille que leur **cadre** et les variables de couleur qu'elles exposent
+(`--nam-accent`, `--cab-accent`).
+
+**Outils** : les skills frontend-design, Design et Axe sont maintenant installés. Le serveur MCP
+d'Axe ne se connecte pas encore (« Connection closed ») : l'audit est donc lancé avec
+**axe-core** (la même bibliothèque, version 4.10.2) chargé directement dans le navigateur intégré.
+La vérification des traductions se fera **par des tests** (parité des clés FR/EN, paramètres identiques).
+
+#### Étape 1 : la maquette (2026-10-09)
+
+**Fichiers** : `docs/maquette/index.html` (HTML + CSS autonomes, **non copiés dans la dist**),
+`docs/maquette/img/` (3 vignettes **copiées** depuis `wamPlugins/`, les originaux ne sont pas modifiés),
+`docs/maquette/captures/` (une capture par ambiance, en 1366 px).
+
+**Comment l'ouvrir** : servir le dossier `docs/maquette/` (par exemple Live Server de VS Code)
+puis choisir l'ambiance dans la barre du haut, ou ajouter `#tolex`, `#flight` ou `#scene` à l'URL.
+Le bouton « Complet » affiche la chaîne B ; les onglets Presets se parcourent aux flèches.
+
+**Principe** : le **même HTML** pour les 3 ambiances. Seul l'attribut `data-theme` de `<body>` change,
+et il active un jeu de **design tokens** (variables CSS : couleurs, polices, textures, rayons).
+C'est exactement le mécanisme prévu pour `ui/theme.css` à l'étape 2, donc la variante choisie
+(ou un mélange) se reportera telle quelle.
+
+| Ambiance | Matières | Accent | Polices (titres / texte) |
+|---|---|---|---|
+| 1. Tolex & Lampes | tolex texturé, liseré crème, plaques en métal brossé | orange lampe `#ff9440` | Oswald + logo Yellowtail / Barlow |
+| 2. Flight case | ABS noir, profilés alu, coins rivetés, noms sur gaffer | jaune `#ffd21f` | Saira Stencil / Barlow Semi Condensed, gaffer en Permanent Marker |
+| 3. Scène | noir profond, projecteurs rouge et ambre, halos, VU à LED | ambre `#ffb21e` + rouge | Anton / Archivo |
+
+**Écrans montrés** : header en 3 zones (marque, carte du signal + preset « • modifié », actions
+Presets / Accordeur / Compte / Débutant-Complet / FR-EN), guide de démarrage en 3 étapes,
+rack A (et B en mode complet) avec les états Actif / Bypass / Clip, notifications (succès, erreur),
+dialog Presets (onglet « Mon compte ») et dialog Compte (connexion avec message d'erreur).
+
+**Exigence rappelée par l'étudiant pendant l'étape** : *les plugins gardent leur apparence d'origine*.
+Les cartes affichent donc les **vraies vignettes** (Chorus, Smooth Delay, KB Verb), ou la vignette
+générée par l'hôte (`fallbackThumbnail()`, mêmes initiales « FD », « CV ») pour NAM et Baffle,
+**sans filtre, ni teinte, ni opacité** selon l'ambiance. Le thème n'habille que le **cadre** de la carte
+(bordure, pastille d'état, halo autour). Le bypass se lit grâce à la LED grise et au libellé, pas en
+modifiant l'image. Aucun fichier de `src/` ni de `wamPlugins/` n'est modifié.
+
+**Règles de lisibilité appliquées** : police d'affichage seulement pour les titres, texte en 15-16 px,
+jamais sous 12 px ; cibles cliquables de 32 px minimum ; focus clavier visible ; `prefers-reduced-motion` respecté ;
+couleurs d'état distinctes (vert actif, gris bypass, rouge clip, rouge clair erreur, accent = action principale).
+
+**Polices** : pour la comparaison, la maquette les charge depuis Google Fonts. Dans l'appli elles
+seront **auto-hébergées** dans `ui/fonts/` (étape 2, téléchargement après accord).
+
+**Vérifications** :
+- **axe-core 4.10.2** (règles WCAG 2.0/2.1 A et AA + bonnes pratiques) sur les 3 ambiances × les 2 modes :
+  **0 violation**. Le premier passage en avait relevé 3, corrigées : contraste du badge « Clip »
+  (3,1:1 → texte sombre, plus de 7:1), absence de `<main>`, absence de `<h1>` ;
+- pas de défilement horizontal en 1366 px ni en 375 px (mobile : le rack passe en colonne) ;
+- onglets Presets : les flèches gauche/droite déplacent la sélection et le focus.
+
+**Prochaine action** : l'étudiant choisit une ambiance (ou un mélange), puis on passe à l'étape 2.
 
 ---
 
