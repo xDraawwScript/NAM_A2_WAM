@@ -73,6 +73,7 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 | 5 | Explorer les presets publics (`feature/explorer-public`) | ✅ | 2026-10-10 | voir `git log feature/explorer-public` |
 | 6 | Presets d'usine (`feature/presets-usine`) | ✅ | 2026-10-10 | voir `git log feature/presets-usine` |
 | 7 | Finitions, relectures, REPORT.md (`feature/finitions`) | ✅ | 2026-10-10 | voir `git log feature/finitions` |
+| F | Correctif « Copy to account » sur les presets d'usine (`feature/fix-copie-usine`) | ✅ | 2026-10-09 | voir `git log feature/fix-copie-usine` |
 
 ### Détail mission 0
 
@@ -843,6 +844,44 @@ limites/perspectives.
 **Résultats** : hôte **222/222** · backend **37/37** · parcours complet vérifié dans le navigateur
 (usine, navigateur, compte, copie, preset public rechargé à l'identique, Explore en invité, lecture
 seule).
+
+### Correctif — « Copy to account » sur les presets d'usine (`feature/fix-copie-usine`, 2026-10-09)
+
+**Le bug** : une fois connecté, l'onglet **Factory** affichait un bouton *Copy to account* sous
+chaque preset d'usine. Ce bouton ne marchait pas : `copyToAccount` lit les presets dans le
+**stockage du navigateur**, alors que les presets d'usine viennent du catalogue `factoryPresets.js`.
+Rien n'était copié. La condition d'affichage (`!online && connecté`) avait été écrite avant
+l'arrivée de l'onglet Factory, qui n'est pas « en ligne » mais n'est pas non plus le navigateur.
+
+**Choix** (option 1, validée par l'utilisateur) : **masquer** le bouton sur Factory plutôt que de le
+faire marcher. Pour garder un son d'usine, on fait déjà *Load* puis *Save* (dans *This browser*) ou
+*Save as* (dans *My account*) : copier serait un doublon.
+
+**Correction à la racine** : la liste des boutons de chaque onglet est décidée par **une seule
+fonction pure**, `presetActions({source, readOnly, signedIn})` dans `presetText.js` :
+
+| Onglet | Boutons |
+|---|---|
+| Factory (lecture seule) | Load |
+| This browser, non connecté | Load, Rename, Export, Delete |
+| This browser, connecté | Load, Rename, **Copy to account**, Export, Delete |
+| My account | Load, Rename, Make public/private, Export, Delete |
+
+`PresetView.renderItem` ne fait plus que `actions.has('copy') ? bouton : null`. Avant, chaque
+bouton avait sa propre condition (`factory ? null : …`, `online ? … : null`…), et c'est leur
+mélange qui avait laissé passer le cas Factory.
+
+**Fichiers** : `presets/presetText.js` (nouvelle fonction), `presets/PresetView.js` (utilise la
+fonction), `tests/phase5/factory-presets.test.mjs` (nouveau test « buttons shown for each tab »).
+
+**Problème rencontré** : en réécrivant les conditions, trois boutons ont perdu leur `: null` final
+→ erreur de syntaxe. Elle a été attrapée tout de suite par un test qui importe `PresetView.js`.
+
+**Comment tester soi-même** : se connecter, ouvrir *Presets* → onglet **Factory** : seul *Load*
+apparaît. Onglet **This browser** : *Copy to account* est là quand on est connecté, et disparaît
+après la déconnexion.
+
+**Résultats** : hôte **223/223** · vérifié dans le navigateur (les trois cas du tableau ci-dessus).
 
 ---
 

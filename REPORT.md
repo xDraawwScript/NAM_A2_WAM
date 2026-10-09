@@ -129,7 +129,7 @@ Chaque mission a été faite sur sa propre branche (`feature/...`), testée, rel
 | Suite | Commande | Résultat |
 |---|---|---|
 | Hôte — tests d'origine du projet | `npm test` (racine) | **146 / 146** ✅ (toujours verts) |
-| Hôte — tests ajoutés (`tests/phase5/`, 10 fichiers) | `npm test` (racine) | **76 / 76** ✅ — total **222 / 222** |
+| Hôte — tests ajoutés (`tests/phase5/`, 10 fichiers) | `npm test` (racine) | **77 / 77** ✅ — total **223 / 223** |
 | Backend (`server/test/`, MongoDB en mémoire) | `cd server && npm test` | **37 / 37** ✅ |
 
 Ce qui est testé :
@@ -208,7 +208,7 @@ cd server && npm install && npm start            # http://localhost:3000/api/hea
 npm run dist                                     # (ou build.bat sous Windows)
 
 # 3. Tests
-npm test                                         # hôte : 222 tests
+npm test                                         # hôte : 223 tests
 cd server && npm test                            # backend : 37 tests
 ```
 
