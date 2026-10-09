@@ -11,6 +11,14 @@ import {FxRack} from './FxRack.js';
 import {FxRackView} from './FxRackView.js';
 import {TunerView} from './TunerView.js';
 import {WamPluginRegistry} from './WamPluginRegistry.js';
+import {PresetManager} from './presets/PresetManager.js';
+import {PresetView} from './presets/PresetView.js';
+import {IndexedDbPresetStorage} from './presets/PresetStorage.js';
+import {FactoryAssets} from './presets/PresetAssets.js';
+import {RemotePresetStorage} from './presets/RemotePresetStorage.js';
+import {FactoryPresetStorage} from './presets/FactoryPresetStorage.js';
+import {ApiClient} from './account/ApiClient.js';
+import {AccountView} from './account/AccountView.js';
 const TONE3000_CALLBACK_CHANNEL = 'nam-a2-wam.tone3000.callback';
 const TONE3000_CALLBACK_STORAGE_KEY = 'nam-a2-wam.tone3000.callback';
 
@@ -219,6 +227,35 @@ async function initialize() {
   Object.assign(window.phase3Debug,{backingPlayer,backingMix});
   chainView=new FxRackView(rack,message);
   window.phase3Debug.tuner=new TunerView({context,registry,groupId,input:chain.input,button:$('#tunerButton')});
+  // Presets (projet étudiant) : tout le rack A+B, modèles/IR par référence, stockage IndexedDB.
+  const browserPresets=new IndexedDbPresetStorage();
+  const presetManager=new PresetManager({rack,storage:browserPresets,
+    factory:FactoryAssets.fromPlugins({namPlugin:plugin,cabinetPlugin,context}),
+    nameForUri:uri=>registry.records.find(record=>record.catalogue?.uri===uri||record.entryUrl===uri)?.name,
+    beforeLoad:()=>chainView.close(),interactionTarget:document});
+  window.phase3Debug.presets=presetManager;
+  // Presets d'usine (lecture seule) : sons prêts à jouer livrés avec l'appli, chargés à la demande.
+  presetManager.setStorage('factory',new FactoryPresetStorage(()=>import('./presets/factoryPresets.js').then(module=>module.FACTORY_PRESETS)));
+  // Comptes (projet étudiant) : client de l'API server/ + fenêtre Account. La session enregistrée
+  // est revérifiée auprès du serveur en arrière-plan (sans bloquer le démarrage de l'audio).
+  // Sans URL d'API (ancien config.js), seule la fonction Account est désactivée, pas l'hôte.
+  const apiUrl=window.NAM_A2_WAM_CONFIG?.api?.baseUrl;
+  const api=apiUrl?new ApiClient({baseUrl:apiUrl}):null;
+  new PresetView({manager:presetManager,button:$('#presetsButton'),label:$('#presetCurrent'),message,accountUser:()=>api?.user});
+  if(api){
+    window.phase3Debug.api=api;
+    new AccountView({api,button:$('#accountButton'),label:$('#accountName'),message});
+    // Presets en ligne : le stockage « My account » n'est branché que pendant une session
+    // (les modèles/IR déjà présents dans ce navigateur servent de cache).
+    const accountPresets=new RemotePresetStorage({api,cache:browserPresets});
+    // Onglet Explore : presets publics de tous les utilisateurs, consultables même sans compte.
+    presetManager.setStorage('public',new RemotePresetStorage({api,cache:browserPresets,readOnly:true}));
+    let signedIn=null;
+    const syncAccount=()=>{if(api.loggedIn===signedIn)return;signedIn=api.loggedIn;accountPresets.clear();presetManager.setAccountStorage(signedIn?accountPresets:null);};
+    api.addEventListener('change',syncAccount);syncAccount();
+    // Une session refusée (401) est déjà signalée par l'événement 'expired' de l'AccountView.
+    api.refresh().catch(error=>{if(error.status!==401)message(`Account: ${error.message}`,true);});
+  }else $('#accountButton').title='Account server not configured (config.js → api.baseUrl)';
   const modeButton=$('#uiMode');modeButton.disabled=false;
   modeButton.onclick=async()=>{
     modeButton.disabled=true;chainView.close();

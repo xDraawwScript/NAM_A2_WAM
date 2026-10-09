@@ -1,0 +1,25 @@
+{
+  "name": "nam-presets-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API des comptes et presets de l'hôte NAM A2 WAM (projet étudiant, M1 MIAGE)",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node --env-file=.env src/server.js",
+    "test": "node --test --test-concurrency=1 test/*.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^9.0.0"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "^6.2.5",
+    "mongodb-memory-server": "^10.2.0"
+  }
+}

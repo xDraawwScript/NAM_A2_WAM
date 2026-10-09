@@ -1,0 +1,74 @@
+/* Fenêtre Presets (projet étudiant). Reprend les variables et le style du dialog Tuner (host.css). */
+
+.host-presets-button { display:flex;align-items:center;gap:7px;font-size:12px; }
+.host-presets-button[aria-expanded="true"] { border-color:var(--host-accent); }
+.host-preset-current { max-width:160px;overflow:hidden;color:#c9bcff;text-overflow:ellipsis;white-space:nowrap; }
+.host-preset-current:empty { display:none; }
+
+.host-presets { width:min(640px, calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:16px 18px;color:var(--host-text);background:var(--host-card);border:1px solid #655c78;border-radius:16px; }
+.host-presets::backdrop { background:rgba(0,0,0,.72); }
+.host-presets header { display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:6px; }
+.host-presets header strong { font-size:16px; }
+.host-presets.busy { cursor:progress; }
+.host-presets input[type="text"], .host-presets input[type="search"] { min-height:34px;padding:0 10px;color:var(--host-text);background:#111116;border:1px solid var(--host-line);border-radius:8px; }
+
+.presets-current { margin:0 0 12px;color:var(--host-muted);font-size:12px; }
+.presets-current strong { color:var(--host-text); }
+.presets-modified { color:#e4bd61;font-weight:700; }
+
+.presets-save { display:grid;gap:8px;padding:12px;margin-bottom:12px;background:#141319;border:1px solid var(--host-line);border-radius:12px; }
+.presets-save-actions { display:flex;flex-wrap:wrap;gap:8px; }
+.presets-primary { color:#fff;background:#4b3a8c;border-color:#6d58c9; }
+.presets-primary:hover { background:#5a46a8; }
+.presets-danger:hover { color:#ffb3c1;border-color:#df7891; }
+
+.presets-toolbar { display:flex;gap:8px;margin-bottom:8px; }
+.presets-toolbar input[type="search"] { flex:1;min-width:0; }
+
+.presets-list { display:grid;gap:8px;margin:0;padding:0;list-style:none; }
+.presets-item { display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:#141319;border:1px solid var(--host-line);border-radius:12px; }
+.presets-item.current { border-color:var(--host-accent);box-shadow:0 0 0 1px rgba(159,130,255,.25); }
+.presets-info { display:grid;gap:3px;min-width:0;flex:1 1 260px; }
+.presets-name { overflow-wrap:anywhere; }
+.presets-summary, .presets-date { color:var(--host-muted);font-size:11px; }
+.presets-tags { display:flex;flex-wrap:wrap;gap:4px; }
+.presets-tag { padding:1px 7px;color:#d8ceff;font-size:10px;background:#2a2440;border-radius:99px; }
+.presets-actions { display:flex;flex-wrap:wrap;gap:6px; }
+.presets-actions button { min-height:30px;padding:0 10px;font-size:12px; }
+.presets-rename { display:flex;gap:6px; }
+.presets-rename input { flex:1;min-width:0; }
+.presets-empty { padding:14px;color:var(--host-muted);font-size:12px;text-align:center;border:1px dashed var(--host-line);border-radius:12px; }
+
+.presets-status { min-height:1.2em;margin:10px 0 0;font-size:12px;color:#9fe0b4; }
+.presets-status.error { color:#ffb3c1; }
+.presets-status:empty { display:none; }
+.presets-note { margin:10px 0 0;color:var(--host-muted);font-size:11px; }
+
+@media (max-width: 720px) {
+  .host-preset-current { display:none; }
+  .presets-actions { width:100%; }
+}
+
+/* Mission 4 : onglets « This browser » / « My account », visibilité, copie vers le compte. */
+.presets-tabs { display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px; }
+.presets-tab.active { color:#fff;background:#2a2440;border-color:var(--host-accent); }
+.presets-where { color:var(--host-muted);font-size:11px; }
+.presets-public { display:flex;align-items:center;gap:7px;color:#aaa4b4;font-size:12px; }
+.presets-public[hidden] { display:none; }
+.presets-title { display:flex;flex-wrap:wrap;align-items:center;gap:8px; }
+.presets-badge { padding:1px 8px;font-size:10px;font-weight:700;border-radius:99px; }
+.presets-badge.private { color:#c9c3d4;background:#2b2a31; }
+.presets-badge.public { color:#bff0cf;background:#1d3b2a; }
+.presets-migration { display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;margin-bottom:10px;color:#e8dcff;font-size:12px;background:#221d33;border:1px dashed #6d58c9;border-radius:12px; }
+.presets-migration[hidden] { display:none; }
+
+/* Mission 5 : onglet Explore (presets publics). */
+.presets-tabs { grid-template-columns:repeat(4, 1fr); }
+.presets-save[hidden], .presets-toolbar button[hidden] { display:none; }
+.presets-description { color:#d8d2e4;font-size:12px; }
+.presets-mine[hidden], .explore[hidden] { display:none; }
+.explore-info { min-height:1em;margin:0 0 8px;color:var(--host-muted);font-size:11px; }
+.explore-author { color:#c9bcff;font-size:11px; }
+.explore-details { display:grid;gap:3px;margin-top:4px;padding:8px 10px;color:#d8d2e4;font-size:11px;background:#1c1a24;border-radius:8px;overflow-wrap:anywhere; }
+.explore-more { width:100%;margin-top:8px; }
+.explore-more[hidden] { display:none; }
