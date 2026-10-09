@@ -61,3 +61,12 @@
 .presets-badge.public { color:#bff0cf;background:#1d3b2a; }
 .presets-migration { display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;margin-bottom:10px;color:#e8dcff;font-size:12px;background:#221d33;border:1px dashed #6d58c9;border-radius:12px; }
 .presets-migration[hidden] { display:none; }
+
+/* Mission 5 : onglet Explore (presets publics). */
+.presets-tabs { grid-template-columns:repeat(3, 1fr); }
+.presets-mine[hidden], .explore[hidden] { display:none; }
+.explore-info { min-height:1em;margin:0 0 8px;color:var(--host-muted);font-size:11px; }
+.explore-author { color:#c9bcff;font-size:11px; }
+.explore-details { display:grid;gap:3px;margin-top:4px;padding:8px 10px;color:#d8d2e4;font-size:11px;background:#1c1a24;border-radius:8px;overflow-wrap:anywhere; }
+.explore-more { width:100%;margin-top:8px; }
+.explore-more[hidden] { display:none; }

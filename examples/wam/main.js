@@ -238,13 +238,15 @@ async function initialize() {
   // Sans URL d'API (ancien config.js), seule la fonction Account est désactivée, pas l'hôte.
   const apiUrl=window.NAM_A2_WAM_CONFIG?.api?.baseUrl;
   const api=apiUrl?new ApiClient({baseUrl:apiUrl}):null;
-  new PresetView({manager:presetManager,button:$('#presetsButton'),label:$('#presetCurrent'),message,accountName:()=>api?.user?.username});
+  new PresetView({manager:presetManager,button:$('#presetsButton'),label:$('#presetCurrent'),message,accountUser:()=>api?.user});
   if(api){
     window.phase3Debug.api=api;
     new AccountView({api,button:$('#accountButton'),label:$('#accountName'),message});
     // Presets en ligne : le stockage « My account » n'est branché que pendant une session
     // (les modèles/IR déjà présents dans ce navigateur servent de cache).
     const accountPresets=new RemotePresetStorage({api,cache:browserPresets});
+    // Onglet Explore : presets publics de tous les utilisateurs, consultables même sans compte.
+    presetManager.setPublicStorage(new RemotePresetStorage({api,cache:browserPresets}));
     let signedIn=null;
     const syncAccount=()=>{if(api.loggedIn===signedIn)return;signedIn=api.loggedIn;accountPresets.clear();presetManager.setAccountStorage(signedIn?accountPresets:null);};
     api.addEventListener('change',syncAccount);syncAccount();

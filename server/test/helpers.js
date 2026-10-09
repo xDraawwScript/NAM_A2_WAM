@@ -53,7 +53,7 @@ export async function startApi() {
     await mongo.stop();
   }
 
-  return { base, api, register, stop };
+  return { base, api, register, stop, resetLimits };
 }
 
 /**
