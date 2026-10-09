@@ -901,7 +901,7 @@ refonte complète de la mise en page ; **maquette HTML avant de coder**.
 | 1 | Maquette HTML avec 3 ambiances rock (`docs/maquette/`) → choix de l'étudiant | ✅ choix : **Tolex & Lampes** |
 | 2 | Thème : design tokens (`ui/theme.css`), polices, réécriture des CSS | ✅ |
 | 3 | Internationalisation : `ui/i18n.js`, `ui/locales/{en,fr}.js`, codes d'erreur du serveur, tests | ✅ |
-| 4 | Nouvelle mise en page, guide de démarrage, confirmations thémées, accessibilité, fond animé Butterchurn (option) | ⏳ |
+| 4 | Nouvelle mise en page, guide de démarrage, confirmations thémées, accessibilité, fond animé Butterchurn (option) | 🔄 4a fait |
 | 5 | Traduction de tous les textes de l'hôte | ⏳ |
 | 6 | Audit accessibilité, relecture des textes, parcours FR/EN, `/code-review`, `/simplify` | ⏳ |
 | 7 | SUIVI, REPORT, SECURITE, merge dans `develop` | ⏳ |
@@ -1088,6 +1088,56 @@ recevront aussi leurs codes à l'étape 5.
   « Incorrect email or password. » en anglais ; pseudo trop court → « Pseudo : 3 à 24 caractères… ».
 
 **Résultats** : hôte **242/242**, serveur **43/43**, `npm run dist` OK.
+
+#### Étape 4 : mise en page et ergonomie (2026-10-10)
+
+L'étape est découpée en trois commits : **4a** confirmations et accessibilité, **4b** nouvelle mise en
+page (header, guide, notifications, responsive), **4c** fond animé Butterchurn.
+
+##### 4a : confirmations thémées et accessibilité
+
+**Fenêtre de confirmation** (`ui/confirmDialog.js`, nouveau). Avant, 5 actions de la fenêtre Presets
+utilisaient `confirm()` du navigateur : une boîte grise, impossible à habiller, et toujours dans la langue du
+système. Maintenant :
+
+```js
+if (!await confirmDialog({title: 'Supprimer « Lead » ?', message: '…', confirmLabel: 'Supprimer', danger: true})) return;
+```
+
+- `confirmDialog` renvoie une **promesse** (true / false) : le code attend la réponse avec `await`, comme avec
+  `confirm()`, sans bloquer la page ni le son ;
+- une seule fenêtre `<dialog>`, réutilisée ; le focus va sur **Annuler** (le choix sans risque) et revient
+  ensuite sur le bouton qui l'a ouverte ; Échap = Annuler ; une action destructrice a un bouton rouge ;
+- les textes sont traduits (`presets.confirm.*`, `chain.confirmRemove`) : ces confirmations étant réécrites,
+  elles sont traduites tout de suite plutôt qu'à l'étape 5 ;
+- la suppression d'un plugin (`FxChainView`) utilise la même fenêtre (elle avait sa propre copie).
+
+**Accessibilité**
+- L'éditeur de plugin, le menu d'ajout et la fenêtre de routage A → B ont un titre annoncé par les lecteurs
+  d'écran (`aria-labelledby`). Les identifiants dépendent de la chaîne (A ou B) pour ne jamais être en double.
+- `ui/tabs.js` (nouveau) : onglets Presets et Compte au **clavier** (motif WAI-ARIA « Tabs ») : flèches ← →,
+  Début / Fin, un seul onglet atteignable avec Tab, onglets désactivés sautés (« Mon compte » sans connexion),
+  zone reliée à son onglet (`role=tabpanel`, `aria-controls`, `aria-labelledby`).
+- **Focus conservé** dans la fenêtre Presets : pendant une action, ses boutons sont désactivés et le navigateur
+  renvoyait le focus au début de la page. Il revient maintenant sur le bouton utilisé ; après une suppression,
+  il va au preset suivant de la liste.
+
+**Préparer la traduction.** `FxRackView` retrouvait les panneaux d'entrée / sortie par leur texte
+(`[aria-label="Chain A input"]`) et `PresetView` son bouton de fermeture par `[aria-label="Close presets"]` :
+une fois traduits, ces textes auraient cassé le rack. Ils sont retrouvés par une **classe** (`.fx-input-strip`,
+`.fx-output-strip`) ou une référence directe ; un test l'interdit désormais partout.
+
+**Tests**
+- `tests/phase6/confirm-dialog.test.mjs` (6 tests) avec `tests/phase6/fakeDom.mjs`, un mini DOM écrit pour
+  l'occasion (pas de dépendance) : réponse oui / non, focus, Échap, une seconde demande annule la première,
+  textes traduits, texte jamais interprété comme du HTML ; **plus aucun `confirm()`** dans l'hôte et les 5
+  confirmations présentes dans les deux dictionnaires ; onglets (flèches, Début / Fin, désactivés, ARIA).
+- `tests/phase6/layout.test.mjs` (3 tests) : aucune recherche d'élément par son texte, titres des fenêtres,
+  onglets accessibles.
+- Navigateur (dist) : retrait d'un plugin (Annuler → focus rendu, carte gardée), onglets au clavier, preset
+  enregistré puis supprimé en FR et en EN via la nouvelle fenêtre.
+
+**Résultats 4a** : hôte **251/251**.
 
 ---
 

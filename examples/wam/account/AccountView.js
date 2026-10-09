@@ -2,6 +2,7 @@
 // Même principe que TunerView / PresetView : un <dialog> créé en JavaScript, ouvert par un bouton
 // du header qui affiche « Sign in » ou le pseudo de l'utilisateur connecté.
 
+import {bindTabKeys, syncTabs} from '../ui/tabs.js';
 import {el} from '../ui/el.js';
 import {USERNAME_MIN, USERNAME_MAX, USERNAME_CHARS, USERNAME_HINT, PASSWORD_MIN, PASSWORD_MAX} from './accountRules.js';
 
@@ -87,23 +88,28 @@ export class AccountView {
   }
 
   signedOutView() {
-    const tab = (mode, text) => el('button', {type: 'button', role: 'tab', class: `account-tab${this.mode === mode ? ' active' : ''}`, 'aria-selected': String(this.mode === mode), text, onclick: () => { this.mode = mode; this.setStatus(''); this.render(); }});
+    // Le contenu est recréé à chaque changement d'onglet : on redonne le focus au nouvel onglet actif.
+    const tab = (mode, text) => el('button', {type: 'button', role: 'tab', id: `accountTab-${mode}`, class: `account-tab${this.mode === mode ? ' active' : ''}`, text, onclick: () => { if (this.mode === mode) return; this.mode = mode; this.setStatus(''); this.render(); this.body.querySelector(`#accountTab-${mode}`)?.focus(); }});
     const field = (label, attributes) => el('label', {class: 'account-field'}, el('span', {text: label}), el('input', {required: true, ...attributes}));
     const form = this.mode === 'signin'
-      ? el('form', {class: 'account-form', onsubmit: (event) => { event.preventDefault(); this.signIn(event.target.elements); }},
+      ? el('form', {class: 'account-form', id: 'accountTabPanel', onsubmit: (event) => { event.preventDefault(); this.signIn(event.target.elements); }},
         field('Email', {name: 'email', type: 'email', autocomplete: 'email'}),
         field('Password', {name: 'password', type: 'password', autocomplete: 'current-password'}),
         el('button', {type: 'submit', class: 'presets-primary', text: 'Sign in'}),
         // Le compte démo n'existe qu'en développement : l'indice n'est montré qu'avec une API locale.
         isLocalApi(this.api.baseUrl) ? el('p', {class: 'host-help', text: 'Demo account: demo@example.com / Demo1234!'}) : null)
-      : el('form', {class: 'account-form', onsubmit: (event) => { event.preventDefault(); this.register(event.target.elements); }},
+      : el('form', {class: 'account-form', id: 'accountTabPanel', onsubmit: (event) => { event.preventDefault(); this.register(event.target.elements); }},
         field('Username (public)', {name: 'username', type: 'text', autocomplete: 'username', ...usernameInput}),
         el('p', {class: 'host-help', text: `${USERNAME_HINT}. Shown as the author of your public presets.`}),
         field('Email (private, used to sign in)', {name: 'email', type: 'email', autocomplete: 'email'}),
         field('Password', {name: 'password', type: 'password', autocomplete: 'new-password', ...passwordInput}),
         field('Confirm password', {name: 'confirm', type: 'password', autocomplete: 'new-password', ...passwordInput}),
         el('button', {type: 'submit', class: 'presets-primary', text: 'Create account'}));
-    return [el('div', {class: 'account-tabs', role: 'tablist'}, tab('signin', 'Sign in'), tab('register', 'Create account')), form];
+    const tabs = [tab('signin', 'Sign in'), tab('register', 'Create account')];
+    const tablist = el('div', {class: 'account-tabs', role: 'tablist', 'aria-label': 'Account'}, ...tabs);
+    syncTabs(tabs, tabs[this.mode === 'signin' ? 0 : 1], () => form);
+    bindTabKeys(tablist);
+    return [tablist, form];
   }
 
   profileView(user) {

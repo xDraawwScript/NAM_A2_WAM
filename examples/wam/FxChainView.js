@@ -1,12 +1,15 @@
 import {fallbackThumbnail, PLUGIN_CATEGORIES} from './WamPluginRegistry.js';
+import {confirmDialog} from './ui/confirmDialog.js';
+import {t} from './ui/i18n.js';
 
 const element=(tag,className,text)=>{const e=document.createElement(tag);if(className)e.className=className;if(text)e.textContent=text;return e;};
 export class FxChainView {
   constructor(chain,container,report,options={}) {
     Object.assign(this,{chain,container,report,options});this.openSerial=0;this.activeId=null;
+    const uid=`fx-${options.meterPrefix||'chain'}`;
     this.cards=new Map();this.parking=element('div');this.parking.hidden=true;document.body.append(this.parking);
     this.dialog=element('dialog','fx-editor');
-    const bar=element('header','fx-editor-bar');this.title=element('strong');
+    const bar=element('header','fx-editor-bar');this.title=element('strong');this.title.id=`${uid}-editor-title`;this.dialog.setAttribute('aria-labelledby',this.title.id);
     this.replace=element('button','fx-replace','Replace');this.remove=element('button','','Remove');const close=element('button','','×');close.setAttribute('aria-label','Close editor');
     bar.append(this.title,this.replace,this.remove,close);this.mount=element('div','fx-editor-mount');
     const body=element('div','fx-editor-body');this.editorSides={input:this.createEditorSide('input'),output:this.createEditorSide('output')};
@@ -14,8 +17,7 @@ export class FxChainView {
     close.onclick=()=>this.close();this.dialog.addEventListener('cancel',event=>{event.preventDefault();this.close();});
     this.remove.onclick=()=>this.confirmRemove(this.activeId);
     this.replace.onclick=()=>this.showMenu(null,this.replace,this.activeId);
-    this.confirmation=element('dialog','fx-confirm');document.body.append(this.confirmation);
-    this.menu=element('dialog','fx-menu');document.body.append(this.menu);
+    this.menu=element('dialog','fx-menu');this.menu.setAttribute('aria-labelledby',`${uid}-menu-title`);document.body.append(this.menu);this.menuTitleId=`${uid}-menu-title`;
     chain.addEventListener('change',()=>this.render());chain.addEventListener('error',e=>report(e.detail.message,true));
     this.setupMeters();this.render();this.animateLevels();this.timer=setInterval(()=>this.refresh().catch(error=>report(error.message,true)),350);
   }
@@ -73,19 +75,9 @@ export class FxChainView {
     }
   }
   async confirmRemove(id) {
-    const entry=this.chain.find(id);
-    if(this.confirmation.open)return;
-    const title=element('h3','',`Remove ${entry.record?.name||entry.kind}?`);title.id='fx-remove-title';
-    const message=element('p','','This instance and its settings will be removed from the chain.');
-    const cancel=element('button','','Cancel'),remove=element('button','fx-confirm-delete','Remove');
-    this.confirmation.setAttribute('aria-labelledby',title.id);this.confirmation.replaceChildren(title,message,cancel,remove);
-    const confirmed=await new Promise(resolve=>{
-      const finish=value=>{this.confirmation.close();resolve(value);};
-      cancel.onclick=()=>finish(false);remove.onclick=()=>finish(true);
-      this.confirmation.oncancel=event=>{event.preventDefault();finish(false);};
-      this.confirmation.showModal();cancel.focus();
-    });
-    if(!confirmed)return;
+    const entry=this.chain.find(id),name=entry.record?.name||entry.kind;
+    const confirmed=await confirmDialog({title:t('chain.confirmRemove.title',{name}),message:t('chain.confirmRemove.message'),confirmLabel:t('chain.confirmRemove.action'),danger:true});
+    if(!confirmed||!this.chain.entries.includes(entry))return;
     if(this.activeId===id)this.close();
     try{await this.chain.remove(id);this.container.querySelector('button')?.focus();}catch(error){this.report(error.message,true);}
   }
@@ -224,7 +216,7 @@ export class FxChainView {
   }
   showMenu(beforeId,trigger,replaceId=null) {
     this.menu.replaceChildren();const close=element('button','','Close');close.onclick=()=>{this.menu.close();trigger.focus();};
-    const title=element('h3','',replaceId?'Replace current WAM':'Insert a WAM'),status=element('p');status.setAttribute('aria-live','polite');this.menu.append(close,title,status);
+    const title=element('h3','',replaceId?'Replace current WAM':'Insert a WAM'),status=element('p');title.id=this.menuTitleId;status.setAttribute('aria-live','polite');this.menu.append(close,title,status);
     let side=null;
     const index=beforeId?this.chain.entries.indexOf(this.chain.find(beforeId)):this.chain.entries.length;
     if(!replaceId&&this.chain.junction?.index===index){side=element('select');side.setAttribute('aria-label','Position relative to split');side.append(new Option('After split — A only','after'),new Option('Before split — A + B','before'));this.menu.append(side);}

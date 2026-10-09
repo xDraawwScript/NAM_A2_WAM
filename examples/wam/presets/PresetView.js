@@ -9,6 +9,9 @@ import {presetFileName} from './PresetFile.js';
 import {el} from '../ui/el.js';
 import {describe, formatDate, tagList, presetActions} from './presetText.js';
 import {ExplorePanel} from './ExplorePanel.js';
+import {confirmDialog} from '../ui/confirmDialog.js';
+import {t} from '../ui/i18n.js';
+import {bindTabKeys, syncTabs} from '../ui/tabs.js';
 
 /**
  * Un preset du navigateur est considéré « déjà copié » si le compte contient un preset de même nom
@@ -56,10 +59,10 @@ export class PresetView {
     this.currentName = el('strong', {text: 'None'});
     this.currentWhere = el('span', {class: 'presets-where'});
     this.modified = el('span', {class: 'presets-modified', text: '• modified', hidden: true});
-    this.tabFactory = el('button', {type: 'button', role: 'tab', class: 'presets-tab', text: 'Factory', title: 'Ready-to-play sounds bundled with the app', onclick: () => this.switchSource('factory')});
-    this.tabBrowser = el('button', {type: 'button', role: 'tab', class: 'presets-tab', text: 'This browser', onclick: () => this.switchSource('browser')});
-    this.tabAccount = el('button', {type: 'button', role: 'tab', class: 'presets-tab', text: 'My account', onclick: () => this.switchSource('account')});
-    this.tabExplore = el('button', {type: 'button', role: 'tab', class: 'presets-tab', text: 'Explore', title: 'Public presets shared by everyone', onclick: () => this.switchSource('public')});
+    this.tabFactory = el('button', {type: 'button', role: 'tab', id: 'presetsTabFactory', class: 'presets-tab', text: 'Factory', title: 'Ready-to-play sounds bundled with the app', onclick: () => this.switchSource('factory')});
+    this.tabBrowser = el('button', {type: 'button', role: 'tab', id: 'presetsTabBrowser', class: 'presets-tab', text: 'This browser', onclick: () => this.switchSource('browser')});
+    this.tabAccount = el('button', {type: 'button', role: 'tab', id: 'presetsTabAccount', class: 'presets-tab', text: 'My account', onclick: () => this.switchSource('account')});
+    this.tabExplore = el('button', {type: 'button', role: 'tab', id: 'presetsTabExplore', class: 'presets-tab', text: 'Explore', title: 'Public presets shared by everyone', onclick: () => this.switchSource('public')});
     this.nameInput = el('input', {name: 'name', type: 'text', maxlength: '80', required: true, placeholder: 'Preset name', autocomplete: 'off', 'aria-label': 'Preset name'});
     this.tagsInput = el('input', {name: 'tags', type: 'text', maxlength: '200', placeholder: 'Tags, comma separated (optional)', autocomplete: 'off', 'aria-label': 'Tags'});
     this.publicInput = el('input', {type: 'checkbox', name: 'public'});
@@ -78,13 +81,17 @@ export class PresetView {
     this.note = el('p', {class: 'host-help presets-note'});
     // « Mes presets » (navigateur / compte) ; masqué dans l'onglet Explore, qui a sa propre section.
     this.importButton = el('button', {type: 'button', text: 'Import file…', onclick: () => this.fileInput.click()});
-    this.mine = el('div', {class: 'presets-mine'}, this.saveForm, this.migration,
+    this.mine = el('div', {class: 'presets-mine', id: 'presetsPanelMine'}, this.saveForm, this.migration,
       el('div', {class: 'presets-toolbar'}, this.search, this.importButton, this.fileInput),
       this.list);
+    this.explore.root.id = 'presetsPanelExplore';
+    this.closeButton = el('button', {type: 'button', class: 'presets-close', 'aria-label': 'Close presets', text: '×', onclick: () => this.close()});
+    this.tablist = el('div', {class: 'presets-tabs', role: 'tablist', 'aria-label': 'Where presets are stored'}, this.tabFactory, this.tabBrowser, this.tabAccount, this.tabExplore);
+    bindTabKeys(this.tablist);
     this.dialog = el('dialog', {class: 'host-presets', id: 'presetsDialog', 'aria-labelledby': 'presetsTitle'},
-      el('header', {}, el('strong', {id: 'presetsTitle', text: 'Presets'}), el('button', {type: 'button', 'aria-label': 'Close presets', text: '×', onclick: () => this.close()})),
+      el('header', {}, el('strong', {id: 'presetsTitle', text: 'Presets'}), this.closeButton),
       el('p', {class: 'presets-current'}, 'Current sound: ', this.currentName, ' ', this.currentWhere, ' ', this.modified),
-      el('div', {class: 'presets-tabs', role: 'tablist', 'aria-label': 'Where presets are stored'}, this.tabFactory, this.tabBrowser, this.tabAccount, this.tabExplore),
+      this.tablist,
       this.mine,
       this.explore.root,
       this.status,
@@ -168,10 +175,8 @@ export class PresetView {
     if (this.label) this.label.textContent = current ? `${current.name}${dirty ? ' •' : ''}` : '';
     this.mine.hidden = source === 'public';
     this.explore.root.hidden = source !== 'public';
-    for (const [tab, value] of [[this.tabFactory, 'factory'], [this.tabBrowser, 'browser'], [this.tabAccount, 'account'], [this.tabExplore, 'public']]) {
-      tab.classList.toggle('active', source === value);
-      tab.setAttribute('aria-selected', String(source === value));
-    }
+    const tabs = [[this.tabFactory, 'factory'], [this.tabBrowser, 'browser'], [this.tabAccount, 'account'], [this.tabExplore, 'public']];
+    for (const [tab, value] of tabs) tab.classList.toggle('active', source === value);
     this.tabAccount.textContent = account ? `My account${username ? ` (${username})` : ''}` : 'My account (sign in)';
     this.tabAccount.title = account ? 'Presets saved online on your account' : 'Sign in (Account button) to save presets online';
     this.publicRow.hidden = source !== 'account';
@@ -185,10 +190,22 @@ export class PresetView {
       this.copyAllButton.textContent = count > 1 ? 'Copy them to my account' : 'Copy it to my account';
     }
     this.dialog.classList.toggle('busy', busy);
+    // Un bouton désactivé perd le focus (il retombe sur la page) : on le note pendant l'action et
+    // on le rend à la fin, sinon un utilisateur au clavier doit tout reparcourir depuis le début.
+    const focused = document.activeElement;
+    if (busy && focused !== this.dialog && this.dialog.contains(focused)) this.restoreFocus = focused;
     for (const control of this.dialog.querySelectorAll('button, input')) {
       // L'onglet Explore gère lui-même l'état de ses boutons (copie impossible sans compte…).
-      if (control.matches('[aria-label="Close presets"]') || this.explore.root.contains(control)) continue;
+      if (control === this.closeButton || this.explore.root.contains(control)) continue;
       control.disabled = busy || (control === this.tabAccount && !account) || (control === this.tabExplore && !this.manager.storages.public) || (control === this.tabFactory && !this.manager.storages.factory);
+    }
+    // Après les « disabled » : un onglet désactivé ne doit pas rester le seul atteignable au clavier.
+    syncTabs(tabs.map(([tab]) => tab), tabs.find(([, value]) => value === source)?.[0], (tab) => (tab === this.tabExplore ? this.explore.root : this.mine));
+    if (!busy && this.restoreFocus) {
+      const target = this.restoreFocus;
+      this.restoreFocus = null;
+      const lost = !document.activeElement || document.activeElement === document.body || document.activeElement === this.dialog;
+      if (lost && this.dialog.open && target.isConnected && !target.disabled && !target.closest('[hidden]')) target.focus();
     }
   }
 
@@ -233,6 +250,14 @@ export class PresetView {
         actions.has('delete') ? el('button', {type: 'button', class: 'presets-danger', text: 'Delete', 'aria-label': `Delete ${preset.name}`, onclick: () => this.remove(preset)}) : null));
   }
 
+  /**
+   * Confirmation thémée et traduite. `key` regroupe title / message / action dans les dictionnaires
+   * (ui/locales) ; `messageKey` permet un message différent selon l'onglet. Supprimer = bouton rouge.
+   */
+  ask(key, params, messageKey = `${key}.message`) {
+    return confirmDialog({title: t(`${key}.title`, params), message: t(messageKey, params), confirmLabel: t(`${key}.action`), danger: key === 'presets.confirm.delete'});
+  }
+
   tags() { return this.tagsInput.value.split(',').map((tag) => tag.trim()).filter(Boolean); }
 
   async saveAs() {
@@ -249,14 +274,14 @@ export class PresetView {
 
   async overwrite() {
     const current = this.manager.current;
-    if (!current || !confirm(`Replace “${current.name}” with the current sound?`)) return;
+    if (!current || !await this.ask('presets.confirm.overwrite', {name: current.name})) return;
     const saved = await this.run(() => this.manager.overwrite(), (preset) => `Updated “${preset.name}”.`);
     if (saved) await this.refresh();
   }
 
   /** Charge un preset (tous les onglets, y compris Explore) : confirmation si modifié, état, message. */
   async load(preset, source = this.manager.source) {
-    if (this.manager.dirty && !confirm(`“${this.manager.current?.name}” has unsaved changes. Load “${preset.name}” anyway?`)) return null;
+    if (this.manager.dirty && !await this.ask('presets.confirm.load', {current: this.manager.current?.name, name: preset.name})) return null;
     const by = preset.author?.username ? ` by ${preset.author.username}` : '';
     this.setStatus(`Loading “${preset.name}”${by}…`);
     const result = await this.run(() => this.manager.load(preset.id, source));
@@ -275,7 +300,7 @@ export class PresetView {
 
   async toggleVisibility(preset) {
     const visibility = preset.visibility === 'public' ? 'private' : 'public';
-    if (visibility === 'public' && !confirm(`Make “${preset.name}” public? Everyone will be able to find it, load it and copy it (your username is shown, never your email).`)) return;
+    if (visibility === 'public' && !await this.ask('presets.confirm.makePublic', {name: preset.name})) return;
     const saved = await this.run(() => this.manager.setVisibility(preset.id, visibility), (updated) => `“${updated.name}” is now ${updated.visibility}.`);
     if (saved) await this.refresh();
   }
@@ -292,14 +317,19 @@ export class PresetView {
   async copyAllToAccount() {
     const presets = this.pending;
     if (!presets.length) return;
-    if (!confirm(`Copy ${presets.length} preset${presets.length > 1 ? 's' : ''} from this browser to your account? They will also stay in this browser.`)) return;
+    if (!await this.ask('presets.confirm.copyAll', {count: presets.length})) return;
     await this.copyToAccount(presets.map((preset) => preset.id));
   }
 
   async remove(preset) {
-    const where = this.manager.source === 'account' ? 'from your account' : 'from this browser';
-    if (!confirm(`Delete “${preset.name}” ${where}? This cannot be undone (export it first to keep a copy).`)) return;
-    if (await this.run(() => this.manager.remove(preset.id).then(() => true), `Deleted “${preset.name}”.`)) await this.refresh();
+    const message = this.manager.source === 'account' ? 'presets.confirm.delete.messageAccount' : 'presets.confirm.delete.messageBrowser';
+    if (!await this.ask('presets.confirm.delete', {name: preset.name}, message)) return;
+    const index = this.presets.findIndex((item) => item.id === preset.id);
+    if (!await this.run(() => this.manager.remove(preset.id).then(() => true), `Deleted “${preset.name}”.`)) return;
+    await this.refresh();
+    // Le bouton cliqué n'existe plus : le focus va au preset qui a pris sa place (ou au filtre).
+    const items = this.list.querySelectorAll('.presets-item');
+    (items[Math.min(index, items.length - 1)]?.querySelector('button') || this.search).focus();
   }
 
   async export(preset) {

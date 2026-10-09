@@ -116,3 +116,9 @@ body[data-ui-mode="beginner"] #toggleSidebar { display:none; }
 .lang-switch button + button { border-left:1px solid var(--line); }
 .lang-switch button[aria-pressed="true"] { color:var(--accent-ink);background:var(--accent); }
 .lang-switch button:focus-visible { outline-offset:-3px; }
+
+/* ---- Fenêtre de confirmation (ui/confirmDialog.js) ---- */
+.host-confirm-actions { display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:18px; }
+.host-confirm .host-confirm-actions button { margin:0; }
+.host-confirm-primary { color:var(--accent-ink);background:var(--accent);border-color:var(--accent); }
+.host-confirm-primary:hover { background:var(--accent-hover); }

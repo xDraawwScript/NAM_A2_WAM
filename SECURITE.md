@@ -92,6 +92,7 @@
 | 44 | `server/.env` **ignoré par Git**, `.env.example` fourni ; `config.js` (public) ne contient aucun secret | `.gitignore`, `config.js` | Aucun secret dans le dépôt GitHub | M0 + M3 (test « no secret in config.js ») |
 | 45 | Assets servis avec `Cache-Control: private` | `routes/assets.js` | Pas de mise en cache par un proxy partagé | M2 |
 | 50 | Codes d'erreur stables : une erreur 500 ne renvoie que `{ message: "Internal server error", code: "internal" }` (jamais de `params`) ; les `params` ne contiennent que des limites publiques (`min`, `max`, `count`) ou le message du validateur, déjà visible avant | `errorCodes.js`, `app.js` | Traduire les erreurs sans exposer plus d'informations qu'avant | M8 |
+| 51 | Fenêtre de confirmation de l'hôte : titre, message et boutons insérés avec `textContent`, jamais `innerHTML` (un nom de preset contenant du HTML s'affiche tel quel) ; focus par défaut sur « Annuler » pour qu'une action destructrice ne parte pas d'un appui sur Entrée | `ui/confirmDialog.js` | Pas d'injection de HTML via les noms de presets ou les traductions ; pas de suppression accidentelle | `confirm-dialog.test.mjs` (« jamais interprété comme du HTML », focus) | M8 |
 
 ## 8. Limites connues (assumées et documentées)
 
