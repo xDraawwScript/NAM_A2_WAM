@@ -901,7 +901,7 @@ refonte complète de la mise en page ; **maquette HTML avant de coder**.
 | 1 | Maquette HTML avec 3 ambiances rock (`docs/maquette/`) → choix de l'étudiant | ✅ choix : **Tolex & Lampes** |
 | 2 | Thème : design tokens (`ui/theme.css`), polices, réécriture des CSS | ✅ |
 | 3 | Internationalisation : `ui/i18n.js`, `ui/locales/{en,fr}.js`, codes d'erreur du serveur, tests | ✅ |
-| 4 | Nouvelle mise en page, guide de démarrage, confirmations thémées, accessibilité, fond animé Butterchurn (option) | 🔄 4a, 4b faits |
+| 4 | Nouvelle mise en page, guide de démarrage, confirmations thémées, accessibilité, fond animé Butterchurn (option) | ✅ |
 | 5 | Traduction de tous les textes de l'hôte | ⏳ |
 | 6 | Audit accessibilité, relecture des textes, parcours FR/EN, `/code-review`, `/simplify` | ⏳ |
 | 7 | SUIVI, REPORT, SECURITE, merge dans `develop` | ⏳ |
@@ -1206,6 +1206,37 @@ de base (`button`, `kbd`…) excluent toujours `.fx-editor-mount` et `.tuner-mou
   changement de source, mode complet avec 2 chaînes, aucune erreur console.
 
 **Résultats 4b** : hôte **260/260**, serveur **43/43**.
+
+##### 4c : fond animé Butterchurn (option)
+
+Le bouton **Fond animé** du header affiche derrière l'interface un visualiseur
+[Butterchurn](https://github.com/jberg/butterchurn) (le Milkdrop de Winamp, en WebGL) qui réagit au son.
+Toutes les conditions de l'étape 1 sont respectées :
+
+| Exigence | Comment |
+|---|---|
+| Désactivé par défaut | `aria-pressed="false"` ; le choix est mémorisé (`nam-a2-visualizer`) |
+| Chargé seulement à l'activation | les deux scripts (≈ 850 Ko) sont ajoutés à la page au premier clic, puis réutilisés |
+| Hébergé dans le projet | `ui/vendor/butterchurn/` : fichiers npm **non modifiés**, licences MIT, empreintes SHA-256 dans le README (vérifiées par un test) ; `-text` dans `.gitattributes` pour que Git ne change aucun octet |
+| Lecture seule sur la sortie | `connectAudio(backingMix.output)` : Butterchurn relie ce nœud à son analyseur, qui ne va nulle part. Le son n'est pas modifié (on visualise ampli + backing track, c'est-à-dire ce qu'on entend) |
+| Discret, contraste inchangé | calque `position: fixed` derrière la page, voilé par la texture + le tolex à 70 % ; les panneaux gardent leur fond |
+| Presets calmes | 8 presets choisis dans le pack (lents, sombres, sans flash), un nouveau toutes les 45 s avec un fondu |
+| Léger | 30 images/s au plus, demi-résolution, pause quand l'onglet est caché ; à l'arrêt, contexte WebGL libéré tout de suite |
+| Réduire les animations | si le système le demande, le bouton est désactivé avec une explication, et le fond s'arrête s'il tournait |
+| Pas de WebGL 2 | vérifié **avant** de télécharger quoi que ce soit ; notification d'erreur traduite |
+
+Les plugins ne sont pas touchés : le calque est sous toute la page, sans filtre sur leurs interfaces.
+
+**Tests** : `tests/phase6/visualizer.test.mjs` (8 tests) avec une fenêtre et un Butterchurn simulés :
+rien de téléchargé avant le clic, branchement de la sortie seulement, demi-résolution, calque `aria-hidden`,
+jamais le preset « strobe » glissé dans le faux pack, 3 images dessinées sur 5 à 60 Hz, arrêt complet
+(débranché, calque retiré, contexte WebGL libéré), animations réduites, pas de WebGL 2, choix mémorisé,
+empreintes des fichiers vendor, aucune URL externe. Un test de mutation (garde « animations réduites »
+retirée) fait bien échouer la suite.
+**Navigateur** : activé puis désactivé puis réactivé (scripts chargés une seule fois, un seul calque),
+capture à 1366 px, `npm run dist` (fichiers identiques octet pour octet dans la dist), aucune erreur console.
+
+**Résultats 4c** : hôte **268/268**, serveur **43/43**.
 
 ---
 

@@ -54,6 +54,13 @@ export default {
     close: 'Fermer',
     keys: {escape: 'Échap', home: 'Début'},
   },
+  visualizer: {
+    label: 'Fond animé',
+    turnOn: 'Afficher un fond animé qui réagit au son',
+    turnOff: 'Masquer le fond animé',
+    reducedMotion: 'Fond animé indisponible : votre système demande de réduire les animations',
+    unavailable: 'Le fond animé ne peut pas démarrer sur ce navigateur (WebGL 2 nécessaire).',
+  },
   confirm: {
     ok: 'OK',
     cancel: 'Annuler',

@@ -56,6 +56,13 @@ export default {
     close: 'Close',
     keys: {escape: 'Esc', home: 'Home'},
   },
+  visualizer: {
+    label: 'Visuals',
+    turnOn: 'Show an animated background that reacts to the sound',
+    turnOff: 'Hide the animated background',
+    reducedMotion: 'Animated background unavailable: your system asks to reduce motion',
+    unavailable: 'The animated background cannot start on this browser (WebGL 2 is required).',
+  },
   confirm: {
     ok: 'OK',
     cancel: 'Cancel',

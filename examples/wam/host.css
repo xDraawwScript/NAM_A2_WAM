@@ -155,6 +155,15 @@ body[data-ui-mode="beginner"] .fx-route-label { display:none!important; }
 @keyframes host-toast-in { from { opacity: 0; transform: translateY(8px); } }
 @media (prefers-reduced-motion: reduce) { .host-toast { animation: none; } }
 
+/* ---- Fond animé Butterchurn (ui/VisualizerBackground.js), désactivé par défaut ----
+   Le calque est derrière toute la page ; le voile (texture + tolex à 70 %) l'assombrit. Les panneaux
+   gardent leur propre fond : seul l'espace entre eux laisse voir l'animation. */
+.host-visualizer { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.host-visualizer canvas { display: block; width: 100%; height: 100%; }
+.host-visualizer::after { content: ""; position: absolute; inset: 0; background: var(--bg-texture), color-mix(in srgb, var(--bg) 70%, transparent); }
+.host-visualizer ~ .host-shell { position: relative; z-index: 1; }
+.host-visualizer-button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 -3px 0 var(--accent); }
+
 /* Texte réservé aux lecteurs d'écran (#hostStatus, titre du rack) */
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 
