@@ -72,7 +72,7 @@ test("le preset doit référencer ses assets, jamais les embarquer", async () =>
 
   const missing = await ctx.api("/api/presets", { method: "POST", token, body: payload });
   assert.equal(missing.status, 400, "les assets n'ont pas encore été envoyés");
-  assert.match(missing.body.message, /manquant/);
+  assert.match(missing.body.message, /Missing asset/);
 
   await uploadAssets(ctx.api, token, assets);
   assert.equal((await ctx.api("/api/presets", { method: "POST", token, body: payload })).status, 201);

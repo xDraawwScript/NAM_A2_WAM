@@ -4,19 +4,7 @@
 // jamais avec innerHTML, pour éviter toute injection de HTML.
 
 import {presetFileName} from './PresetFile.js';
-
-const el = (tag, attributes = {}, ...children) => {
-  const node = document.createElement(tag);
-  for (const [key, value] of Object.entries(attributes)) {
-    if (key === 'class') node.className = value;
-    else if (key === 'text') node.textContent = value;
-    else if (key.startsWith('on')) node.addEventListener(key.slice(2), value);
-    else if (value === true) node.setAttribute(key, '');
-    else if (value !== false && value != null) node.setAttribute(key, value);
-  }
-  node.append(...children.filter(Boolean));
-  return node;
-};
+import {el} from '../ui/el.js';
 
 const formatDate = (iso) => {
   try { return new Date(iso).toLocaleString('en-GB', {dateStyle: 'medium', timeStyle: 'short'}); } catch { return ''; }

@@ -107,7 +107,7 @@ presetsRouter.get("/:id", optionalAuth, async (req, res, next) => {
     assertObjectId(req.params.id);
     const preset = await Preset.findById(req.params.id).populate("ownerId", "username").lean();
     const isOwner = preset && req.userId && String(preset.ownerId?._id) === req.userId;
-    if (!preset || (preset.visibility !== "public" && !isOwner)) throw new HttpError(404, "Preset inconnu");
+    if (!preset || (preset.visibility !== "public" && !isOwner)) throw new HttpError(404, "Preset not found");
     res.json(full(preset, preset.ownerId));
   } catch (error) {
     next(error);
@@ -118,7 +118,7 @@ presetsRouter.put("/:id", requireAuth, async (req, res, next) => {
   try {
     assertObjectId(req.params.id);
     const preset = await Preset.findOne({ _id: req.params.id, ownerId: req.userId });
-    if (!preset) throw new HttpError(404, "Preset inconnu");
+    if (!preset) throw new HttpError(404, "Preset not found");
     const input = presetInput(req.body, { partial: true });
     const previousHashes = [...preset.assetHashes];
     if (input.assetHashes) await assertAssetsUsable(input.assetHashes, req.userId);
@@ -137,7 +137,7 @@ presetsRouter.delete("/:id", requireAuth, async (req, res, next) => {
   try {
     assertObjectId(req.params.id);
     const preset = await Preset.findOneAndDelete({ _id: req.params.id, ownerId: req.userId });
-    if (!preset) throw new HttpError(404, "Preset inconnu");
+    if (!preset) throw new HttpError(404, "Preset not found");
     await removeUnusedAssets(preset.assetHashes);
     console.log(`[presets] Supprimé : ${preset.id}`);
     res.status(204).end();
@@ -150,7 +150,7 @@ presetsRouter.post("/:id/copy", requireAuth, async (req, res, next) => {
   try {
     assertObjectId(req.params.id);
     const source = await Preset.findById(req.params.id).lean();
-    if (!source || (source.visibility !== "public" && String(source.ownerId) !== req.userId)) throw new HttpError(404, "Preset inconnu");
+    if (!source || (source.visibility !== "public" && String(source.ownerId) !== req.userId)) throw new HttpError(404, "Preset not found");
     const name = `${source.name} (copy)`.slice(0, 80);
     const copy = await Preset.create({
       ownerId: req.userId, name, description: source.description, tags: source.tags, visibility: "private",

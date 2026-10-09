@@ -67,7 +67,7 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 | 0 | Organisation (`feature/organisation`) | ✅ | 2026-10-08 | voir `git log feature/organisation` |
 | 1 | Format + presets locaux IndexedDB + assets par hash (`feature/presets-locaux`) | ✅ | 2026-10-08 | voir `git log feature/presets-locaux` |
 | 2 | Backend presets + assets (`feature/backend-presets`) | ✅ | 2026-10-09 | voir `git log feature/backend-presets` |
-| 3 | Comptes dans l'hôte (`feature/comptes`) | ⏳ | | |
+| 3 | Comptes dans l'hôte (`feature/comptes`) | ✅ | 2026-10-10 | voir `git log feature/comptes` |
 | 4 | Presets en ligne (`feature/presets-en-ligne`) | ⏳ | | |
 | 5 | Explorer les presets publics (`feature/explorer-public`) | ⏳ | | |
 | 6 | Presets d'usine (`feature/presets-usine`) | ⏳ | | |
@@ -108,8 +108,19 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 - ✅ `server/API_CONTRACT.md`, `server/.env.example`, `server/.env` (non versionné)
 - ✅ Test manuel du vrai serveur (MongoDB locale, base temporaire supprimée ensuite)
 - ✅ Relecture `/code-review` : 10 points relevés, tous corrigés et testés
-- ⚠️ Connexion Atlas refusée (IP non autorisée) : action de l'étudiant requise (voir journal)
+- ✅ Connexion Atlas refusée (IP non autorisée) → IP ajoutée par l'étudiant le 2026-10-09, connexion vérifiée
 - ✅ Commit, push, merge dans `develop`
+
+### Détail mission 3
+
+- ✅ `ApiClient.js` (session, JWT, erreurs, serveur injoignable) + 10 tests
+- ✅ `AccountView.js` + `account.css` (connexion, inscription, profil, déconnexion)
+- ✅ `accountRules.js` partagé client/serveur, `ui/el.js` partagé entre les fenêtres
+- ✅ `config.js` (`api.baseUrl`), bouton dans `index.html`, câblage `main.js`, build
+- ✅ Messages de l'API en anglais (choix de l'étudiant)
+- ✅ Vérification dans le navigateur avec le vrai backend
+- ✅ Relecture `/code-review` : 8 points traités
+- ✅ Tests : hôte 190/190, backend 24/24 — commit, push, merge dans `develop`
 
 ---
 
@@ -406,7 +417,8 @@ un preset de l'utilisateur, et il est supprimé quand plus aucun preset ne l'uti
 démarrage. C'est ce qu'Atlas renvoie quand **l'adresse IP du PC n'est pas autorisée** (*Network
 Access*) — l'IP a sans doute changé depuis le TP. Solution (à faire par l'étudiant, c'est un réglage
 de son compte) : Atlas → *Security* → *Network Access* → *Add IP Address* → *Add Current IP
-Address*. En attendant, le serveur a été vérifié sur la MongoDB **locale** déjà installée sur le PC
+Address*. ✅ Fait par l'étudiant le 2026-10-09 : connexion à Atlas vérifiée (base `nam-presets`).
+En attendant, le serveur avait été vérifié sur la MongoDB **locale** déjà installée sur le PC
 (service Windows « MongoDB »), qu'on peut aussi utiliser pour développer (voir mémo).
 
 **Résultats**
@@ -422,6 +434,76 @@ Address*. En attendant, le serveur a été vérifié sur la MongoDB **locale** d
 3. Ouvrir http://localhost:3000/api/health → `{"status":"ok"}`.
 4. Avec un client HTTP (extension REST Client / Thunder Client / Postman) : `POST /api/auth/login`
    avec `demo@example.com` / `Demo1234!`, puis `GET /api/presets/public`.
+
+### Mission 3 — Comptes dans l'hôte (`feature/comptes`, 2026-10-10)
+
+**Fait** : un bouton **Account** dans le header (il affiche *Sign in* ou le pseudo connecté) ouvre
+une fenêtre pour **se connecter**, **créer un compte** (pseudo public, email privé, mot de passe +
+confirmation), voir son **profil**, **changer de pseudo** et **se déconnecter**. La session reste
+active après un rechargement de la page, tant que le jeton (12 h) n'a pas expiré. Les presets restent
+encore locaux : leur passage en ligne est la mission 4.
+
+**Fichiers**
+
+| Fichier | Rôle |
+|---|---|
+| `examples/wam/account/ApiClient.js` | Client HTTP de l'API : session (jeton + profil), en-tête `Authorization`, erreurs lisibles, détection du serveur injoignable, déconnexion automatique si le jeton est refusé |
+| `examples/wam/account/AccountView.js` + `account.css` | La fenêtre Account (anglais), onglets *Sign in* / *Create account*, profil |
+| `examples/wam/account/accountRules.js` | Règles du pseudo et du mot de passe, **partagées avec le serveur** |
+| `examples/wam/ui/el.js` | Petit utilitaire DOM extrait de `PresetView.js`, partagé par les deux fenêtres |
+| `examples/wam/config.js` | `api.baseUrl = 'http://localhost:3000/api'` (adresse publique, aucun secret) |
+| `index.html`, `main.js`, `tools/build-static-dist.mjs` | Bouton, câblage, copie des dossiers `account/` et `ui/` dans la dist |
+| `server/src/**` | Messages d'erreur de l'API traduits en anglais (logs et commentaires restent en français) |
+
+**Explication — le cycle de vie de la session**
+```
+Inscription / connexion → le serveur renvoie {token, user}
+  → ApiClient.writeSession() : garde {token, user} en mémoire + localStorage → événement 'change'
+  → AccountView.render() : le header affiche le pseudo
+Rechargement de la page → ApiClient lit le localStorage
+  → jeton expiré ? (date « exp » lue dans le JWT, sans le secret) → session effacée
+  → sinon refresh() : GET /users/me pour vérifier le jeton et rafraîchir le profil
+      · 401 → session effacée + message « session expired »
+      · serveur éteint → on garde la session locale, le header indique « unreachable »
+Déconnexion → session effacée (mémoire + localStorage)
+```
+
+**Explication — CORS en pratique** : la page est servie par Live Server (`http://127.0.0.1:5500`) et
+l'API par Node (`http://localhost:3000`). Ce sont deux « origines » différentes : le navigateur
+n'autorise l'appel que parce que l'API répond `Access-Control-Allow-Origin: http://127.0.0.1:5500`.
+Si Live Server utilise un autre port (5501…), il faut l'ajouter à `CORS_ORIGINS` dans `server/.env`.
+
+**Décision : messages de l'API en anglais** (choix de l'étudiant) pour une interface cohérente ;
+les tests du serveur ont été adaptés.
+
+**Relecture de code (`/code-review`)** : 8 points relevés.
+1. Une déconnexion pendant la vérification du profil pouvait recréer une session sans jeton →
+   la réponse est ignorée si la session a changé (test ajouté).
+2. Un `config.js` sans `api` faisait planter tout l'hôte → seule la fonction Account est désactivée.
+3. Les erreurs de validation Mongoose affichaient « User validation failed: email: … » → seul le
+   message utile est renvoyé (test ajouté).
+4. On pouvait changer d'onglet pendant une requête → tout est bloqué pendant l'appel.
+5. Double message quand la session enregistrée est refusée → un seul.
+6. Le jeton est stocké dans le localStorage (lisible par un script injecté) → **compromis assumé**
+   et documenté : aucun HTML utilisateur interprété, jeton limité à 12 h ; un cookie HttpOnly
+   imposerait que la page et l'API aient la même origine.
+7. Les règles du pseudo étaient écrites deux fois (client et serveur) → `accountRules.js` partagé.
+8. `SUIVI.md` pas tenu pendant la mission → ce journal.
+
+**Vérifié dans le navigateur** (vrai backend sur MongoDB locale, base temporaire supprimée ensuite) :
+inscription (avec erreur « passwords are different » sans perdre la saisie), session conservée
+après rechargement (le mot de passe n'est jamais stocké), changement de pseudo, pseudo déjà pris,
+déconnexion, mauvais mot de passe, connexion au compte démo, **backend éteint** : message clair,
+« unreachable », audio et presets locaux toujours utilisables.
+
+**Résultats** : hôte **190/190** (dont 16 nouveaux : `api-client.test.mjs`,
+`account-host-integration.test.mjs`) · backend **24/24**.
+
+**Comment tester soi-même**
+1. Terminal 1 : `cd server` puis `npm start` (Atlas).
+2. `build.bat`, puis Live Server sur `dist/NAM_A2_WAM/index.html` (port 5500).
+3. Bouton **Sign in** → *Create account* (ou compte démo `demo@example.com` / `Demo1234!`).
+4. Recharger la page : toujours connecté. Couper le backend : le message « unreachable » apparaît.
 
 ---
 

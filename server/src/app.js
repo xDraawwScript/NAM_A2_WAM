@@ -45,20 +45,21 @@ export function createApp({ corsOrigins = DEFAULT_CORS_ORIGINS } = {}) {
   app.use("/api", authRouter);
   app.use("/api/presets", presetsRouter);
 
-  app.use("/api", (_req, _res, next) => next(new HttpError(404, "Route inconnue")));
+  app.use("/api", (_req, _res, next) => next(new HttpError(404, "Unknown route")));
 
   // Gestionnaire central des erreurs : un statut HTTP clair, jamais de stack envoyée au client.
   app.use((error, _req, res, _next) => {
     let status = error.status ?? 500;
     let message = error.message;
-    if (error.type === "entity.too.large") { status = 413; message = "Requête trop volumineuse"; }
-    else if (error.type === "entity.parse.failed") { status = 400; message = "JSON invalide"; }
-    else if (error.name === "ValidationError") { status = 400; }
-    else if (error.name === "CastError") { status = 404; message = "Ressource inconnue"; }
-    else if (error.code === 11000) { status = 409; message = "Cette ressource existe déjà"; }
+    if (error.type === "entity.too.large") { status = 413; message = "Request too large"; }
+    else if (error.type === "entity.parse.failed") { status = 400; message = "Invalid JSON"; }
+    // Mongoose : « User validation failed: email: Invalid email address » → « Invalid email address »
+    else if (error.name === "ValidationError") { status = 400; message = Object.values(error.errors ?? {})[0]?.message || message; }
+    else if (error.name === "CastError") { status = 404; message = "Resource not found"; }
+    else if (error.code === 11000) { status = 409; message = "This resource already exists"; }
     if (status >= 500) {
       console.error("[error] Erreur interne", error);
-      message = "Erreur interne du serveur";
+      message = "Internal server error";
     } else if (!(error instanceof HttpError)) {
       console.warn(`[error] ${status} : ${message}`);
     }
