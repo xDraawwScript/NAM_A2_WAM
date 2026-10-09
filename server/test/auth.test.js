@@ -95,3 +95,38 @@ test("un jeton expiré ou invalide n'empêche pas de lire un contenu public", as
   const response = await ctx.api("/api/presets/public", { token: "expired.or.invalid" });
   assert.equal(response.status, 200);
 });
+
+test("anti force brute : la 11e tentative de connexion en 15 min est refusée (429)", async () => {
+  const statuses = [];
+  for (let i = 0; i < 11; i++) {
+    statuses.push((await ctx.api("/api/auth/login", { method: "POST", body: { email: "brute@example.com", password: `guess-${i}` }, keepLimits: true })).status);
+  }
+  assert.deepEqual(statuses.slice(0, 10), Array(10).fill(401));
+  const blocked = await ctx.api("/api/auth/login", { method: "POST", body: { email: "brute@example.com", password: "again" }, keepLimits: true });
+  assert.equal(blocked.status, 429);
+  assert.ok(Number(blocked.headers.get("retry-after")) > 0);
+});
+
+test("anti création en masse : la 6e inscription en une heure est refusée (429)", async () => {
+  const statuses = [];
+  for (let i = 0; i < 6; i++) {
+    statuses.push((await ctx.api("/api/auth/register", { method: "POST", body: { username: `Mass${i}`, email: `mass${i}@example.com`, password: "Password123" }, keepLimits: true })).status);
+  }
+  assert.deepEqual(statuses, [201, 201, 201, 201, 201, 429]);
+});
+
+test("mot de passe : au-delà de 72 octets, refusé (bcrypt ignorerait la fin)", async () => {
+  const long = await ctx.api("/api/auth/register", { method: "POST", body: { username: "LongPass", email: "longpass@example.com", password: "a".repeat(73) } });
+  assert.equal(long.status, 400);
+  assert.match(long.body.message, /72/);
+  const accents = await ctx.api("/api/auth/register", { method: "POST", body: { username: "Accents", email: "accents@example.com", password: "é".repeat(37) } });
+  assert.equal(accents.status, 400, "37 « é » = 74 octets");
+  assert.equal((await ctx.api("/api/auth/register", { method: "POST", body: { username: "Exact72", email: "exact72@example.com", password: "a".repeat(72) } })).status, 201);
+});
+
+test("un jeton signé avec un autre algorithme est refusé", async () => {
+  const jwt = (await import("jsonwebtoken")).default;
+  const { user } = await ctx.register("AlgoUser");
+  const forged = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, { algorithm: "HS512" });
+  assert.equal((await ctx.api("/api/users/me", { token: forged })).status, 401);
+});
