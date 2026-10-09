@@ -71,7 +71,7 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 | 4 | Presets en ligne (`feature/presets-en-ligne`) | ✅ | 2026-10-10 | voir `git log feature/presets-en-ligne` |
 | S | Revue de sécurité avancée (`feature/revue-securite`) | ✅ | 2026-10-10 | voir `git log feature/revue-securite` |
 | 5 | Explorer les presets publics (`feature/explorer-public`) | ✅ | 2026-10-10 | voir `git log feature/explorer-public` |
-| 6 | Presets d'usine (`feature/presets-usine`) | ⏳ | | |
+| 6 | Presets d'usine (`feature/presets-usine`) | ✅ | 2026-10-10 | voir `git log feature/presets-usine` |
 | 7 | Finitions, relectures, REPORT.md (`feature/finitions`) | ⏳ | | |
 
 ### Détail mission 0
@@ -147,6 +147,18 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 - ✅ Vérification dans le navigateur (invité, autre compte, mobile)
 - ✅ Relecture `/code-review` : 5 points traités
 - ✅ Tests : hôte 209/209, backend 35/35 — commit, push, merge dans `develop`
+
+### Détail mission 6
+
+- ✅ `SECURITE.md` : récapitulatif de toutes les mesures de sécurité (demande de l'étudiant)
+- ✅ Générateur `tools/factory-presets/generate-factory-presets.js` (7 recettes, vrais plugins)
+- ✅ `presets/factoryPresets.js` (généré) + `FactoryPresetStorage.js` (lecture seule, chargé à la demande)
+- ✅ `PresetManager` : source `factory` en lecture seule ; `PresetView` : onglet **Factory**
+- ✅ Niveaux mesurés puis égalisés (écart ramené de 18,6 dB à 3,9 dB)
+- ✅ `pluginUri` des modules NAM/Cabinet retiré de tous les presets (dépend du mode source/dist)
+- ✅ Tests + vérification dans le navigateur (7 sons, aller-retour d'un preset perso)
+- ✅ Relecture `/code-review` : 6 points traités
+- ✅ Tests : hôte 219/219, backend 35/35 — commit, push, merge dans `develop`
 
 ---
 
@@ -708,6 +720,67 @@ affichage mobile correct → compte de l'auteur : badge *Yours*, pas de bouton d
 2. Se déconnecter → *Presets* → onglet **Explore** : le preset apparaît ; *Details*, *Load*.
 3. Chercher par tag, ampli, pédale ou pseudo.
 4. Se connecter avec un autre compte → *Copy to my presets* → il apparaît dans *My account*.
+
+### Mission 6 — Presets d'usine (`feature/presets-usine`, 2026-10-10)
+
+**Fait** : un onglet **Factory** (premier onglet de la fenêtre Presets) propose **7 sons prêts à
+jouer**, construits avec les modèles d'ampli et les pédales livrés avec l'appli :
+
+| Preset | Ampli (capture NAM) | Pédales | Pour |
+|---|---|---|---|
+| Clean Deluxe | Fender Deluxe Reverb | — | accords, jazz |
+| Ambient Clean | Fender Deluxe Reverb | Chorus → SmoothDelay | arpèges, textures |
+| Crunch JCM800 | Marshall JCM800 | TS9 → ampli | rythmique rock |
+| Lead Soldano | Soldano SLO-100 (overdrive) | ampli → SmoothDelay | solos |
+| High Gain 5150 | Peavey 5150 + Maxon (full rig), gate activé | — | metal |
+| Fuzz Muff | Fender Deluxe Reverb | Big Muff → ampli | fuzz, stoner |
+| Bass SVT | Ampeg SVT 6x10 | Compresseur → ampli | basse |
+
+Comme le demande la spec du prof (§7.2), ce sont des **modèles en lecture seule** : on les charge,
+on les modifie, puis on enregistre *sa* version dans *This browser* ou *My account* ; le preset
+d'usine, lui, ne change jamais.
+
+**Explication — comment les sons sont fabriqués** : un preset est l'**état réel** des plugins. Le
+générateur (`tools/factory-presets/generate-factory-presets.js`, à lancer dans la console du
+navigateur sur la page de l'hôte) suit des « recettes » : il charge le modèle d'usine, insère les
+pédales du catalogue, règle leurs boutons, puis **capture** le son exactement comme le bouton *Save*.
+Le résultat (`presets/factoryPresets.js`) ne contient que des **références d'usine** (identifiant +
+hash des fichiers livrés), jamais les données. Pour changer un son : modifier la recette, relancer.
+
+**Explication — égaliser les volumes** : sans écouter, on peut **mesurer**. Un signal test (dent de
+scie à 220 Hz) traverse chaque preset et on mesure le niveau de sortie (RMS). Au départ : de −7,5 dB
+(Fuzz) à −26,1 dB (Bass), soit 18,6 dB d'écart (on sursaute en changeant de preset). Avec le gain de
+sortie de l'ampli dans chaque recette : de −15,5 à −19,4 dB (3,9 dB d'écart, les clairs un peu
+plus bas que les sons saturés, comme sur un vrai ampli).
+
+**Problèmes rencontrés**
+1. *URL de la machine dans les presets* : l'état des plugins contient une `imageUrl` absolue
+   (`http://localhost…`) pour la pochette. Elle est retirée ; un garde-fou refuse toute URL propre à la
+   machine. Les liens **publics** d'attribution (page TONE3000, créateur) sont gardés (crédit/licence).
+2. *Réverbes sans réglage dry/wet* (`greyhole`, `kbverb`) : risque de noyer le son direct → les sons
+   d'usine utilisent le SmoothDelay, qui a un vrai bouton *Dry/Wet*.
+3. *Le limiteur anti force brute* a bloqué un test de bout en bout de la mission 5 qui créait des
+   comptes sans passer par l'outil de test → remise à zéro exposée aux tests (preuve que la
+   protection marche).
+
+**Relecture de code (`/code-review`)** : 6 points traités.
+1. Un catalogue d'usine invalide aurait fait planter tout l'hôte → **chargement à la demande** : seule
+   l'erreur de l'onglet Factory s'affiche (test ajouté).
+2. Le curseur allait dans un champ masqué à l'ouverture de l'onglet Factory → il va dans le filtre.
+3. Les 116 Ko du catalogue étaient chargés au démarrage → chargés à la première ouverture de l'onglet.
+4. L'adresse des modules NAM/Cabinet (`../plugins/…`) dépend du mode (source ou dist) → retirée de
+   **tous** les presets ; l'hôte retrouve ces modules par leur rôle (test ajouté, presets existants
+   nettoyés à la lecture).
+5. et 6. `SECURITE.md` et `SUIVI.md` complétés (mesures 46 à 48, ce journal).
+
+**Vérifié dans le navigateur** : les 7 sons se chargent sans avertissement, avec la bonne chaîne et
+les bons réglages ; niveaux mesurés ; catalogue non chargé au démarrage puis chargé à l'ouverture ;
+un son d'usine enregistré comme preset perso puis rechargé à l'identique.
+
+**Résultats** : hôte **219/219** · backend **35/35**.
+
+**Comment tester soi-même** : *Presets* → onglet **Factory** → *Load* sur chaque son ; tourner un
+bouton, aller dans *This browser*, *Save* : le son est à toi, le preset d'usine n'a pas changé.
 
 ---
 
