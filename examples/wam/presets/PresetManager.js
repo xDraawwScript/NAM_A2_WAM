@@ -7,7 +7,8 @@
 //   - 'browser' : IndexedDbPresetStorage, toujours disponible (mode invité) ;
 //   - 'account' : RemotePresetStorage (API server/), disponible seulement une fois connecté ;
 //   - 'public'  : les presets publics de tout le monde (mission 5), en LECTURE SEULE : on peut les
-//                 chercher, les charger et les copier dans ses presets, pas les modifier.
+//                 chercher, les charger et les copier dans ses presets, pas les modifier ;
+//   - 'factory' : les presets d'usine livrés avec l'appli (mission 6), en LECTURE SEULE aussi.
 // `source` = l'onglet affiché (où l'on enregistre / liste). Le preset courant retient sa propre
 // source, pour que « Update » écrase le bon preset même si l'on a changé d'onglet entre-temps.
 // Charger un preset ne touche jamais à l'entrée live ni aux cartes son : rack.setState() ne le fait pas.
@@ -22,14 +23,17 @@ import {dehydrateRack, hydrateRack, collectAssetRefs} from './PresetAssets.js';
 import {exportPresetFile, importPresetFile} from './PresetFile.js';
 
 const INTERACTION_EVENTS = ['pointerup', 'keyup', 'wheel', 'change'];
-export const SOURCES = ['browser', 'account', 'public'];
-const READ_ONLY = 'Public presets of other users are read-only: copy it to your presets or save the sound as a new preset.';
+export const SOURCES = ['factory', 'browser', 'account', 'public'];
+const READ_ONLY = {
+  public: 'Public presets of other users are read-only: copy it to your presets or save the sound as a new preset.',
+  factory: 'Factory presets are read-only: save the sound as a new preset to keep your changes.',
+};
 
 export class PresetManager extends EventTarget {
   constructor({rack, storage, factory = null, nameForUri = null, beforeLoad = null, interactionTarget = null, checkDelay = 400}) {
     super();
     Object.assign(this, {rack, factory, nameForUri, beforeLoad, interactionTarget, checkDelay});
-    this.storages = {browser: storage, account: null, public: null};
+    this.storages = {factory: null, browser: storage, account: null, public: null};
     this.source = 'browser';  // onglet affiché : 'browser' | 'account'
     this.current = null;      // {id, name, source} du preset chargé ou enregistré en dernier
     this.dirty = false;       // le son a-t-il changé depuis ?
@@ -81,9 +85,16 @@ export class PresetManager extends EventTarget {
     this.changed();
   }
 
-  /** Les sources où l'on peut écrire : le navigateur et le compte, jamais le catalogue public. */
+  /** Branche le catalogue des presets d'usine (lecture seule, toujours disponible). */
+  setFactoryStorage(storage) {
+    this.storages.factory = storage;
+    if (!storage && this.source === 'factory') this.source = 'browser';
+    this.changed();
+  }
+
+  /** Les sources où l'on peut écrire : le navigateur et le compte, jamais l'usine ni le public. */
   writableStorage(source) {
-    if (source === 'public') throw new PresetError(READ_ONLY);
+    if (READ_ONLY[source]) throw new PresetError(READ_ONLY[source]);
     return this.storageOf(source);
   }
 

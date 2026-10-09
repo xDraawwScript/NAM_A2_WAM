@@ -63,7 +63,9 @@
 .presets-migration[hidden] { display:none; }
 
 /* Mission 5 : onglet Explore (presets publics). */
-.presets-tabs { grid-template-columns:repeat(3, 1fr); }
+.presets-tabs { grid-template-columns:repeat(4, 1fr); }
+.presets-save[hidden], .presets-toolbar button[hidden] { display:none; }
+.presets-description { color:#d8d2e4;font-size:12px; }
 .presets-mine[hidden], .explore[hidden] { display:none; }
 .explore-info { min-height:1em;margin:0 0 8px;color:var(--host-muted);font-size:11px; }
 .explore-author { color:#c9bcff;font-size:11px; }
