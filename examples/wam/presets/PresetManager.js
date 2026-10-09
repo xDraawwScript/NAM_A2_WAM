@@ -3,9 +3,11 @@
 //   Enregistrer : rack.getState() → dehydrateRack (modèles/IR → références) → createPreset → storage.save
 //   Charger     : storage.get → hydrateRack (références → modèles/IR) → rack.setState()
 //
-// Deux stockages (« adaptateurs » aux méthodes identiques) :
+// Trois sources (« adaptateurs » aux méthodes identiques) :
 //   - 'browser' : IndexedDbPresetStorage, toujours disponible (mode invité) ;
-//   - 'account' : RemotePresetStorage (API server/), disponible seulement une fois connecté.
+//   - 'account' : RemotePresetStorage (API server/), disponible seulement une fois connecté ;
+//   - 'public'  : les presets publics de tout le monde (mission 5), en LECTURE SEULE : on peut les
+//                 chercher, les charger et les copier dans ses presets, pas les modifier.
 // `source` = l'onglet affiché (où l'on enregistre / liste). Le preset courant retient sa propre
 // source, pour que « Update » écrase le bon preset même si l'on a changé d'onglet entre-temps.
 // Charger un preset ne touche jamais à l'entrée live ni aux cartes son : rack.setState() ne le fait pas.
@@ -20,13 +22,14 @@ import {dehydrateRack, hydrateRack, collectAssetRefs} from './PresetAssets.js';
 import {exportPresetFile, importPresetFile} from './PresetFile.js';
 
 const INTERACTION_EVENTS = ['pointerup', 'keyup', 'wheel', 'change'];
-export const SOURCES = ['browser', 'account'];
+export const SOURCES = ['browser', 'account', 'public'];
+const READ_ONLY = 'Public presets of other users are read-only: copy it to your presets or save the sound as a new preset.';
 
 export class PresetManager extends EventTarget {
   constructor({rack, storage, factory = null, nameForUri = null, beforeLoad = null, interactionTarget = null, checkDelay = 400}) {
     super();
     Object.assign(this, {rack, factory, nameForUri, beforeLoad, interactionTarget, checkDelay});
-    this.storages = {browser: storage, account: null};
+    this.storages = {browser: storage, account: null, public: null};
     this.source = 'browser';  // onglet affiché : 'browser' | 'account'
     this.current = null;      // {id, name, source} du preset chargé ou enregistré en dernier
     this.dirty = false;       // le son a-t-il changé depuis ?
@@ -62,12 +65,26 @@ export class PresetManager extends EventTarget {
    */
   setAccountStorage(storage) {
     this.storages.account = storage;
-    if (storage) this.source = 'account';
+    // On bascule sur « My account » depuis l'onglet navigateur, mais on ne quitte pas « Explore ».
+    if (storage && this.source === 'browser') this.source = 'account';
     else {
       if (this.source === 'account') this.source = 'browser';
       if (this.current?.source === 'account') { this.current = null; this.baseline = null; this.dirty = false; }
     }
     this.changed();
+  }
+
+  /** Branche le catalogue des presets publics (disponible avec ou sans compte). */
+  setPublicStorage(storage) {
+    this.storages.public = storage;
+    if (!storage && this.source === 'public') this.source = 'browser';
+    this.changed();
+  }
+
+  /** Les sources où l'on peut écrire : le navigateur et le compte, jamais le catalogue public. */
+  writableStorage(source) {
+    if (source === 'public') throw new PresetError(READ_ONLY);
+    return this.storageOf(source);
   }
 
   setSource(source) {
@@ -120,7 +137,7 @@ export class PresetManager extends EventTarget {
   saveAs({name, description = '', tags = [], visibility = 'private'}) {
     const source = this.source;
     return this.exclusive(async () => {
-      const storage = this.storageOf(source);
+      const storage = this.writableStorage(source);
       const {rack} = await this.capture(storage);
       const preset = createPreset({rack, name, description, tags, nameForUri: this.nameForUri});
       const saved = await storage.save(preset, {visibility});
@@ -134,7 +151,7 @@ export class PresetManager extends EventTarget {
     const current = this.current;
     if (!current) return Promise.reject(new PresetError('No current preset to overwrite'));
     return this.exclusive(async () => {
-      const storage = this.storageOf(current.source);
+      const storage = this.writableStorage(current.source);
       const {rack, summary} = await this.capture(storage);
       const saved = await storage.update(current.id, {rack, summary});
       await storage.collectGarbage?.();
@@ -158,7 +175,7 @@ export class PresetManager extends EventTarget {
   }
 
   async update(id, changes, source = this.source) {
-    const saved = await this.storageOf(source).update(id, changes);
+    const saved = await this.writableStorage(source).update(id, changes);
     if (this.isCurrent(id, source)) { this.current.name = saved.name; }
     this.changed();
     return saved;
@@ -170,7 +187,7 @@ export class PresetManager extends EventTarget {
   setVisibility(id, visibility) { return this.update(id, {visibility}, 'account'); }
 
   async remove(id, source = this.source) {
-    await this.storageOf(source).delete(id);
+    await this.writableStorage(source).delete(id);
     if (this.isCurrent(id, source)) { this.current = null; this.baseline = null; this.dirty = false; }
     this.changed();
   }
@@ -206,6 +223,20 @@ export class PresetManager extends EventTarget {
     });
   }
 
+  // --- Presets publics (mission 5) ----------------------------------------------------------------
+
+  /** Recherche dans les presets publics : {items, page, pages, total}. */
+  searchPublic({q = '', page = 1, limit = 12} = {}) {
+    return this.storageOf('public').listPublic({q, page, limit});
+  }
+
+  /** Copie un preset public dans « My account » (privé). Il faut être connecté. */
+  async copyPublic(id) {
+    const saved = await this.storageOf('account').copyFrom(id);
+    this.changed();
+    return saved;
+  }
+
   async exportFile(id, source = this.source) {
     const storage = this.storageOf(source);
     const preset = await storage.get(id);
@@ -215,7 +246,7 @@ export class PresetManager extends EventTarget {
 
   /** Importe un fichier dans l'onglet affiché : enregistre ses assets puis le preset (copie, nouvel ID). */
   async importFile(text, source = this.source) {
-    const storage = this.storageOf(source);
+    const storage = this.writableStorage(source);
     const {preset, assets, missing} = await importPresetFile(text);
     const absent = [];
     for (const ref of missing) if (!(await storage.getAsset(ref.hash))) absent.push(ref);

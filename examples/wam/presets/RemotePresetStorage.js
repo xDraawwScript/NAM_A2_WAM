@@ -103,6 +103,24 @@ export class RemotePresetStorage {
     return presetMetadata(fromApi(updated));
   }
 
+  /**
+   * Presets publics de tous les utilisateurs (mission 5), du plus récent au plus ancien.
+   * `q` cherche dans le nom, les tags, l'ampli, le cabinet, les pédales et le pseudo de l'auteur.
+   * Accessible sans compte. Retourne {items, page, pages, total}.
+   */
+  async listPublic({q = '', page = 1, limit = 12} = {}) {
+    const params = new URLSearchParams({page: String(page), limit: String(limit)});
+    if (q.trim()) params.set('q', q.trim().slice(0, 60));
+    const result = await this.api.request(`/presets/public?${params}`);
+    return {...result, items: result.items.map(cardFromApi)};
+  }
+
+  /** Copie un preset public dans MES presets (privé) : POST /api/presets/:id/copy. */
+  async copyFrom(id) {
+    const copy = await this.api.request(`/presets/${encodeURIComponent(id)}/copy`, {method: 'POST', auth: true});
+    return presetMetadata(fromApi(copy));
+  }
+
   rename(id, name) { return this.update(id, {name}); }
   setVisibility(id, visibility) { return this.update(id, {visibility}); }
 

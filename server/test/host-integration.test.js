@@ -22,6 +22,7 @@ async function browser(username, rackOptions) {
     baseUrl: `${ctx.base}/api`,
     storage: { getItem: (k) => storage.get(k) ?? null, setItem: (k, v) => storage.set(k, v), removeItem: (k) => storage.delete(k) },
   });
+  ctx.resetLimits(); // anti force brute : beaucoup de comptes créés depuis 127.0.0.1 pendant les tests
   if (username) await api.register({ username, email: `${username.toLowerCase()}@example.com`, password: "Password123" });
   const rack = new FakeRack(await makeRackState(rackOptions));
   const local = new IndexedDbPresetStorage({ indexedDB: new IDBFactory() });
@@ -86,6 +87,7 @@ test("guest presets copied to a new account: still in the browser, loadable onli
   const guest = await browser(null, { externalIr: true });
   await guest.manager.saveAs({ name: "Guest A" });
   await guest.manager.saveAs({ name: "Guest B" });
+  ctx.resetLimits();
   await guest.api.register({ username: "E2eGuest", email: "e2eguest@example.com", password: "Password123" });
   guest.manager.setAccountStorage(guest.online);
   const ids = (await guest.manager.list("browser")).map((preset) => preset.id);
@@ -110,4 +112,38 @@ test("an expired session falls back to the browser tab without losing the sound"
   assert.equal(manager.current, null, "the online preset is detached");
   assert.ok(rack.state.a.entries.length > 0, "the sound itself is untouched");
   assert.ok(saved.id);
+});
+
+test("Explore : un invité cherche et charge un preset public, puis se connecte et le copie", async () => {
+  const author = await browser("E2eExplorer", { externalModel: true, externalIr: true });
+  await author.manager.saveAs({ name: "Explore me", tags: ["blues"], visibility: "public" });
+  await author.manager.saveAs({ name: "Hidden draft" }); // privé : ne doit jamais apparaître
+
+  const guest = await browser(null);
+  guest.manager.setPublicStorage(new RemotePresetStorage({ api: guest.api }));
+  guest.manager.setSource("public");
+  const byAuthor = await guest.manager.searchPublic({ q: "e2eexplorer" });
+  assert.deepEqual(byAuthor.items.map((item) => item.name), ["Explore me"], "search by author, private presets excluded");
+  assert.equal((await guest.manager.searchPublic({ q: "blues" })).items[0].author.username, "E2eExplorer");
+
+  const { warnings } = await guest.manager.load(byAuthor.items[0].id, "public");
+  assert.deepEqual(warnings, [], "a guest downloads the external model and IR of a public preset");
+  assert.equal(guest.manager.current.source, "public");
+  await assert.rejects(guest.manager.overwrite(), /read-only/);
+  await assert.rejects(guest.manager.copyPublic(byAuthor.items[0].id), /Sign in/);
+
+  ctx.resetLimits();
+  await guest.api.register({ username: "E2eCopier", email: "e2ecopier@example.com", password: "Password123" });
+  guest.manager.setAccountStorage(guest.online);
+  assert.equal(guest.manager.source, "public", "stays on Explore after signing in");
+  const copy = await guest.manager.copyPublic(byAuthor.items[0].id);
+  assert.equal(copy.name, "Explore me (copy)");
+  assert.equal(copy.visibility, "private");
+  const mine = await guest.manager.list("account");
+  assert.deepEqual(mine.map((item) => item.name), ["Explore me (copy)"]);
+  const loaded = await guest.manager.load(copy.id, "account");
+  assert.deepEqual(loaded.warnings, [], "the copy is loadable and editable from My account");
+  guest.rack.state.a.entries[0].state.parameterValues.drive.value = 0.11;
+  await guest.manager.overwrite();
+  assert.equal((await guest.online.get(copy.id)).rack.a.entries[0].state.parameterValues.drive.value, 0.11);
 });

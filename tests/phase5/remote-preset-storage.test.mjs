@@ -142,3 +142,20 @@ test('the memory cache keeps only the most recent assets', async () => {
   assert.ok(storage.assetMemory.size <= 16);
   assert.ok(storage.assetMemory.has('h39') && !storage.assetMemory.has('h0'));
 });
+
+test('public catalogue: search without account, copy with account', async () => {
+  const api = fakeApi((call) => (call.method === 'POST'
+    ? {...call, id: 'copy-1', name: 'Shared (copy)', format: 'nam-a2-preset', version: 1, tags: [], summary: {}, visibility: 'private',
+      rack: {version: 2, a: {version: 1, entries: []}, b: null, visible: false, route: null, inputDbB: 0, outputDbA: 0, outputDbB: 0, mutedA: false, enabledB: false, panA: 0, panB: 0}}
+    : {items: [{id: 'p1', name: 'Shared', author: {id: 'u2', username: 'eric'}, summary: {}, tags: [], visibility: 'public'}], page: 1, pages: 2, total: 13}));
+  const storage = new RemotePresetStorage({api});
+  const result = await storage.listPublic({q: '  big muff ', page: 1});
+  assert.equal(result.total, 13);
+  assert.equal(result.items[0].author.username, 'eric');
+  const call = api.calls[0];
+  assert.equal(call.path, '/presets/public?page=1&limit=12&q=big+muff');
+  assert.notEqual(call.auth, true, 'browsing public presets needs no account');
+  const copy = await storage.copyFrom('p1');
+  assert.equal(copy.id, 'copy-1');
+  assert.deepEqual([api.calls[1].method, api.calls[1].path, api.calls[1].auth], ['POST', '/presets/p1/copy', true]);
+});
