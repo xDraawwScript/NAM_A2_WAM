@@ -505,6 +505,10 @@ export default {
       'high-gain-5150': 'Peavey 5150 boosté par un overdrive Maxon dans un baffle Mesa 4x12, noise gate activé : une rythmique metal serrée.',
       'fuzz-muff': 'Fuzz Big Muff dans un Fender clair : une fuzz épaisse, avec du sustain, pour les riffs et les solos.',
       'bass-svt': 'Ampeg SVT avec un baffle 6x10 et un compresseur léger : un son de basse rond et percutant.',
+      'killing-in-the-name': 'Inspiré de Tom Morello sur « Killing in the Name » : canal saturé d\'un Marshall JCM800, graves et médiums poussés, aucune pédale, son très sec. Accordage drop D ; baissez le volume de la guitare pour les passages plus clairs.',
+      'killing-in-the-name-solo': 'Le solo de « Killing in the Name » : le même JCM800 avec deux pitch shifters à +12 demi-tons après l\'ampli, comme la Whammy de Morello réglée deux octaves plus haut dans la boucle d\'effets. Jouez note par note.',
+      'my-own-summer': 'Inspiré de Stephen Carpenter sur « My Own Summer (Shove It) » : un mur de guitare épais et saturé dans un baffle Marshall 4x12, des graves profonds sans creuser les médiums. Accordage drop C#, en palm mute et en attaquant fort.',
+      'monster': 'Inspiré de Skillet sur « Monster » : un high gain moderne et serré, une Tube Screamer qui pousse une tête high gain dans un baffle Mesa 4x12, noise gate activé. Accordage drop C, palm mutes serrés.',
     },
     confirm: {
       overwrite: {title: 'Mettre à jour « {name} » ?', message: 'La version enregistrée sera remplacée par le son actuel.', action: 'Mettre à jour'},

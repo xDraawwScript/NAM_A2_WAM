@@ -12,8 +12,9 @@ import {makeRackState, FakeRack} from './fixtures.mjs';
 
 const json = async (path) => JSON.parse(await readFile(new URL(`../../${path}`, import.meta.url), 'utf8'));
 
-test('the factory catalogue has 7 valid, uniquely named, read-only presets', () => {
-  assert.equal(FACTORY_PRESETS.length, 7);
+test('the factory catalogue has 11 valid, uniquely named, read-only presets', () => {
+  // 7 sons de la mission 6 + 4 sons de morceaux (Killing in the Name, son solo, My Own Summer, Monster).
+  assert.equal(FACTORY_PRESETS.length, 11);
   const names = FACTORY_PRESETS.map((preset) => preset.name);
   assert.equal(new Set(names).size, names.length, 'unique names');
   for (const preset of FACTORY_PRESETS) {
@@ -99,11 +100,29 @@ test('load a factory preset, tweak it, save it as MY preset; the factory one nev
   assert.equal((await manager.storages.factory.get(fuzz.id)).name, 'Fuzz Muff');
 });
 
+test('the catalogue matches the generator recipes, and every description is translated', async () => {
+  const {RECIPES} = await import('../../tools/factory-presets/generate-factory-presets.js');
+  const {t, setLanguage, hasKey} = await import('../../examples/wam/ui/i18n.js');
+  assert.deepEqual(FACTORY_PRESETS.map((preset) => preset.id), RECIPES.map((recipe) => `factory:${recipe.id}`), 'regenerate factoryPresets.js after editing a recipe');
+  for (const [index, recipe] of RECIPES.entries()) {
+    const preset = FACTORY_PRESETS[index];
+    assert.deepEqual([preset.name, preset.description, preset.tags], [recipe.name, recipe.description, recipe.tags], recipe.id);
+    const key = `presets.factory.${recipe.id}`;
+    assert.ok(hasKey(key, 'en') && hasKey(key, 'fr'), `${key} translated`);
+    // Seuls les guillemets et l'apostrophe typographiques peuvent différer du texte du fichier.
+    setLanguage('en');
+    assert.equal(t(key).replace(/[“”]/gu, '"').replace(/’/gu, "'"), recipe.description, `${key} (en) = description`);
+  }
+  // Pitch shifter du solo : fenêtre 150 ms (la seule mesurée propre à +2 octaves, voir la recette).
+  const solo = RECIPES.find((recipe) => recipe.id === 'killing-in-the-name-solo');
+  assert.deepEqual(solo.pedals.map((pedal) => pedal.values['/DualPitchShifter/WindowSize']), [150, 150]);
+});
+
 test('a lazily loaded catalogue: nothing is loaded until used, and a bad catalogue only fails the Factory tab', async () => {
   let loads = 0;
   const lazy = new FactoryPresetStorage(async () => { loads++; return FACTORY_PRESETS; });
   assert.equal(loads, 0, 'nothing loaded at startup');
-  assert.equal((await lazy.list()).length, 7);
+  assert.equal((await lazy.list()).length, FACTORY_PRESETS.length);
   await lazy.get(FACTORY_PRESETS[0].id);
   assert.equal(loads, 1, 'loaded once, then kept');
   const broken = new FactoryPresetStorage(async () => [{...FACTORY_PRESETS[0], id: 'oops'}]);
