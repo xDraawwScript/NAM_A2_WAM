@@ -27,25 +27,25 @@ export const USER_QUOTA_BYTES = 200 * 1024 * 1024; // total des assets envoyés 
 export const ORPHAN_DELAY_MS = 24 * 60 * 60 * 1000; // délai avant de supprimer un asset jamais utilisé
 
 function assertHash(hash) {
-  if (!HASH_PATTERN.test(hash)) throw new HttpError(400, "Invalid asset hash (hexadecimal SHA-256 expected)");
+  if (!HASH_PATTERN.test(hash)) throw new HttpError(400, "Invalid asset hash (hexadecimal SHA-256 expected)", "asset_invalid_hash");
 }
 
 /** Transforme le corps JSON en octets + vérifie que leur SHA-256 est bien `hash`. */
 function decodeAsset(hash, body = {}) {
   let bytes;
   if (body.kind === "nam") {
-    if (typeof body.data !== "string" || !body.data) throw new HttpError(400, "Amp model: the data field (text) is required");
+    if (typeof body.data !== "string" || !body.data) throw new HttpError(400, "Amp model: the data field (text) is required", "asset_nam_data_required");
     bytes = Buffer.from(body.data, "utf8");
   } else if (body.kind === "ir") {
-    if (typeof body.samples !== "string" || !body.samples) throw new HttpError(400, "IR: the samples field (base64) is required");
+    if (typeof body.samples !== "string" || !body.samples) throw new HttpError(400, "IR: the samples field (base64) is required", "asset_ir_samples_required");
     bytes = Buffer.from(body.samples, "base64");
-    if (!bytes.length || bytes.length % 4) throw new HttpError(400, "IR: invalid Float32 samples");
+    if (!bytes.length || bytes.length % 4) throw new HttpError(400, "IR: invalid Float32 samples", "asset_ir_invalid");
   } else {
-    throw new HttpError(400, "kind must be nam or ir");
+    throw new HttpError(400, "kind must be nam or ir", "asset_invalid_kind");
   }
-  if (bytes.length > MAX_ASSET_BYTES) throw new HttpError(413, "Asset too large (8 MB maximum)");
+  if (bytes.length > MAX_ASSET_BYTES) throw new HttpError(413, "Asset too large (8 MB maximum)", "asset_too_large", { max: 8 });
   const actual = crypto.createHash("sha256").update(bytes).digest("hex");
-  if (actual !== hash) throw new HttpError(400, "The content does not match the announced hash");
+  if (actual !== hash) throw new HttpError(400, "The content does not match the announced hash", "asset_hash_mismatch");
   return bytes;
 }
 
@@ -104,7 +104,7 @@ export async function assertAssetsUsable(hashes = [], userId) {
   if (!hashes.length) return;
   const usable = await usableHashes(hashes, userId);
   const denied = hashes.filter((hash) => !usable.has(hash));
-  if (denied.length) throw new HttpError(400, missingMessage(denied));
+  if (denied.length) throw new HttpError(400, missingMessage(denied), "asset_missing", { count: denied.length });
 }
 
 async function assertQuota(userId, extraBytes) {
@@ -112,7 +112,7 @@ async function assertQuota(userId, extraBytes) {
     { $match: { owners: new mongoose.Types.ObjectId(String(userId)) } }, // champ indexé : pas de parcours complet
     { $group: { _id: null, bytes: { $sum: "$size" } } },
   ]);
-  if ((usage?.bytes ?? 0) + extraBytes > USER_QUOTA_BYTES) throw new HttpError(413, "Asset quota reached (200 MB per user)");
+  if ((usage?.bytes ?? 0) + extraBytes > USER_QUOTA_BYTES) throw new HttpError(413, "Asset quota reached (200 MB per user)", "asset_quota", { max: 200 });
 }
 
 // Le corps (jusqu'à 12 Mo) n'est lu qu'après la vérification du jeton.
@@ -164,7 +164,7 @@ assetsRouter.get("/:hash", optionalAuth, async (req, res, next) => {
     // l'existence d'un asset privé. Les octets ne sont lus qu'une fois l'accès accordé.
     const allowed = (await usableHashes([hash], req.userId)).has(hash);
     const asset = allowed ? await Asset.findOne({ hash }).select("+bytes").lean() : null;
-    if (!asset) throw new HttpError(404, "Asset not found");
+    if (!asset) throw new HttpError(404, "Asset not found", "asset_not_found");
     const bytes = Buffer.from(asset.bytes.buffer ?? asset.bytes);
     res.set("Cache-Control", "private, max-age=86400");
     res.json(asset.kind === "nam"

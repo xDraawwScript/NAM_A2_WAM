@@ -1,4 +1,6 @@
 import {destroyPluginInstance} from './WamPluginRegistry.js';
+import {t, applyTranslations, onLanguageChange} from './ui/i18n.js';
+import {localizeMessage} from './ui/hostMessages.js';
 
 // Analysis-only tap before chain A's effects. Nothing is inserted into the rack.
 export class TunerView {
@@ -9,8 +11,9 @@ export class TunerView {
     this.dialog.className = 'host-tuner';
     this.dialog.id = 'tunerDialog';
     this.dialog.setAttribute('aria-labelledby', 'tunerTitle');
-    this.dialog.innerHTML = '<header><strong id="tunerTitle">Tuner</strong><button type="button" aria-label="Close tuner">×</button></header><p class="host-help">Input A · before effects. Use Enable live input to tune your instrument.</p><div class="tuner-mount" role="status"></div>';
+    this.dialog.innerHTML = '<header><strong id="tunerTitle" data-i18n="tuner.title">Tuner</strong><button type="button" aria-label="Close tuner" data-i18n-aria-label="tuner.close">×</button></header><p class="host-help" data-i18n="tuner.help">Input A · before effects. Use Enable live input to tune your instrument.</p><div class="tuner-mount" role="status"></div>';
     document.body.append(this.dialog);
+    applyTranslations(this.dialog);
     this.mount = this.dialog.querySelector('.tuner-mount');
     this.dialog.querySelector('button').onclick = () => this.close();
     this.dialog.addEventListener('cancel', event => {event.preventDefault(); this.close();});
@@ -18,7 +21,14 @@ export class TunerView {
     button.setAttribute('aria-controls', this.dialog.id);
     button.setAttribute('aria-expanded', 'false');
     button.disabled = !registry.records.some(record => record.role === 'tuner');
-    if (button.disabled) button.title = 'Tuner is unavailable in the plugin catalogue';
+    const relabel = () => {
+      applyTranslations(this.dialog);
+      if (button.disabled) button.title = t('engine.noTuner');
+      if (this.failure) this.mount.textContent = t('tuner.failed', {detail: localizeMessage(this.failure)});
+      else if (!this.resources && this.dialog.open) this.mount.textContent = t('tuner.loading');
+    };
+    relabel();
+    onLanguageChange(relabel);
     button.onclick = () => this.open();
   }
 
@@ -36,7 +46,8 @@ export class TunerView {
     const serial = ++this.serial;
     this.dialog.showModal(); // Mount the canvas GUI only after the dialog is visible.
     this.button.setAttribute('aria-expanded', 'true');
-    this.mount.textContent = 'Loading tuner…';
+    this.failure = null;
+    this.mount.textContent = t('tuner.loading');
     let resources = {};
     try {
       await this.context.resume();
@@ -62,7 +73,10 @@ export class TunerView {
       this.resources = resources;
       resources = null;
     } catch (error) {
-      if (serial === this.serial) this.mount.textContent = `Cannot open tuner: ${error.message}. Close and try again.`;
+      if (serial === this.serial) {
+        this.failure = error.message;
+        this.mount.textContent = t('tuner.failed', {detail: localizeMessage(error.message)});
+      }
     } finally {
       this.release(resources);
     }
@@ -72,6 +86,7 @@ export class TunerView {
     ++this.serial;
     this.release(this.resources);
     this.resources = null;
+    this.failure = null;
     this.mount.replaceChildren();
     if (this.dialog.open) this.dialog.close();
     this.button.setAttribute('aria-expanded', 'false');

@@ -80,7 +80,7 @@ export class IndexedDbPresetStorage {
   /** Modifie les métadonnées (nom, description, tags) et/ou le rack d'un preset existant. */
   async update(id, changes = {}) {
     const preset = await this.get(id);
-    if (!preset) throw new PresetError('Preset not found');
+    if (!preset) throw new PresetError('Preset not found', 'notFound');
     if ('name' in changes) preset.name = normalizeName(changes.name);
     if ('description' in changes) preset.description = normalizeDescription(changes.description);
     if ('tags' in changes) preset.tags = normalizeTags(changes.tags);
@@ -111,7 +111,7 @@ export class IndexedDbPresetStorage {
 
   /** Ajoute un asset s'il n'existe pas déjà (même hash = même contenu). */
   async putAsset(asset) {
-    if (!asset?.hash || !ASSET_KINDS.includes(asset.kind)) throw new PresetError('Invalid asset');
+    if (!asset?.hash || !ASSET_KINDS.includes(asset.kind)) throw new PresetError('Invalid asset', 'invalidAsset');
     return this.transaction('assets', 'readwrite', async (store) => {
       if (await promisify(store.getKey(asset.hash)) !== undefined) return false;
       store.put({...asset, savedAt: this.now().toISOString()});

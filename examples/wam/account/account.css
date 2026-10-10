@@ -1,23 +1,24 @@
 /* Fenêtre Account (projet étudiant). Le cadre du dialog et les boutons réutilisent presets.css
-   (.host-presets, .presets-primary, .presets-status) pour garder un style identique. */
+   (.host-presets, .presets-primary, .presets-status) pour garder un style identique.
+   Couleurs, polices et formes : ui/theme.css. */
 
-.host-account-button { display:flex;align-items:center;gap:7px;font-size:12px; }
-.host-account-button[aria-expanded="true"] { border-color:var(--host-accent); }
-.host-account-button.signed-in { border-color:#4b3a8c; }
+.host-account-button { display:flex;align-items:center;gap:8px;font-size:var(--fs-s); }
+.host-account-button[aria-expanded="true"] { border-color:var(--accent); }
+.host-account-button.signed-in { border-color:var(--ok); }
 .host-account-name { max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 
 .host-account { width:min(420px, calc(100vw - 24px)); }
 .account-tabs { display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px; }
-.account-tab.active { color:#fff;background:#2a2440;border-color:var(--host-accent); }
+.account-tab.active { color:var(--text);background:var(--accent-soft);border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent); }
 .account-form { display:grid;gap:10px;margin-bottom:12px; }
-.account-field { display:grid;gap:5px;color:#aaa4b4;font-size:12px; }
-.account-field input { min-height:34px;padding:0 10px;color:var(--host-text);background:#111116;border:1px solid var(--host-line);border-radius:8px; }
-.account-field input:user-invalid { border-color:#df7891; }
-.account-form .host-help { margin:-4px 0 0;color:var(--host-muted);font-size:11px; }
-.account-profile { display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:12px;background:#141319;border:1px solid var(--host-line);border-radius:12px; }
+.account-field { display:grid;gap:4px;color:var(--text-muted);font-size:var(--fs-s);font-weight:600; }
+.account-field input { min-height:36px;padding:0 10px;color:var(--text);background:var(--surface-sunk);border:1px solid var(--line);border-radius:var(--radius-s);font-weight:400; }
+.account-field input:user-invalid { border-color:var(--error); }
+.account-form .host-help { margin:-4px 0 0;color:var(--text-muted);font-size:var(--fs-xs); }
+.account-profile { display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-m); }
 .account-profile div { display:grid;gap:2px;min-width:0; }
 .account-profile strong { overflow-wrap:anywhere; }
-.account-avatar { display:grid;place-items:center;flex:none;width:38px;height:38px;color:#fff;font-weight:800;background:#4b3a8c;border-radius:50%; }
+.account-avatar { display:grid;place-items:center;flex:none;width:38px;height:38px;color:var(--accent-ink);font:500 var(--fs-l)/1 var(--font-title);background:var(--accent);border-radius:50%; }
 .account-signout { width:100%; }
-.account-server { margin:10px 0 0;color:var(--host-muted);font-size:11px; }
-.account-server.error { color:#ffb3c1; }
+.account-server { margin:10px 0 0;color:var(--text-muted);font-size:var(--fs-xs); }
+.account-server.error { color:var(--error); }

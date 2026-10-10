@@ -115,7 +115,7 @@ export class RemotePresetStorage {
 
   /** Envoie un asset seulement s'il n'est pas déjà sur le serveur (même hash = même contenu). */
   async putAsset(asset) {
-    if (!asset?.hash || !ASSET_KINDS.includes(asset.kind)) throw new PresetError('Invalid asset');
+    if (!asset?.hash || !ASSET_KINDS.includes(asset.kind)) throw new PresetError('Invalid asset', 'invalidAsset');
     if (this.onServer.has(asset.hash)) return false; // déjà confirmé pendant cette session
     try {
       await this.api.request(`/assets/${asset.hash}`, {method: 'HEAD', auth: true});
