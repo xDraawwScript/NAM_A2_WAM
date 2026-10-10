@@ -12,15 +12,34 @@
 // demanderait que la page et l'API soient servies par la même origine.
 // `fetch`, `storage` et `now` sont injectables : les tests utilisent des versions simulées.
 
+import {t, hasKey} from '../ui/i18n.js';
+
 export const SESSION_KEY = 'nam-a2-wam.session';
 
-/** Erreur d'appel à l'API : `status` = code HTTP (0 = serveur injoignable). */
+/**
+ * Erreur d'appel à l'API : `status` = code HTTP (0 = serveur injoignable) ;
+ * `code` = identifiant stable envoyé par le serveur (server/src/errorCodes.js), s'il y en a un.
+ */
 export class ApiError extends Error {
-  constructor(status, message) {
+  constructor(status, message, code = null) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.code = code;
   }
+}
+
+/**
+ * Message à afficher pour une réponse d'erreur du serveur : la traduction de son `code` dans la
+ * langue de l'interface, sinon le message (anglais) du serveur, sinon un message générique.
+ */
+export function serverErrorMessage(status, data) {
+  const code = typeof data?.code === 'string' ? data.code : null;
+  const params = {...(data?.params ?? {})};
+  // Preset refusé : le détail (anglais) est remplacé par sa traduction quand le serveur donne son code.
+  if (typeof params.detailCode === 'string' && hasKey(`errors.preset.${params.detailCode}`, 'en')) params.detail = t(`errors.preset.${params.detailCode}`, params.detailParams ?? {});
+  if (code && hasKey(`errors.server.${code}`, 'en')) return t(`errors.server.${code}`, params);
+  return data?.message || t('errors.http', {status});
 }
 
 /**
@@ -79,7 +98,7 @@ export class ApiClient extends EventTarget {
    * existe. Une réponse 401 sur une requête authentifiée = session expirée → déconnexion.
    */
   async request(path, {method = 'GET', body, auth = false} = {}) {
-    if (auth && !this.session) throw new ApiError(401, 'Please sign in first');
+    if (auth && !this.session) throw new ApiError(401, t('errors.notSignedIn'), 'auth_required');
     const headers = {};
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     if (this.session) headers.Authorization = `Bearer ${this.session.token}`;
@@ -88,7 +107,7 @@ export class ApiClient extends EventTarget {
       response = await this.fetchImpl(`${this.baseUrl}${path}`, {method, headers, body: body === undefined ? undefined : JSON.stringify(body)});
     } catch {
       this.setOnline(false);
-      throw new ApiError(0, `Cannot reach the server (${this.baseUrl}). Is the backend running?`);
+      throw new ApiError(0, t('errors.unreachable', {url: this.baseUrl}));
     }
     this.setOnline(true);
     const text = method === 'HEAD' ? '' : await response.text();
@@ -98,9 +117,9 @@ export class ApiClient extends EventTarget {
       if (response.status === 401 && this.session && auth) {
         this.writeSession(null);
         this.dispatchEvent(new Event('expired'));
-        throw new ApiError(401, 'Your session has expired. Please sign in again.');
+        throw new ApiError(401, t('errors.sessionExpired'), data?.code ?? null);
       }
-      throw new ApiError(response.status, data?.message || `Server error (HTTP ${response.status})`);
+      throw new ApiError(response.status, serverErrorMessage(response.status, data), data?.code ?? null);
     }
     return data;
   }

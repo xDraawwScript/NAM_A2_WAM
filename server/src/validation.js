@@ -27,7 +27,7 @@ const text = (value, max) => String(value ?? "").trim().slice(0, max);
 
 /** Vérifie un identifiant MongoDB avant toute requête (sinon CastError). */
 export function assertObjectId(id) {
-  if (!mongoose.isValidObjectId(id)) throw new HttpError(404, "Preset not found");
+  if (!mongoose.isValidObjectId(id)) throw new HttpError(404, "Preset not found", "preset_not_found");
 }
 
 /** page et limit validés, avec un maximum (bonne pratique du TP). */
@@ -46,7 +46,7 @@ export function escapeRegex(value) {
 function assertDehydrated(rack) {
   for (const entry of rackEntries(rack)) {
     if (entry.state?.model?.data !== undefined || entry.state?.ir?.samples !== undefined) {
-      throw new HttpError(400, "The amp model or IR must be uploaded as an asset (/api/assets), not embedded in the preset");
+      throw new HttpError(400, "The amp model or IR must be uploaded as an asset (/api/assets), not embedded in the preset", "preset_embedded_asset");
     }
   }
   const refs = collectAssetRefs(rack);
@@ -54,7 +54,7 @@ function assertDehydrated(rack) {
     const valid = ref?.source === "factory"
       ? typeof ref.id === "string" && ref.id.startsWith("factory:") && ref.id.length < 500
       : ref?.source === "store" && HASH_PATTERN.test(ref.hash);
-    if (!valid || !ASSET_KINDS.includes(ref.kind)) throw new HttpError(400, "Invalid asset reference");
+    if (!valid || !ASSET_KINDS.includes(ref.kind)) throw new HttpError(400, "Invalid asset reference", "preset_invalid_asset_ref");
   }
   return [...new Set(refs.filter((ref) => ref.source === "store").map((ref) => ref.hash))];
 }
@@ -93,16 +93,17 @@ export function presetInput(body = {}, { partial = false } = {}) {
     if (wanted("rack")) {
       const rack = portableRack(validateRack(body.rack));
       const size = Buffer.byteLength(JSON.stringify(rack));
-      if (size > MAX_RACK_BYTES) throw new HttpError(413, "Preset too large: amp models and IRs must be uploaded as assets");
+      if (size > MAX_RACK_BYTES) throw new HttpError(413, "Preset too large: amp models and IRs must be uploaded as assets", "preset_too_large");
       Object.assign(output, { rack, size, assetHashes: assertDehydrated(rack), summary: cleanSummary(body.summary, rack), format: PRESET_FORMAT, version: body.version ?? PRESET_VERSION });
     }
   } catch (error) {
-    if (error instanceof PresetError) throw new HttpError(400, error.message);
+    // detailCode / detailParams : le client affiche le détail dans sa langue (errors.preset.<code>).
+    if (error instanceof PresetError) throw new HttpError(400, error.message, "preset_invalid", { detail: error.message, ...(error.code ? { detailCode: error.code, detailParams: error.params } : {}) });
     throw error;
   }
   if (wanted("visibility")) {
     const visibility = body.visibility ?? "private";
-    if (!["private", "public"].includes(visibility)) throw new HttpError(400, "Visibility must be private or public");
+    if (!["private", "public"].includes(visibility)) throw new HttpError(400, "Visibility must be private or public", "preset_invalid_visibility");
     output.visibility = visibility;
   }
   return output;

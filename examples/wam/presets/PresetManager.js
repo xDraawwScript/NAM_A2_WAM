@@ -60,7 +60,7 @@ export class PresetManager extends EventTarget {
 
   storageOf(source) {
     const storage = this.storages[source];
-    if (!storage) throw new PresetError(source === 'account' ? 'Sign in to use your online presets' : 'Preset storage unavailable');
+    if (!storage) throw (source === 'account' ? new PresetError('Sign in to use your online presets', 'signInRequired') : new PresetError('Preset storage unavailable', 'storageUnavailable'));
     return storage;
   }
 
@@ -82,7 +82,7 @@ export class PresetManager extends EventTarget {
 
   /** Branche (ou débranche avec null) un catalogue : 'factory' (usine) ou 'public' (Explore). */
   setStorage(source, storage) {
-    if (!SOURCES.includes(source)) throw new PresetError('Unknown preset source');
+    if (!SOURCES.includes(source)) throw new PresetError('Unknown preset source', 'unknownSource');
     this.storages[source] = storage;
     if (!storage && this.source === source) this.source = 'browser';
     this.changed();
@@ -94,7 +94,7 @@ export class PresetManager extends EventTarget {
    */
   writableStorage(source) {
     const storage = this.storageOf(source);
-    if (storage.readOnly) throw new PresetError(READ_ONLY[source] || 'These presets are read-only');
+    if (storage.readOnly) throw new PresetError(READ_ONLY[source] || 'These presets are read-only', {public: 'readOnlyPublic', factory: 'readOnlyFactory'}[source] || 'readOnly');
     return storage;
   }
 
@@ -106,7 +106,7 @@ export class PresetManager extends EventTarget {
   }
 
   setSource(source) {
-    if (!SOURCES.includes(source)) throw new PresetError('Unknown preset source');
+    if (!SOURCES.includes(source)) throw new PresetError('Unknown preset source', 'unknownSource');
     this.storageOf(source);
     this.source = source;
     this.changed();
@@ -134,7 +134,7 @@ export class PresetManager extends EventTarget {
 
   /** Une seule opération à la fois (évite deux chargements simultanés). */
   async exclusive(operation) {
-    if (this.busy) throw new PresetError('Another preset operation is in progress');
+    if (this.busy) throw new PresetError('Another preset operation is in progress', 'busy');
     this.busy = true;
     clearTimeout(this.timer);
     this.changed();
@@ -168,7 +168,7 @@ export class PresetManager extends EventTarget {
   /** « Update » : écrase le preset courant (dans SA source) avec le son actuel. */
   overwrite() {
     const current = this.current;
-    if (!current) return Promise.reject(new PresetError('No current preset to overwrite'));
+    if (!current) return Promise.reject(new PresetError('No current preset to overwrite', 'noCurrent'));
     return this.exclusive(async () => {
       const storage = this.writableStorage(current.source);
       const {rack, summary} = await this.capture(storage);
@@ -184,7 +184,7 @@ export class PresetManager extends EventTarget {
     return this.exclusive(async () => {
       const storage = this.storageOf(source);
       const preset = await storage.get(id);
-      if (!preset) throw new PresetError('Preset not found');
+      if (!preset) throw new PresetError('Preset not found', 'notFound');
       const {rack, warnings} = await hydrateRack(preset.rack, {factory: this.factory, loadAsset: (hash) => storage.getAsset(hash)});
       await this.beforeLoad?.();
       await this.rack.setState(rack);
@@ -230,14 +230,14 @@ export class PresetManager extends EventTarget {
           for (const ref of collectAssetRefs(preset.rack)) {
             if (ref.source !== 'store' || uploaded.has(ref.hash)) continue;
             const asset = await browser.getAsset(ref.hash);
-            if (!asset) throw new PresetError(`a ${ref.kind === 'nam' ? 'model' : 'IR'} is missing in this browser`);
+            if (!asset) throw new PresetError(`a ${ref.kind === 'nam' ? 'model' : 'IR'} is missing in this browser`, ref.kind === 'nam' ? 'modelMissingHere' : 'irMissingHere');
             await account.putAsset(asset);
             uploaded.add(ref.hash);
           }
           await account.save(preset, {visibility: 'private'});
           copied.push(preset.name);
         } catch (error) {
-          failed.push({name: preset.name, error: error.message});
+          failed.push({name: preset.name, error: error.message, code: error.code ?? null, params: error.params ?? {}});
         }
       }
       return {copied, failed};
@@ -261,7 +261,7 @@ export class PresetManager extends EventTarget {
   async exportFile(id, source = this.source) {
     const storage = this.storageOf(source);
     const preset = await storage.get(id);
-    if (!preset) throw new PresetError('Preset not found');
+    if (!preset) throw new PresetError('Preset not found', 'notFound');
     return {preset, ...(await exportPresetFile(preset, {loadAsset: (hash) => storage.getAsset(hash)}))};
   }
 
@@ -273,7 +273,7 @@ export class PresetManager extends EventTarget {
     for (const ref of missing) if (!(await storage.getAsset(ref.hash))) absent.push(ref);
     // En ligne, le serveur exige que chaque modèle/IR référencé existe : un fichier incomplet ne
     // peut pas y être importé (dans le navigateur, il l'est avec un avertissement).
-    if (absent.length && source === 'account') throw new PresetError(`This file is missing ${absent.length} amp model/IR file(s): import it in “This browser” instead.`);
+    if (absent.length && source === 'account') throw new PresetError(`This file is missing ${absent.length} amp model/IR file(s): import it in “This browser” instead.`, 'missingAssets', {count: absent.length});
     for (const asset of assets) await storage.putAsset(asset);
     const warnings = absent.map((ref) => `An asset (${ref.kind}) is missing from the file; the plugin will keep its current ${ref.kind === 'nam' ? 'model' : 'IR'}.`);
     const saved = await storage.save(preset, {visibility: 'private'});

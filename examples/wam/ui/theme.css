@@ -1,0 +1,76 @@
+/* Thème « Tolex & Lampes » (mission 8, étape 2).
+   Toutes les couleurs, polices, rayons et ombres de l'hôte viennent d'ici :
+   les autres feuilles (host.css, fx-chain.css, presets.css, account.css) n'utilisent que ces variables.
+   Les plugins (NAM, Cabinet, pédales, accordeur) gardent leur propre apparence : on ne redéfinit
+   ni leurs variables (--nam-accent, --cab-accent) ni leurs vignettes. */
+
+/* Polices auto-hébergées (licences dans ui/fonts/) : aucun appel à Google à l'exécution. */
+@font-face { font-family:"Barlow"; font-weight:400; font-style:normal; font-display:swap; src:url("./fonts/barlow-400.woff2") format("woff2"); }
+@font-face { font-family:"Barlow"; font-weight:500; font-style:normal; font-display:swap; src:url("./fonts/barlow-500.woff2") format("woff2"); }
+@font-face { font-family:"Barlow"; font-weight:600; font-style:normal; font-display:swap; src:url("./fonts/barlow-600.woff2") format("woff2"); }
+@font-face { font-family:"Barlow"; font-weight:700; font-style:normal; font-display:swap; src:url("./fonts/barlow-700.woff2") format("woff2"); }
+@font-face { font-family:"Oswald"; font-weight:400 700; font-style:normal; font-display:swap; src:url("./fonts/oswald-variable.woff2") format("woff2"); }
+@font-face { font-family:"Yellowtail"; font-weight:400; font-style:normal; font-display:swap; src:url("./fonts/yellowtail-400.woff2") format("woff2"); }
+
+:root {
+  color-scheme: dark;
+
+  /* Matières */
+  --bg: #191410;                     /* tolex */
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --panel: #211a14;                  /* fond des grands panneaux (rack, dialogs) */
+  --surface: #241d17;
+  --surface-2: #2e251d;              /* cartes, éléments de liste */
+  --surface-sunk: #130f0c;           /* champs de saisie, zones creuses */
+  --line: #5a4a3a;
+  --line-strong: #7a6550;
+  --piping: #e6d6ae;                 /* liseré crème */
+  --plate: repeating-linear-gradient(90deg, #cfc9bc 0 1px, #bfb8aa 1px 2px, #c8c1b3 2px 4px); /* métal brossé */
+
+  /* Texte (contrastes AA vérifiés sur --surface-2 et --panel) */
+  --text: #f1e6c9;
+  --text-muted: #c9b994;
+  --text-on-plate: #1e1912;
+
+  /* Accent « lampe chaude » et états */
+  --accent: #ff9440;
+  --accent-ink: #1d1206;             /* texte posé sur l'accent */
+  --accent-hover: #ffa55e;
+  --accent-soft: rgba(255, 148, 64, .16);
+  --ok: #62d26f;                     /* actif, live */
+  --ok-ink: #0b1a0e;
+  --ok-soft: rgba(98, 210, 111, .14);
+  --bypass: #8f8370;
+  --warn: #f2b449;
+  --clip: #ff5a47;
+  --clip-ink: #1a0503;
+  --error: #ff7a6b;
+  --error-soft: rgba(255, 90, 71, .14);
+
+  /* Typographie */
+  --font-logo: "Yellowtail", cursive;
+  --font-title: "Oswald", "Bahnschrift", "Arial Narrow", sans-serif;
+  --font-text: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --fs-xs: 12px;                     /* plancher : jamais de texte plus petit */
+  --fs-s: 13px;
+  --fs-m: 15px;
+  --fs-l: 18px;
+  --fs-xl: 24px;
+
+  /* Formes */
+  --radius-s: 4px;
+  --radius-m: 6px;
+  --radius-l: 10px;
+  --shadow-panel: 0 8px 24px rgba(0, 0, 0, .5);
+  --frame-piping: inset 0 0 0 2px var(--piping), inset 0 0 0 5px var(--panel), inset 0 0 0 6px rgba(230, 214, 174, .35);
+  --backdrop: rgba(8, 6, 4, .78);
+  --focus-ring: 2px solid var(--accent);
+
+  /* Lecteur de backing tracks (composant de l'hôte, shadow DOM) : couleurs qu'il expose.
+     Déclarées ici, sur :root, pour éviter une référence circulaire avec son propre --accent. */
+  --bt-accent: var(--accent);
+  --bt-wave: var(--piping);
+}
+/* prefers-reduced-motion : géré règle par règle dans les feuilles de l'hôte,
+   pas avec un sélecteur global qui atteindrait aussi les interfaces des plugins. */

@@ -3,8 +3,9 @@
 Base : `http://localhost:3000/api`. Toutes les réponses sont en JSON (sauf `204` et `HEAD`).
 Authentification : en-tête `Authorization: Bearer <token>` (JWT valable 12 h, obtenu à
 l'inscription ou à la connexion). Sur les routes « JWT optionnel », un jeton expiré ou invalide est
-ignoré (la requête est traitée comme celle d'un visiteur). Les erreurs ont toujours la forme
-`{ "message": "…" }`, avec un message **en anglais** (affiché tel quel par l'interface de l'hôte).
+ignoré (la requête est traitée comme celle d'un visiteur). Les erreurs ont la forme
+`{ "message": "…", "code": "…", "params"?: {…} }` : `message` en anglais (logs, curl), `code`
+stable que l'interface traduit en français ou en anglais (voir « Codes d'erreur » en bas de page).
 
 CORS : seules les origines listées dans `CORS_ORIGINS` (par défaut Live Server
 `http://127.0.0.1:5500` et `http://localhost:5500`) peuvent appeler l'API depuis un navigateur.
@@ -145,3 +146,22 @@ mes presets, ou si j'en suis propriétaire (je l'ai envoyé) ; `404` sinon.
 `400` données invalides ou JSON mal formé · `401` authentification requise / jeton invalide ·
 `404` ressource inconnue ou non autorisée · `409` conflit (pseudo/email) · `413` requête trop
 volumineuse · `500` erreur interne (détail uniquement dans les logs du serveur).
+
+### Codes stables (mission 8)
+
+Chaque erreur porte un `code` qui ne change jamais (liste dans `server/src/errorCodes.js`) ;
+l'hôte affiche la traduction `errors.server.<code>` de `examples/wam/ui/locales/` et retombe sur
+`message` si le code lui est inconnu. Ajouter un code impose sa traduction EN et FR (tests).
+
+| Domaine | Codes | `params` |
+| --- | --- | --- |
+| Requête | `route_unknown`, `request_too_large`, `invalid_json`, `not_found`, `already_exists`, `invalid_data`, `internal` | — |
+| Comptes | `auth_required`, `auth_invalid_token`, `auth_bad_credentials`, `auth_account_not_found`, `auth_username_taken`, `auth_email_required`, `auth_email_invalid`, `auth_email_taken`, `rate_login`, `rate_register` | — |
+| Comptes | `auth_username_invalid`, `auth_password_length` | `{ min, max }` |
+| Assets | `asset_invalid_hash`, `asset_nam_data_required`, `asset_ir_samples_required`, `asset_ir_invalid`, `asset_invalid_kind`, `asset_hash_mismatch`, `asset_not_found` | — |
+| Assets | `asset_too_large`, `asset_quota` | `{ max }` (Mo) |
+| Assets | `asset_missing` | `{ count }` |
+| Presets | `preset_not_found`, `preset_embedded_asset`, `preset_invalid_asset_ref`, `preset_too_large`, `preset_invalid_visibility` | — |
+| Presets | `preset_invalid` | `{ detail }` (texte anglais du validateur) |
+
+Exemple : `401 { "message": "Incorrect email or password", "code": "auth_bad_credentials" }`.

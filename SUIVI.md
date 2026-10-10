@@ -1,4 +1,4 @@
-# Suivi du projet — Hôte NAM A2 WAM avec utilisateurs et presets
+Fond animé : désactivé et rien de téléchargé avant le clic, lecture seule de la sortie, 30 images/s, réduction des animations, sans WebGL 2, choix mémorisé, Butterchurn hébergé tel quel avec ses licences
 
 > Journal de bord tenu **au fil de l'eau** : ce qui est fait, pourquoi, comment ça marche,
 > comment le tester. Toutes les mesures de sécurité sont récapitulées dans [`SECURITE.md`](SECURITE.md). Le rendu final pour le prof est [`REPORT.md`](REPORT.md), rédigé à partir
@@ -74,6 +74,7 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 | 6 | Presets d'usine (`feature/presets-usine`) | ✅ | 2026-10-10 | voir `git log feature/presets-usine` |
 | 7 | Finitions, relectures, REPORT.md (`feature/finitions`) | ✅ | 2026-10-10 | voir `git log feature/finitions` |
 | F | Correctif « Copy to account » sur les presets d'usine (`feature/fix-copie-usine`) | ✅ | 2026-10-09 | voir `git log feature/fix-copie-usine` |
+| 8 | Refonte de l'interface : thème rock, FR/EN, ergonomie (`feature/interface-design`) | 🔄 | 2026-10-09 | |
 
 ### Détail mission 0
 
@@ -883,6 +884,521 @@ après la déconnexion.
 
 **Résultats** : hôte **223/223** · vérifié dans le navigateur (les trois cas du tableau ci-dessus).
 
+### Mission 8 — Refonte de l'interface (`feature/interface-design`, à partir du 2026-10-09)
+
+**Demande** : une appli « très belle, la plus ergonomique », **compréhensible**, **traduite (FR/EN)**,
+avec un **thème rock mais lisible**, qui reprend **toutes** les fonctionnalités existantes.
+`develop` a d'abord été fusionnée dans `main` (accord explicite de l'étudiant, commit `5d9fc7e`).
+
+**Choix validés** : français + anglais (langue du navigateur par défaut, choix mémorisé) ;
+refonte complète de la mise en page ; **maquette HTML avant de coder**.
+
+**Avancement**
+
+| Étape | Contenu | État |
+|---|---|---|
+| 0 | Branche, inventaire de l'interface, plan | ✅ |
+| 1 | Maquette HTML avec 3 ambiances rock (`docs/maquette/`) → choix de l'étudiant | ✅ choix : **Tolex & Lampes** |
+| 2 | Thème : design tokens (`ui/theme.css`), polices, réécriture des CSS | ✅ |
+| 3 | Internationalisation : `ui/i18n.js`, `ui/locales/{en,fr}.js`, codes d'erreur du serveur, tests | ✅ |
+| 4 | Nouvelle mise en page, guide de démarrage, confirmations thémées, accessibilité, fond animé Butterchurn (option) | ✅ |
+| 5 | Traduction de tous les textes de l'hôte, retraduction en direct, codes des `PresetError` | ✅ |
+| 6 | Audit accessibilité, relecture des textes, parcours FR/EN, `/code-review`, `/simplify`, chasse aux bugs | ✅ |
+| 7 | SUIVI, REPORT, SECURITE, merge dans `develop` | ✅ |
+
+**Inventaire de départ** (fait avant de coder, pour ne perdre aucune fonctionnalité) :
+- environ **600 textes anglais** répartis dans environ 25 fichiers, sans aucune i18n ;
+- thème violet, environ 275 couleurs écrites en dur, textes de 7 à 10 px par endroits ;
+- 5 `confirm()` natifs du navigateur (impossibles à styler ou traduire) dans `PresetView.js` ;
+- `FxRackView.js` retrouve des panneaux **par le texte** de leur `aria-label` (« Chain A input ») :
+  la traduction le casserait, il faudra passer par des classes ;
+- le script de build réécrit `discoverFiles` de `main.js` avec des textes anglais en dur.
+
+**Limite importante** : les interfaces **des plugins** (sélecteur de modèle NAM, IR du Cabinet,
+pédales, accordeur) font partie du code des plugins, qu'on ne touche pas. Elles restent en anglais ;
+l'hôte n'habille que leur **cadre** et les variables de couleur qu'elles exposent
+(`--nam-accent`, `--cab-accent`).
+
+**Outils** : les skills frontend-design, Design et Axe sont maintenant installés. Le serveur MCP
+d'Axe ne se connecte pas encore (« Connection closed ») : l'audit est donc lancé avec
+**axe-core** (la même bibliothèque, version 4.10.2) chargé directement dans le navigateur intégré.
+La vérification des traductions se fera **par des tests** (parité des clés FR/EN, paramètres identiques).
+
+#### Étape 1 : la maquette (2026-10-09)
+
+**Fichiers** : `docs/maquette/index.html` (HTML + CSS autonomes, **non copiés dans la dist**),
+`docs/maquette/img/` (3 vignettes **copiées** depuis `wamPlugins/`, les originaux ne sont pas modifiés),
+`docs/maquette/captures/` (une capture par ambiance, en 1366 px).
+
+**Comment l'ouvrir** : servir le dossier `docs/maquette/` (par exemple Live Server de VS Code)
+puis choisir l'ambiance dans la barre du haut, ou ajouter `#tolex`, `#flight` ou `#scene` à l'URL.
+Le bouton « Complet » affiche la chaîne B ; les onglets Presets se parcourent aux flèches.
+
+**Principe** : le **même HTML** pour les 3 ambiances. Seul l'attribut `data-theme` de `<body>` change,
+et il active un jeu de **design tokens** (variables CSS : couleurs, polices, textures, rayons).
+C'est exactement le mécanisme prévu pour `ui/theme.css` à l'étape 2, donc la variante choisie
+(ou un mélange) se reportera telle quelle.
+
+| Ambiance | Matières | Accent | Polices (titres / texte) |
+|---|---|---|---|
+| 1. Tolex & Lampes | tolex texturé, liseré crème, plaques en métal brossé | orange lampe `#ff9440` | Oswald + logo Yellowtail / Barlow |
+| 2. Flight case | ABS noir, profilés alu, coins rivetés, noms sur gaffer | jaune `#ffd21f` | Saira Stencil / Barlow Semi Condensed, gaffer en Permanent Marker |
+| 3. Scène | noir profond, projecteurs rouge et ambre, halos, VU à LED | ambre `#ffb21e` + rouge | Anton / Archivo |
+
+**Écrans montrés** : header en 3 zones (marque, carte du signal + preset « • modifié », actions
+Presets / Accordeur / Compte / Débutant-Complet / FR-EN), guide de démarrage en 3 étapes,
+rack A (et B en mode complet) avec les états Actif / Bypass / Clip, notifications (succès, erreur),
+dialog Presets (onglet « Mon compte ») et dialog Compte (connexion avec message d'erreur).
+
+**Exigence rappelée par l'étudiant pendant l'étape** : *les plugins gardent leur apparence d'origine*.
+Les cartes affichent donc les **vraies vignettes** (Chorus, Smooth Delay, KB Verb), ou la vignette
+générée par l'hôte (`fallbackThumbnail()`, mêmes initiales « FD », « CV ») pour NAM et Baffle,
+**sans filtre, ni teinte, ni opacité** selon l'ambiance. Le thème n'habille que le **cadre** de la carte
+(bordure, pastille d'état, halo autour). Le bypass se lit grâce à la LED grise et au libellé, pas en
+modifiant l'image. Aucun fichier de `src/` ni de `wamPlugins/` n'est modifié.
+
+**Règles de lisibilité appliquées** : police d'affichage seulement pour les titres, texte en 15-16 px,
+jamais sous 12 px ; cibles cliquables de 32 px minimum ; focus clavier visible ; `prefers-reduced-motion` respecté ;
+couleurs d'état distinctes (vert actif, gris bypass, rouge clip, rouge clair erreur, accent = action principale).
+
+**Polices** : pour la comparaison, la maquette les charge depuis Google Fonts. Dans l'appli elles
+seront **auto-hébergées** dans `ui/fonts/` (étape 2, téléchargement après accord).
+
+**Vérifications** :
+- **axe-core 4.10.2** (règles WCAG 2.0/2.1 A et AA + bonnes pratiques) sur les 3 ambiances × les 2 modes :
+  **0 violation**. Le premier passage en avait relevé 3, corrigées : contraste du badge « Clip »
+  (3,1:1 → texte sombre, plus de 7:1), absence de `<main>`, absence de `<h1>` ;
+- pas de défilement horizontal en 1366 px ni en 375 px (mobile : le rack passe en colonne) ;
+- onglets Presets : les flèches gauche/droite déplacent la sélection et le focus.
+
+**Choix de l'étudiant (2026-10-09)** : **Tolex & Lampes**. Il demande aussi s'il est possible d'ajouter une option « fond Butterchurn » (visualiseur audio façon Milkdrop) : **accepté** et ajouté au plan, à l'étape 4 : option désactivée par défaut, branchée en lecture seule sur la sortie de l'hôte, derrière la texture et assombrie (contraste inchangé), presets calmes uniquement, coupée si « réduire les animations », 30 images/s max, chargée seulement à l'activation, Butterchurn hébergé dans le projet (`ui/vendor/butterchurn/`).
+
+**Rappel de l'étudiant** : il n'y a **qu'un seul thème, Tolex & Lampes**. Pas de sélecteur d'ambiance dans l'appli ;
+la seule option visuelle sera le bouton « fond animé » Butterchurn (étape 4).
+
+#### Étape 2 : le thème Tolex (2026-10-09)
+
+**Principe : les design tokens.** Toutes les couleurs, polices, rayons et ombres sont des **variables CSS**
+déclarées une seule fois dans `examples/wam/ui/theme.css` (`--bg`, `--panel`, `--surface-2`, `--text`,
+`--text-muted`, `--accent`, `--ok`, `--clip`, `--error`, `--font-title`…). Les autres feuilles ne font que
+les utiliser : `color: var(--text-muted)`. Pour changer une couleur, on modifie une seule ligne.
+
+**Fichiers**
+- `ui/theme.css` (nouveau) : tokens Tolex, `@font-face` des polices.
+- `ui/fonts/` (nouveau) : Barlow (texte), Oswald (titres), Yellowtail (logo), en woff2, 130 Ko,
+  **téléchargées avec l'accord de l'étudiant** depuis Google Fonts, avec leurs licences (OFL, Apache 2.0).
+  L'appli n'appelle jamais Google à l'exécution.
+- `host.css`, `fx-chain.css`, `presets/presets.css`, `account/account.css` : réécrits sur les tokens. La mise en page
+  ne change pas encore (étape 4). CSS mort supprimé (`.rack-grid`, `.rack-slot`, `.rack-connector`, `.host-dot.rose`).
+- `backing-track-player.css` : c'est un composant **de l'hôte**, pas un plugin. Chaque couleur devient
+  `var(--token, ancienne valeur)` : thémé dans l'appli, identique à avant sur sa page de validation autonome.
+  La couleur de la forme d'onde est lue dans `--bt-wave` (1 ligne de `BackingTrackPlayerElement.js`).
+- `index.html` : charge `ui/theme.css` avant les autres feuilles.
+- `tools/build-static-dist.mjs` : vérifie que `ui/theme.css` et les 6 polices sont dans la dist.
+- `.gitattributes` : `*.woff2` marqué binaire.
+
+**Les plugins gardent leur apparence : comment c'est garanti.** Problème découvert en cours de route :
+les règles globales de l'hôte (`button { … }`, `select { … }`) s'appliquaient aussi aux interfaces des plugins
+affichées dans l'éditeur et l'accordeur. Les changer aurait recoloré les boutons des plugins qui n'ont pas leur
+propre style. Solution :
+1. les styles de base de l'hôte sont écrits `:where(button):where(:not(.fx-editor-mount *, .tuner-mount *))` :
+   ils **excluent** les zones des plugins, et `:where()` leur donne une spécificité nulle ;
+2. dans `.fx-editor-mount` et `.tuner-mount`, l'hôte **fige l'ancien environnement** (police Inter, couleur
+   héritée, anciens styles de base des boutons) ;
+3. on ne redéfinit ni `--nam-accent` ni `--cab-accent`, et la vignette d'une carte n'est plus jamais
+   filtrée : avant, une carte en bypass avait son image grisée (`opacity .45`, `saturate .3`). Maintenant c'est le
+   **cadre** qui devient gris et en pointillés, l'image du plugin reste intacte ;
+4. le cadre des dialogs garde une bordure transparente de 1 px, pour que l'interface du plugin ait au pixel près
+   la même largeur qu'avant.
+
+**Vérification « avant / après » des plugins** (navigateur, dist, fenêtre de 1366 px) : pour chaque interface
+ouverte, on relève 23 propriétés calculées (couleurs, polices, tailles, bordures, ombres, largeur, hauteur) de
+**chaque élément**, shadow DOM compris, d'abord avec le nouveau CSS, puis en rechargeant l'ancien CSS (celui du
+commit précédent). Résultat : **0 différence** sur NAM (872 éléments), Cabinet (770), pédale Chorus (37)
+et accordeur (26).
+
+**Tests** : `tests/phase6/theme.test.mjs` (7 tests, ajoutés à `npm test`) :
+- `theme.css` est chargé avant les autres feuilles ;
+- **contraste WCAG AA calculé** (4,5:1) pour chaque couleur de texte sur chaque surface, pour le texte posé sur
+  l'accent, le vert et le rouge, et pour le texte gravé sur chaque teinte de la plaque en métal brossé ;
+- pas de couleur en dur dans les feuilles de l'hôte (sauf le cadran crème du VU et les faders, listés) ;
+- pas de texte sous 12 px dans `host.css`, Presets et Compte (le rack sera traité à l'étape 4) ;
+- polices auto-hébergées (aucune URL externe) et licences présentes ;
+- plugins protégés : variables non redéfinies, aucune règle de filtre ou d'opacité sur `.fx-photo img`,
+  styles de base excluant les zones des plugins, pas de sélecteur universel dans le thème ;
+- CSS mort supprimé.
+
+**Résultats** : suite de l'hôte **230/230** (dont les 7 nouveaux) ; `npm run dist` OK ; axe-core 4.10.2 sur la dist
+(rack, dialog Presets, dialog Compte) : **0 violation** WCAG A/AA ; aucune erreur dans la console.
+Captures : `docs/screenshots/mission8/`.
+
+#### Étape 3 : l'infrastructure de traduction (2026-10-09)
+
+**Principe.** Le code n'écrit plus un texte affiché en dur : il demande `t('header.tuner')`, et le module
+`ui/i18n.js` renvoie « Tuner » ou « Accordeur » selon la langue choisie. Les textes vivent dans deux
+**dictionnaires** : `ui/locales/en.js` et `ui/locales/fr.js`, avec exactement les mêmes clés.
+
+**Fichiers**
+- `ui/i18n.js` (nouveau), sans aucune bibliothèque :
+  - `t(clé, paramètres)` remplace `{status}`, `{min}`… dans le texte ; une clé absente en français
+    retombe sur l'anglais, puis sur la clé elle-même (un oubli se voit au lieu de laisser un trou) ;
+  - **pluriels** avec `Intl.PluralRules` : en français 0 et 1 sont au singulier (« 0 preset »), en anglais
+    seul 1 l'est (« 0 presets ») ;
+  - `formatDate` / `formatNumber` : « 9 octobre 2026 », « 1 234,5 » en français ;
+  - `setLanguage` met à jour `<html lang>` (utile aux lecteurs d'écran) et prévient les vues abonnées
+    avec `onLanguageChange`. On n'utilise **pas** l'événement `languagechange` de `window` prévu au plan :
+    le navigateur l'émet déjà quand la langue du système change, les deux se mélangeraient ;
+  - langue de départ : `?lang=fr` dans l'URL, sinon le choix mémorisé (`localStorage`, clé `nam-a2-lang`),
+    sinon la langue du navigateur, sinon l'anglais ;
+  - `applyTranslations()` remplit le HTML statique marqué `data-i18n`, `data-i18n-title`,
+    `data-i18n-aria-label`, `data-i18n-placeholder` ;
+  - le module ne touche pas au navigateur au chargement : il s'importe dans Node pour les tests.
+- `ui/LanguageSwitch.js` (nouveau) + `index.html` : boutons **FR | EN** dans le header
+  (`aria-pressed`, infobulle traduite). Le header du rack (« Chaîne du signal », « Rack d'ampli »,
+  « Accordeur », « Presets ») est déjà traduit.
+- **Codes d'erreur du serveur.** Avant, l'API renvoyait `{ message }` en anglais, affiché tel quel. Maintenant
+  `{ message, code, params? }` : `message` reste en anglais (rétrocompatible, lisible avec curl), et `code`
+  est un identifiant stable (`auth_bad_credentials`, `asset_quota`…) que l'interface traduit. 36 codes,
+  déclarés dans `server/src/errorCodes.js` ; `params` transporte les valeurs à insérer (`{min, max}` du mot de
+  passe, `{max}` du quota…). Fichiers : `auth.js` (`HttpError`), `rateLimit.js`, `validation.js`,
+  `routes/*.js`, et le gestionnaire central de `app.js` qui donne aussi un code aux erreurs Mongoose
+  (validation, `CastError`, doublon 11000) et à toute erreur 500. Documenté dans `server/API_CONTRACT.md`.
+- `account/ApiClient.js` : si le code est connu, message traduit ; sinon le `message` du serveur (un ancien
+  backend reste donc compatible) ; « non connecté », « serveur injoignable », « session expirée » traduits.
+- `tools/build-static-dist.mjs` : vérifie que les 4 nouveaux fichiers sont dans la dist.
+
+**Écart au plan (assumé).** L'étape 3 pose l'infrastructure. Les vues (Presets, Explorer, Compte, chaîne
+d'effets, rack) seront traduites **et** abonnées au changement de langue à l'étape 5 : les abonner maintenant
+ne servirait à rien tant que leurs textes sont en dur. Les erreurs locales des presets (`PresetError`)
+recevront aussi leurs codes à l'étape 5.
+
+**Tests**
+- `tests/phase6/i18n.test.mjs` (12 tests) : import sans DOM ; **mêmes clés en FR et EN** ; mêmes paramètres
+  `{x}` dans les deux langues et aucune valeur vide ; **chaque `t('…')` du code et chaque `data-i18n` du HTML
+  existe** dans `en.js` (scan de `examples/wam`, plugins exclus) ; chaque code du serveur a sa traduction EN et FR ;
+  interpolation, dates et nombres ; pluriels ; repli ; détection de la langue ; abonnements ; `applyTranslations` ;
+  messages traduits par `ApiClient`.
+- `server/test/error-codes.test.js` (6 tests) : chaque code utilisé dans les sources du serveur est déclaré ;
+  vraies réponses HTTP (route inconnue, JSON invalide, identifiant mal formé, chaque règle d'inscription
+  avec `{min, max}` pour le mot de passe, pseudo/e-mail déjà pris, mauvais identifiants, jeton absent ou invalide,
+  limiteur de tentatives, preset et asset invalides).
+- **Navigateur** (dist + backend lancé sur une base MongoDB **locale temporaire**, jamais Atlas) : clic FR → header
+  traduit, `<html lang="fr">`, `aria-pressed` à jour ; le choix survit au rechargement ; `?lang=en` l'emporte
+  sans écraser le choix mémorisé ; vraie connexion ratée → « E-mail ou mot de passe incorrect. » en français,
+  « Incorrect email or password. » en anglais ; pseudo trop court → « Pseudo : 3 à 24 caractères… ».
+
+**Résultats** : hôte **242/242**, serveur **43/43**, `npm run dist` OK.
+
+#### Étape 4 : mise en page et ergonomie (2026-10-10)
+
+L'étape est découpée en trois commits : **4a** confirmations et accessibilité, **4b** nouvelle mise en
+page (header, guide, notifications, responsive), **4c** fond animé Butterchurn.
+
+##### 4a : confirmations thémées et accessibilité
+
+**Fenêtre de confirmation** (`ui/confirmDialog.js`, nouveau). Avant, 5 actions de la fenêtre Presets
+utilisaient `confirm()` du navigateur : une boîte grise, impossible à habiller, et toujours dans la langue du
+système. Maintenant :
+
+```js
+if (!await confirmDialog({title: 'Supprimer « Lead » ?', message: '…', confirmLabel: 'Supprimer', danger: true})) return;
+```
+
+- `confirmDialog` renvoie une **promesse** (true / false) : le code attend la réponse avec `await`, comme avec
+  `confirm()`, sans bloquer la page ni le son ;
+- une seule fenêtre `<dialog>`, réutilisée ; le focus va sur **Annuler** (le choix sans risque) et revient
+  ensuite sur le bouton qui l'a ouverte ; Échap = Annuler ; une action destructrice a un bouton rouge ;
+- les textes sont traduits (`presets.confirm.*`, `chain.confirmRemove`) : ces confirmations étant réécrites,
+  elles sont traduites tout de suite plutôt qu'à l'étape 5 ;
+- la suppression d'un plugin (`FxChainView`) utilise la même fenêtre (elle avait sa propre copie).
+
+**Accessibilité**
+- L'éditeur de plugin, le menu d'ajout et la fenêtre de routage A → B ont un titre annoncé par les lecteurs
+  d'écran (`aria-labelledby`). Les identifiants dépendent de la chaîne (A ou B) pour ne jamais être en double.
+- `ui/tabs.js` (nouveau) : onglets Presets et Compte au **clavier** (motif WAI-ARIA « Tabs ») : flèches ← →,
+  Début / Fin, un seul onglet atteignable avec Tab, onglets désactivés sautés (« Mon compte » sans connexion),
+  zone reliée à son onglet (`role=tabpanel`, `aria-controls`, `aria-labelledby`).
+- **Focus conservé** dans la fenêtre Presets : pendant une action, ses boutons sont désactivés et le navigateur
+  renvoyait le focus au début de la page. Il revient maintenant sur le bouton utilisé ; après une suppression,
+  il va au preset suivant de la liste.
+
+**Préparer la traduction.** `FxRackView` retrouvait les panneaux d'entrée / sortie par leur texte
+(`[aria-label="Chain A input"]`) et `PresetView` son bouton de fermeture par `[aria-label="Close presets"]` :
+une fois traduits, ces textes auraient cassé le rack. Ils sont retrouvés par une **classe** (`.fx-input-strip`,
+`.fx-output-strip`) ou une référence directe ; un test l'interdit désormais partout.
+
+**Tests**
+- `tests/phase6/confirm-dialog.test.mjs` (6 tests) avec `tests/phase6/fakeDom.mjs`, un mini DOM écrit pour
+  l'occasion (pas de dépendance) : réponse oui / non, focus, Échap, une seconde demande annule la première,
+  textes traduits, texte jamais interprété comme du HTML ; **plus aucun `confirm()`** dans l'hôte et les 5
+  confirmations présentes dans les deux dictionnaires ; onglets (flèches, Début / Fin, désactivés, ARIA).
+- `tests/phase6/layout.test.mjs` (3 tests) : aucune recherche d'élément par son texte, titres des fenêtres,
+  onglets accessibles.
+- Navigateur (dist) : retrait d'un plugin (Annuler → focus rendu, carte gardée), onglets au clavier, preset
+  enregistré puis supprimé en FR et en EN via la nouvelle fenêtre.
+
+**Résultats 4a** : hôte **251/251**.
+
+##### 4b : nouvelle mise en page, guide, notifications
+
+**Header en trois zones** (`index.html`, `host.css` réécrit) :
+- **marque** à gauche (« NAM A2 » + sous-titre) ;
+- **au centre, ce qu'on entend** : la chaîne du signal (entrée → ampli → baffle → sortie) et le **preset
+  chargé** avec « • modifié » s'il a changé. Avant, le nom du preset était serré dans le bouton Presets et
+  disparaissait sur petit écran ;
+- **actions** à droite : Presets, Accordeur, Compte, mode, langue.
+
+**Panneau « Source audio »** : la colonne de gauche devient un tiroir avec un vrai titre, un bouton ×
+et Échap pour le fermer, et deux cartes **Entrée** / **Sortie**. Le bouton qui l'ouvre affiche son texte
+(« Source audio ») au lieu d'une simple icône.
+
+**Barre d'outils du rack** (`#rackToolbar`) : Source audio, Activer l'entrée live, 1 / 2 chaînes et les
+périphériques (mode complet), l'astuce « glisser une carte » et le bouton **? Raccourcis**. `FxRackView`
+s'y insère s'il la trouve (sinon il garde son ancien comportement : la page de labo n'a pas de barre).
+
+**Guide de démarrage** (`ui/GettingStarted.js`, nouveau) : au premier lancement, trois étapes sous le
+header : 1. choisir une source, 2. activer l'entrée live, 3. charger un preset d'usine. Chaque étape est un
+bouton qui **fait l'action** (ouvre le panneau, active l'entrée, ouvre les presets d'usine) ; elle n'est
+cochée que quand l'action a **vraiment** eu lieu (`main.js` appelle `guide.complete('live')` quand l'entrée
+démarre, etc.). L'état est gardé dans `localStorage` (`nam-a2-guide`) ; une fois tout fait, le guide ne
+revient plus, mais on peut le rouvrir depuis l'aide des raccourcis. La partie « calcul » (`guideModel`) est
+une fonction pure, testée sans navigateur.
+
+**Notifications** (`ui/toast.js`, nouveau) : les messages (« Preset chargé », erreurs…) apparaissent en
+bas de l'écran. Une information disparaît après 4,5 s ; une **erreur reste** jusqu'à ce qu'on la ferme ;
+3 au plus, un message répété est relancé au lieu d'être empilé. Les lecteurs d'écran continuent de lire
+`#hostStatus` (`role=status`, caché visuellement) : la zone des toasts n'est pas « live », sinon chaque
+message serait annoncé deux fois.
+
+**Aide des raccourcis** (`ui/ShortcutsHelp.js`, nouveau) : touche **?** ou bouton « ? Raccourcis ». Liste
+les raccourcis qui existaient déjà (Alt + ← / → pour déplacer une carte, flèches dans les onglets, Échap,
+Début pour recentrer un panoramique). La touche est ignorée quand on écrit dans un champ et dans les
+interfaces des plugins, qui gardent leurs propres raccourcis.
+
+**Lisibilité du rack** : plus aucun texte sous 12 px dans `fx-chain.css` et le lecteur (avant : 7 à 11 px).
+Les rangées passent de 225 à 240 px pour garder la même place aux contrôles. Seule exception : les
+graduations du VU-mètre, du texte SVG décoratif (`aria-hidden`) dont la taille est en unités du dessin.
+
+**Responsive** : header sur 3 colonnes, 2 sous 1180 px, 1 sous 720 px ; sous 560 px, l'entrée et la
+sortie se placent côte à côte au-dessus des cartes. Aucun défilement horizontal à 375, 1024 et 1366 px.
+
+**Bugs trouvés en vérifiant dans le navigateur**
+- L'étape « preset » du guide ne faisait rien : `presetManager.setSource()` ne renvoie pas toujours une
+  promesse, et `.catch()` dessus plantait. Corrigé avec `try { await … }` ; un test interdit le motif.
+- Le nom du preset était invisible dans la nouvelle ligne : d'anciennes règles de `presets.css` (prévues
+  pour le bouton Presets) le limitaient à 160 px et le cachaient sous 720 px. Supprimées.
+
+**Les plugins ne changent pas** : toutes les nouvelles règles visent des classes de l'hôte ; les styles
+de base (`button`, `kbd`…) excluent toujours `.fx-editor-mount` et `.tuner-mount`.
+
+**Tests**
+- `tests/phase6/host-ui.test.mjs` (7 tests) : toasts (information qui disparaît, erreur qui reste, limite
+  de 3, pas de doublon, texte jamais interprété comme du HTML) ; guide (modèle pur, stockage bloqué ou
+  corrompu, bouton = action sans cocher, `complete()` mémorisé, re-rendu au changement de langue, masqué une
+  fois tout fait puis réouvrable) ; raccourcis (touche ignorée pendant la saisie et dans les plugins,
+  fenêtre traduite, focus rendu au bouton).
+- `layout.test.mjs` (+2) : header en trois zones, **aucun ancien identifiant perdu** ni en double, guide
+  relié aux vraies actions, nouveaux fichiers dans la dist.
+- `theme.test.mjs` : la règle « pas de texte sous 12 px » couvre maintenant `fx-chain.css` et le lecteur.
+- `fakeDom.mjs` : `replaceChildren`, `querySelector` simple, événements du document, nœuds texte.
+- Navigateur (dist, FR) : guide complet (panneau ouvert puis Échap → focus rendu au bouton, presets d'usine
+  ouverts, preset chargé → étape cochée et nom affiché), touche ? et « Revoir le guide », toast d'un
+  changement de source, mode complet avec 2 chaînes, aucune erreur console.
+
+**Résultats 4b** : hôte **260/260**, serveur **43/43**.
+
+##### 4c : fond animé Butterchurn (option)
+
+Le bouton **Fond animé** du header affiche derrière l'interface un visualiseur
+[Butterchurn](https://github.com/jberg/butterchurn) (le Milkdrop de Winamp, en WebGL) qui réagit au son.
+Toutes les conditions de l'étape 1 sont respectées :
+
+| Exigence | Comment |
+|---|---|
+| Désactivé par défaut | `aria-pressed="false"` ; le choix est mémorisé (`nam-a2-visualizer`) |
+| Chargé seulement à l'activation | les deux scripts (≈ 850 Ko) sont ajoutés à la page au premier clic, puis réutilisés |
+| Hébergé dans le projet | `ui/vendor/butterchurn/` : fichiers npm **non modifiés**, licences MIT, empreintes SHA-256 dans le README (vérifiées par un test) ; `-text` dans `.gitattributes` pour que Git ne change aucun octet |
+| Lecture seule sur la sortie | `connectAudio(backingMix.output)` : Butterchurn relie ce nœud à son analyseur, qui ne va nulle part. Le son n'est pas modifié (on visualise ampli + backing track, c'est-à-dire ce qu'on entend) |
+| Discret, contraste inchangé | calque `position: fixed` derrière la page, voilé par la texture + le tolex à 70 % ; les panneaux gardent leur fond |
+| Presets calmes | 8 presets choisis dans le pack (lents, sombres, sans flash), un nouveau toutes les 45 s avec un fondu |
+| Léger | 30 images/s au plus, demi-résolution, pause quand l'onglet est caché ; à l'arrêt, contexte WebGL libéré tout de suite |
+| Réduire les animations | si le système le demande, le bouton est désactivé avec une explication, et le fond s'arrête s'il tournait |
+| Pas de WebGL 2 | vérifié **avant** de télécharger quoi que ce soit ; notification d'erreur traduite |
+
+Les plugins ne sont pas touchés : le calque est sous toute la page, sans filtre sur leurs interfaces.
+
+**Tests** : `tests/phase6/visualizer.test.mjs` (8 tests) avec une fenêtre et un Butterchurn simulés :
+rien de téléchargé avant le clic, branchement de la sortie seulement, demi-résolution, calque `aria-hidden`,
+jamais le preset « strobe » glissé dans le faux pack, 3 images dessinées sur 5 à 60 Hz, arrêt complet
+(débranché, calque retiré, contexte WebGL libéré), animations réduites, pas de WebGL 2, choix mémorisé,
+empreintes des fichiers vendor, aucune URL externe. Un test de mutation (garde « animations réduites »
+retirée) fait bien échouer la suite.
+**Navigateur** : activé puis désactivé puis réactivé (scripts chargés une seule fois, un seul calque),
+capture à 1366 px, `npm run dist` (fichiers identiques octet pour octet dans la dist), aucune erreur console.
+
+**Résultats 4c** : hôte **268/268**, serveur **43/43**.
+
+#### Étape 5 : toute l'interface en français et en anglais (2026-10-10)
+
+Tous les textes de l'hôte passent maintenant par `t()` : fenêtres Presets / Explorer / Compte /
+Accordeur, rack (bandes A et B, routage A → B), cartes d'effets et leur éditeur, menu d'ajout,
+lecteur de backing tracks, panneau Source audio, messages et notifications. **Changer de langue
+retraduit tout en direct**, fenêtres ouvertes comprises, sans recharger la page ni effacer ce qui
+est tapé dans les champs.
+
+**Comment ça marche**
+
+| Mécanisme | Rôle |
+|---|---|
+| `data-i18n` + `data-i18n-params` (JSON) | un texte « à trous » garde ses paramètres : `ENTRÉE · {lane}` reste « ENTRÉE · B » après un changement de langue |
+| `localize(élément, {text, title, ariaLabel, placeholder}, params)` | traduit un élément créé en JavaScript **et** le marque pour `applyTranslations` |
+| `onLanguageChange` dans chaque vue | ce qui est calculé (listes, statuts, compteurs, dB) est recalculé ; les statuts sont gardés sous forme de fonction (`setStatus(() => t(…))`) pour être retraduits |
+| `formatDb()` | « −12,0 dB » / « -12.0 dB » selon la langue (formateur mis en cache : il sert aussi aux vumètres) |
+| `ui/hostMessages.js` | le code du moteur (FxChain, SourceManager, OutputDeviceManager, BackingTrack…) **n'est pas modifié** : ses messages anglais connus sont traduits à l'affichage (`localizeMessage`, table + motifs) |
+| `PresetError(message, code, params)` | le message reste anglais (serveur, tests du prof) ; `errorText()` affiche `errors.preset.<code>` |
+| `detailCode` (serveur) | un preset refusé par le serveur renvoie aussi le code de l'erreur : le détail s'affiche traduit |
+| `NotAllowedError` | le refus d'accès au micro est traduit d'après le nom de l'erreur (le texte du navigateur varie) |
+
+**Ce qui reste volontairement en anglais** : les messages des `PresetError` et du serveur (contrat
+d'API, tests), la page de test des effets `fx-test/` (outil de développement), les noms des sons,
+plugins et tags. Dans `index.html`, les textes exigés par les tests du prof (« Enable live input »,
+« Automated test results », `opened with <code>?auto=1</code>`, « Sign in ») restent écrits en
+anglais : c'est le JavaScript qui les traduit au chargement.
+
+La bande B est une copie de la bande A : ses textes sont reposés avec `{lane: 'B'}` après la copie
+(l'ancien code préfixait « Chain B » aux libellés anglais). Les descriptions des 7 presets d'usine
+sont traduites (`presets.factory.<id>`).
+
+**Tests** : `tests/phase6/host-i18n.test.mjs` (12 tests) : chaque message traduit par `hostMessages`
+existe vraiment dans le code ; chaque `new PresetError(…)` a un code traduit en EN et FR ; aucune vue
+n'écrit de texte anglais en dur ; les clés posées par `localize` existent ; chaque vue s'abonne au
+changement de langue ; résumé de preset et dB en français ; `detailCode` du serveur. Contre-épreuve :
+un `PresetError` sans code ou un texte en dur remis dans l'accordeur font échouer la suite. Serveur :
+`error-codes.test.js` vérifie `detailCode`.
+**Navigateur** (dist) : chargement en FR, bascule FR ↔ EN avec le mode complet (bandes A et B,
+bouton 1 / 2 chaînes, routage), fenêtre Presets ouverte (onglets, description d'usine, statut
+« « Clean Deluxe » chargé. » → « Loaded “Clean Deluxe”. »), Compte (onglet Créer un compte, aide du
+pseudo), Accordeur, lecteur de backing tracks ; aucune nouvelle erreur console.
+
+**Résultats 5** : hôte **279/279**, serveur **43/43**.
+
+#### Étape 6 : accessibilité, textes, parcours complet (2026-10-10)
+
+**Audit automatique (axe-core 4.10, règles WCAG 2.0/2.1 A et AA + bonnes pratiques)**, lancé sur
+la dist dans le navigateur, en FR puis en EN, dans tous les états : page, panneau Source, mode
+complet A + B, fenêtre de routage, Presets (usine / navigateur / explorer), Compte (connexion /
+création), raccourcis, éditeur d'effet, menu d'ajout. Corrections :
+
+| Règle axe | Problème | Correction |
+|---|---|---|
+| landmark-complementary-is-top-level | `<aside>` (bandes Entrée/Sortie, côtés de l'éditeur) dans `<main>` | `<section>` / `<div>` |
+| landmark-unique / landmark-no-duplicate-main | le lecteur de backing tracks avait son propre `<main>` et `<aside>` | `<div class="track-main">` / `<div class="library">` (CSS adapté) |
+| image-redundant-alt | photo d'une carte : alt = nom déjà écrit dessous | `alt=''` (le bouton garde « Ouvrir {nom} ») |
+| aria-required-attr | vumètres fins sans `aria-valuenow` avant la 1re image | valeur initiale −60 |
+| button-name | étiquette de dérivation vide visible avant le 1er rendu | cachée dès la création |
+| region | notifications hors de toute zone repère | `<section aria-label="Notifications">` (traduit) |
+| aria-allowed-role | `role=tabpanel` posé sur un `<form>` | le formulaire est enveloppé dans un `<div id="accountTabPanel">` |
+
+Résultat : **0 violation côté hôte** partout. **Limite connue** : axe signale encore des contrastes
+faibles dans les interfaces des plugins (éditeur NAM `.eq-value` 4,43 : 1, `.eq-hint` 3,63 : 1 ;
+accordeur wasabi `#pitch_unit` 1,61 : 1, `tabindex` > 0) ; le code des plugins est intouchable,
+c'est donc documenté et non corrigé.
+
+**Clavier** : parcours réel à la touche Tab : en-tête → guide → barre d'outils → bande d'entrée →
+cartes (+, bypass, retirer, photo) → bande de sortie → lecteur ; l'ordre est logique et chaque
+contrôle a un contour de focus visible (orange).
+
+**Mise en page** : à 1366 px, avec 2 modules, la carte de la chaîne dans l'en-tête faisait passer
+« SORTIE » à la ligne ; elle passe maintenant sous le logo jusqu'à 1600 px (avant : 1180 px).
+Captures FR/EN à 1440 px et 375 px dans `docs/screenshots/interface/` (pas de défilement horizontal
+à 375 px). Le gain d'entrée s'affiche au format de la langue dès le chargement (« 0,0 dB »).
+
+**Textes (relecture ux-copy)** : « Se connecter » au lieu de « Connexion » (le même texte sert
+d'onglet et de bouton d'envoi), « En bypass » / « Activer ou mettre en bypass » au lieu de
+« Bypassé », « Copier sur mon compte » / « Copy to my account » (aligné sur la version avec le nom).
+Gardés volontairement : « Réinit. » (boutons étroits ; leur nom accessible est complet),
+« Backing tracks » (terme d'usage chez les guitaristes), « Retirer » un plugin de la chaîne vs
+« Supprimer » un preset (le plugin n'est pas détruit, le preset si).
+
+**Revue de code / simplification** : 5 remarques mineures ; appliquée : le formatage du gain
+d'entrée, répété 4 fois dans `main.js`, passe par `showSourceTrim()`. Les autres sont des choix
+assumés (point de rupture validé par les captures, tests du même style que le reste de phase6).
+
+**Tests** : `tests/phase6/host-a11y.test.mjs` (6 tests) fige chaque correction ci-dessus
+(contre-épreuve : la zone de notifications remise en `<div>` fait échouer la suite).
+
+**Résultats 6** : hôte **285/285**, serveur **43/43**.
+
+#### Chasse aux bugs (fin de l'étape 6, 2026-10-10)
+
+Sondes dans le navigateur (dist) : bascule FR ↔ EN répétée avec fenêtres ouvertes, mode complet à
+375 px, raccourcis clavier dans les champs, `?lang=` invalide, erreurs console. Trois bugs trouvés
+et corrigés :
+
+| Bug | Cause | Correction | Test |
+|---|---|---|---|
+| Le « + » avant une carte, la poubelle et la fenêtre « Retirer … ? » disaient « NeuralWAMp Amp Sim » alors que la carte affiche le modèle chargé (« Bogner Uberschall… ») | ces libellés utilisaient le nom du plugin, la légende le titre du modèle | `FxChainView.displayName()` : un seul calcul du nom, utilisé par la légende, le « + », la poubelle et la confirmation | `host-a11y.test.mjs` |
+| Après un changement de langue, le statut lu par les lecteurs d'écran (`#hostStatus`) restait dans l'ancienne langue | `message()` recevait un texte déjà traduit | `message()` accepte une fonction (`() => t(…)`), gardée et rappelée par `relabelHost()` (même principe que les vues) | `host-i18n.test.mjs` |
+| Taper « ? » dans le champ « Filtrer les morceaux » du lecteur ouvrait l'aide des raccourcis et le caractère était perdu | le lecteur est dans un shadow DOM : vu du document, `event.target` est l'élément `<backing-track-player>`, pas le champ | `isHelpKey` regarde tout `event.composedPath()` (marche aussi pour les GUI de plugins) | `host-ui.test.mjs` (contre-épreuve : échoue sans la correction) |
+
+Vérifié sans problème : pas de défilement horizontal à 375 px en mode complet (2 chaînes) ;
+fenêtre Presets retraduite entièrement quand elle est ouverte ; `?lang=de"><b>x` ignoré (langue
+enregistrée gardée, rien d'injecté) ; seule erreur console : le serveur de comptes éteint pendant
+le test (attendu).
+
+**Résultats** : hôte **286/286**, serveur **43/43**.
+
+#### Étape 7 : documentation et intégration (2026-10-10)
+
+- **REPORT.md** : nouvelle section **3.1 « Interface et internationalisation »** (ce qui change pour
+  l'utilisateur, comment c'est fait, 7 captures dans `docs/screenshots/interface/`). Mises à jour :
+  ligne « Interface FR / EN » dans les fonctionnalités, choix techniques (module de traduction
+  maison, thème par variables CSS), dossiers `ui/`, `docs/maquette/` et `tests/phase6/`, ligne
+  mission 8, chiffres des tests, décisions de l'étudiant, limites (contrastes dans les plugins, noms
+  des sons en anglais). Les anciennes captures (`docs/screenshots/projet/`) sont gardées et
+  présentées comme « avant la refonte ».
+- **SECURITE.md** : mesure **55** (langue de l'URL et du stockage filtrée par une liste blanche,
+  valeur brute jamais insérée). Les autres mesures de la mission étaient déjà notées au fil des
+  étapes : 50 (codes d'erreur du serveur sans fuite), 51-52 (confirmations, notifications, guide en
+  `textContent`), 53 (Butterchurn hébergé et vérifié), 54 (traductions jamais en `innerHTML`,
+  `detailCode` limité aux clés existantes). Correction au passage : le tableau « Serveur et
+  secrets » n'avait que 5 colonnes alors que les lignes 51 à 54 en avaient 6 (la colonne *Test*
+  disparaissait à l'affichage) ; l'en-tête a maintenant une colonne *Test*.
+
+**Tests de la mission 8 : ce qui a été ajouté ou modifié, et pourquoi**
+
+Aucun test existant (tests du professeur `phase3` à `phase4b`, tests `phase5` des missions 1 à 7,
+tests du serveur) **n'a été modifié** : `git diff develop -- tests server/test` ne montre que des
+fichiers nouveaux. Pour qu'ils restent verts, les textes anglais qu'ils vérifient sont restés dans
+`index.html` / `main.js` et sont traduits au chargement (voir étape 5).
+
+| Fichier (nouveau) | Tests | Pourquoi |
+|---|---|---|
+| `tests/phase6/theme.test.mjs` | 7 | Thème : chargé en premier, **contraste WCAG AA** sur toutes les surfaces, pas de couleurs en dur, texte ≥ 12 px, polices locales et licences, **plugins jamais restylés** (ni variables redéfinies, ni vignettes filtrées), pas de CSS mort |
+| `tests/phase6/i18n.test.mjs` | 12 | Dictionnaires FR/EN de mêmes clés et paramètres, interpolation, pluriels, détection de la langue (`?lang=`, stockage, navigateur), retraduction du DOM, paramètres JSON cassés |
+| `tests/phase6/confirm-dialog.test.mjs` | 6 | Fenêtre de confirmation : oui / non et retour du focus, Échap, texte jamais interprété comme du HTML, **plus aucun `confirm()` du navigateur** |
+| `tests/phase6/host-ui.test.mjs` | 7 | Onglets au clavier (flèches, Début / Fin), notifications (`textContent`, 3 au plus), guide « Pour commencer » (stockage bloqué ou corrompu), aide des raccourcis (« ? » ignoré pendant la saisie) |
+| `tests/phase6/layout.test.mjs` | 5 | Nouvelle mise en page : aucun élément retrouvé par son texte (la traduction le casserait), titres de fenêtres annoncés, onglets ARIA, en-tête en trois zones **sans perdre aucun identifiant** utilisé par le code et les tests |
+| `tests/phase6/visualizer.test.mjs` | 8 | Fond animé : désactivé et rien de téléchargé avant le clic, lecture seule de la sortie, 30 images/s, réduction des animations, sans WebGL 2, choix mémorisé, Butterchurn hébergé tel quel avec ses licences |
+| `tests/phase6/host-i18n.test.mjs` | 11 | Chaque vue traduite et retraduite, messages du moteur traduits, codes des `PresetError`, `detailCode` du serveur |
+| `tests/phase6/host-a11y.test.mjs` | 7 | Corrections de l'audit axe-core figées, nom affiché des cartes |
+| `tests/phase6/fakeDom.mjs` | — | Petit faux DOM partagé par ces tests (pas de dépendance ajoutée) |
+| `server/test/error-codes.test.js` | 6 | Chaque code d'erreur du serveur est déclaré ; `params` limités aux valeurs publiques ; `detailCode` des presets refusés |
+
+Modifications **à l'intérieur** de la mission (tests écrits pendant la mission puis ajustés) :
+- `host-i18n.test.mjs` : le test qui cherchait `text = localizeMessage(text)` dans `main.js` vérifie
+  maintenant la nouvelle forme (`message()` garde une fonction pour retraduire le statut). Il interdit
+  aussi `message(t(…))`, pour qu'aucun statut ne redevienne figé dans une langue (chasse aux bugs).
+- `host-ui.test.mjs` : cas ajoutés pour un champ dans un shadow DOM (« ? » tapé dans le filtre du
+  lecteur) ; contre-épreuve faite : échoue sans la correction.
+- `host-a11y.test.mjs` : test ajouté pour `displayName()` (chasse aux bugs).
+
+**Intégration** : commit et push de `feature/interface-design`, puis merge `--no-ff` dans `develop`
+et push (jamais `main`).
+
+**Résultats finaux mission 8** : hôte **286/286** (146 du professeur + 77 `phase5` + 63 `phase6`),
+serveur **43/43**.
+
 ---
 
 ## 5. Mémo pratique
@@ -906,6 +1422,7 @@ après la déconnexion.
 
 ## 6. Reste à faire / idées
 
-- Missions 1 à 7 (voir tableau).
+- Missions 0 à 8 terminées et fusionnées (voir tableau) ; `develop` fusionnée dans `main` le 2026-10-10.
+- À vérifier à la main : jeu avec une vraie guitare et un vrai micro ; passage avec un lecteur d'écran (NVDA).
 - Idées hors périmètre : amis et partage privé, presets favoris, notes/likes, aperçu audio d'un
   preset, déploiement en ligne (backend + dist).
