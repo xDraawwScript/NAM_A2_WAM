@@ -3075,5 +3075,1697 @@ export const FACTORY_PRESETS = [
    "mutedA": false,
    "enabledB": false
   }
+ },
+ {
+  "format": "nam-a2-preset",
+  "version": 1,
+  "id": "factory:killing-in-the-name",
+  "name": "Killing in the Name",
+  "description": "Inspired by Tom Morello on \"Killing in the Name\": Marshall JCM800 lead channel with bass and mids up, no pedal, totally dry. Drop D tuning; roll back the guitar volume for cleaner parts.",
+  "tags": [
+   "rage against the machine",
+   "riff",
+   "marshall",
+   "drop d"
+  ],
+  "createdAt": "2026-10-10T00:00:00.000Z",
+  "updatedAt": "2026-10-10T00:00:00.000Z",
+  "summary": {
+   "chains": 1,
+   "amp": "Marshall JCM800 2203 Modified (EL34) community pack",
+   "cabinet": "Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57",
+   "effects": [],
+   "chainA": [
+    {
+     "kind": "nam",
+     "name": "Marshall JCM800 2203 Modified (EL34) community pack",
+     "bypass": false
+    },
+    {
+     "kind": "cabinet",
+     "name": "Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57",
+     "bypass": true
+    }
+   ],
+   "chainB": []
+  },
+  "rack": {
+   "version": 2,
+   "panA": 0,
+   "panB": 0,
+   "a": {
+    "version": 1,
+    "entries": [
+     {
+      "id": "nam",
+      "kind": "nam",
+      "bypass": false,
+      "inputDb": 0,
+      "outputDb": 0,
+      "state": {
+       "parameterValues": {
+        "inputGain": {
+         "id": "inputGain",
+         "value": 0,
+         "normalized": false
+        },
+        "outputGain": {
+         "id": "outputGain",
+         "value": -3,
+         "normalized": false
+        },
+        "noise": {
+         "id": "noise",
+         "value": -65,
+         "normalized": false
+        },
+        "noiseEnabled": {
+         "id": "noiseEnabled",
+         "value": 1,
+         "normalized": false
+        },
+        "bass": {
+         "id": "bass",
+         "value": 6.5,
+         "normalized": false
+        },
+        "middle": {
+         "id": "middle",
+         "value": 7,
+         "normalized": false
+        },
+        "treble": {
+         "id": "treble",
+         "value": 6,
+         "normalized": false
+        },
+        "toneEnabled": {
+         "id": "toneEnabled",
+         "value": 1,
+         "normalized": false
+        },
+        "eqEnabled": {
+         "id": "eqEnabled",
+         "value": 1,
+         "normalized": false
+        },
+        "eqPre": {
+         "id": "eqPre",
+         "value": 0,
+         "normalized": false
+        },
+        "eq1Freq": {
+         "id": "eq1Freq",
+         "value": 100,
+         "normalized": false
+        },
+        "eq1Gain": {
+         "id": "eq1Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq1Q": {
+         "id": "eq1Q",
+         "value": 0.71,
+         "normalized": false
+        },
+        "eq2Freq": {
+         "id": "eq2Freq",
+         "value": 250,
+         "normalized": false
+        },
+        "eq2Gain": {
+         "id": "eq2Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq2Q": {
+         "id": "eq2Q",
+         "value": 1,
+         "normalized": false
+        },
+        "eq3Freq": {
+         "id": "eq3Freq",
+         "value": 650,
+         "normalized": false
+        },
+        "eq3Gain": {
+         "id": "eq3Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq3Q": {
+         "id": "eq3Q",
+         "value": 1,
+         "normalized": false
+        },
+        "eq4Freq": {
+         "id": "eq4Freq",
+         "value": 1600,
+         "normalized": false
+        },
+        "eq4Gain": {
+         "id": "eq4Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq4Q": {
+         "id": "eq4Q",
+         "value": 1,
+         "normalized": false
+        },
+        "eq5Freq": {
+         "id": "eq5Freq",
+         "value": 3500,
+         "normalized": false
+        },
+        "eq5Gain": {
+         "id": "eq5Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq5Q": {
+         "id": "eq5Q",
+         "value": 1.4,
+         "normalized": false
+        },
+        "eq6Freq": {
+         "id": "eq6Freq",
+         "value": 8000,
+         "normalized": false
+        },
+        "eq6Gain": {
+         "id": "eq6Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq6Q": {
+         "id": "eq6Q",
+         "value": 0.71,
+         "normalized": false
+        },
+        "bypass": {
+         "id": "bypass",
+         "value": 0,
+         "normalized": false
+        }
+       },
+       "model": {
+        "name": "[AMP] JCM800-2203-MODIFIED-HI Bad Boys - SM57--m567072.nam",
+        "contentHash": "45f6f0f7e26857528869694df800f6aa8d6831ae460e0257728b68aa1e9e61cc",
+        "provenance": {
+         "provider": "TONE3000",
+         "importedAt": "2026-09-04T15:50:02.668Z",
+         "toneId": 44209,
+         "modelId": 567072,
+         "title": "Marshall JCM800 2203 Modified (EL34) community pack",
+         "description": "🅰️2️⃣ ready!\n\nIf you like my work & want to support me, consider grabbing the ✨full✨ Marshall JCM800 2203 Modified (EL34) NAM pack over here:\n\n👉 https://ko-fi.com/2dornam/shop 🙏\n\nThe Marshall JCM800 2203 Modified (EL34) NAM pack\n\nℹ️ Summary\n\nThe pack features the 2025-released Marshall JCM800 2203 Modified (EL34) captured using a Mesa 4x12 Oversized Straight cabinet loading down the amplifier.\n\n✅ All profiles calibrated\n✅ Real cab (Mesa 4x12 OS straight) used as load (no reactive load)\n✅ AMP, PRE & POW profiles for maximum flexibility\n✅ DI and MIC-ed up flavors for each AMP and POW profile\n✅ STD (A2), STD (A1) and xSTD architectures\n✅ Extended, anti-aliasing signal leveraged during reamping\n✅ High-fidelity signal chain used during reamping\n✅ Stompbox / OD profiles included\n\nThis full pack includes includes:\n\n• 110 x AMP profiles (1 x DI and 5 mic-ed up, full-rig flavors for every knob combination used)\n• 38 x PRE profiles\n• 11 x POW profiles (1 x DI and 5 mic-ed up, full-rig flavors for every knob combination used)\n• 50 x OD pedal profiles\n\nTOTAL: over 2,000 individual NAM files (across all 3 NAM architectures)\n\n✅ Efficiency \n\nStreamlined for users across platforms (Dimehead, Valeton GP-5 etc), AMP & POW profiles offer 6 flavors:\n\n• DI = raw poweramp <-> cab signal tapped with a DI box, no Microphone \n• SM57 = full-rig chain, cab mic-ed with a Shure SM57 on the top-left speaker\n• SM58 = full-rig chain, cab mic-ed with a Shure SM58 on the top-right speaker\n• BLEND #1: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58) blended\n• BLEND #2: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58 @ +3dB) blended\n• BLEND #3: full-rig chain, cab mic-ed with 2 mics (Shure SM57 @ +3dB & SM58) blended\n\n⚙️ Reamp chain details\n\n• RME Fireface UCX II -> Lehle P-SPLIT III -> Marshall JCM800 2203 Modified -> St.Rock React:IR II (Mesa 4x12 OS Straight load) -> RME Fireface UCX II\n\n• SEND level: 18.995 dBu\n• RETURN level: 13.195 dBu\n\nUse the new \"Calibration\" feature (video linked) in the NAM plugin to get the most out of these profiles: \n\nhttps://www.neuralampmodeler.com/post/neuralampmodelerplugin-v0-7-12-is-released\n\n🏷️ Naming convention summary\n\n• [AMP] = full head (pre & poweramp)\n• [PRE] = preamp section; use a poweramp + IR or tube amp & cab\n• [POW] = poweramp only; use a preamp (and IR if using DI)\n• [OD] = overdrive pedal\n• LO = low sensitivity input used\n• HI = high sensitivity input used\n• STD (A2) = new go-to NAM A2 standard architecture\n• STD (A1) = old standard quality architecture\n• xSTD = custom architecture (by Андрей Полевой) from NAM FB\n• TSMINI = Tube Screamer Mini\n• MXRM77 = MXR Custom Badass Modified O.D.\n• FORTIN14 = Fortin Fourteen\n• DWHAMER = PedalPCB Dwarven Hammer\n• DFXKoD = DemonFX King of Drive\n• DFXKLON = DemonFX Centaur\n• DFXDBOOST = DemonFX Dual Boost, Exotic EP mode\n• JR.TheJef = J.Rockett Audio Designs The Jeff Archer\n• GRIND = Fortin Grind\n• ODD = Warm Audio ODD\n• BO$$ = Boss GE-7 Equalizer\n\n📒 Spreadsheet with settings & inspiration for all profiles:\n\nhttps://mega.nz/file/mtgzASrR#hRpRWaCq-1RZ7GSQzyXZcpq5ITMFaOUvr3jbr5nvsaw",
+         "toneUrl": "https://www.tone3000.com/tones/marshall-jcm800-2203-modified-el34-community-pack-44209",
+         "format": "nam",
+         "gear": "amp-cab",
+         "license": "t3k",
+         "category": null,
+         "creator": "2dor",
+         "creatorUsername": "2dor",
+         "creatorUrl": "https://www.tone3000.com/2dor",
+         "makes": [
+          "2203",
+          "JCM",
+          "JCM800",
+          "JCM800 2203",
+          "Marshall",
+          "Marshall JCM800",
+          "Marshall JCM800 2203"
+         ],
+         "tags": [
+          "clean to mean",
+          "nam"
+         ],
+         "identity": "factory:tone3000/2dor/Marshall JCM800 2203 Modified (EL34) community pack--t44209/captures/[AMP] JCM800-2203-MODIFIED-HI Bad Boys - SM57--m567072.nam",
+         "source": "Factory"
+        },
+        "assetRef": {
+         "source": "factory",
+         "kind": "nam",
+         "id": "factory:tone3000/2dor/Marshall JCM800 2203 Modified (EL34) community pack--t44209/captures/[AMP] JCM800-2203-MODIFIED-HI Bad Boys - SM57--m567072.nam",
+         "contentHash": "45f6f0f7e26857528869694df800f6aa8d6831ae460e0257728b68aa1e9e61cc"
+        }
+       },
+       "modelVariant": "full",
+       "autoLevel": true,
+       "measuredCalibration": null,
+       "measuredLevels": {},
+       "metadata": {
+        "name": "[AMP] JCM800-2203-MODIFIED-HI Bad Boys - SM57--m567072.nam",
+        "architecture": "SlimmableContainer",
+        "subtype": "A2 Full",
+        "version": "0.7.0",
+        "rawMetadata": {
+         "date": {
+          "year": 2026,
+          "month": 6,
+          "day": 9,
+          "hour": 5,
+          "minute": 52,
+          "second": 39
+         },
+         "loudness": -17.71971176935893,
+         "gain": 0.8032333750850366,
+         "name": "[AMP] JCM800-2203-MODIFIED-HI Bad Boys - SM57",
+         "modeled_by": "2dor",
+         "gear_type": "amp_cab",
+         "gear_make": "Marshall JCM800",
+         "gear_model": "Marshall JCM800",
+         "tone_type": "clean to mean",
+         "trainer": "TONE3000",
+         "input_level_dbu": 18.995,
+         "output_level_dbu": 13.195
+        },
+        "loudness": -17.71971176935893,
+        "expectedSampleRate": 48000,
+        "modeledBy": "2dor",
+        "availableVariants": [
+         "full",
+         "lite"
+        ],
+        "activeVariant": "full",
+        "modelVariant": "full",
+        "autoLevelEnabled": true,
+        "autoLevelCompensationDb": -0.28028823064106945,
+        "levelMode": "metadata",
+        "source": "Factory",
+        "provenance": {
+         "provider": "TONE3000",
+         "importedAt": "2026-09-04T15:50:02.668Z",
+         "toneId": 44209,
+         "modelId": 567072,
+         "title": "Marshall JCM800 2203 Modified (EL34) community pack",
+         "description": "🅰️2️⃣ ready!\n\nIf you like my work & want to support me, consider grabbing the ✨full✨ Marshall JCM800 2203 Modified (EL34) NAM pack over here:\n\n👉 https://ko-fi.com/2dornam/shop 🙏\n\nThe Marshall JCM800 2203 Modified (EL34) NAM pack\n\nℹ️ Summary\n\nThe pack features the 2025-released Marshall JCM800 2203 Modified (EL34) captured using a Mesa 4x12 Oversized Straight cabinet loading down the amplifier.\n\n✅ All profiles calibrated\n✅ Real cab (Mesa 4x12 OS straight) used as load (no reactive load)\n✅ AMP, PRE & POW profiles for maximum flexibility\n✅ DI and MIC-ed up flavors for each AMP and POW profile\n✅ STD (A2), STD (A1) and xSTD architectures\n✅ Extended, anti-aliasing signal leveraged during reamping\n✅ High-fidelity signal chain used during reamping\n✅ Stompbox / OD profiles included\n\nThis full pack includes includes:\n\n• 110 x AMP profiles (1 x DI and 5 mic-ed up, full-rig flavors for every knob combination used)\n• 38 x PRE profiles\n• 11 x POW profiles (1 x DI and 5 mic-ed up, full-rig flavors for every knob combination used)\n• 50 x OD pedal profiles\n\nTOTAL: over 2,000 individual NAM files (across all 3 NAM architectures)\n\n✅ Efficiency \n\nStreamlined for users across platforms (Dimehead, Valeton GP-5 etc), AMP & POW profiles offer 6 flavors:\n\n• DI = raw poweramp <-> cab signal tapped with a DI box, no Microphone \n• SM57 = full-rig chain, cab mic-ed with a Shure SM57 on the top-left speaker\n• SM58 = full-rig chain, cab mic-ed with a Shure SM58 on the top-right speaker\n• BLEND #1: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58) blended\n• BLEND #2: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58 @ +3dB) blended\n• BLEND #3: full-rig chain, cab mic-ed with 2 mics (Shure SM57 @ +3dB & SM58) blended\n\n⚙️ Reamp chain details\n\n• RME Fireface UCX II -> Lehle P-SPLIT III -> Marshall JCM800 2203 Modified -> St.Rock React:IR II (Mesa 4x12 OS Straight load) -> RME Fireface UCX II\n\n• SEND level: 18.995 dBu\n• RETURN level: 13.195 dBu\n\nUse the new \"Calibration\" feature (video linked) in the NAM plugin to get the most out of these profiles: \n\nhttps://www.neuralampmodeler.com/post/neuralampmodelerplugin-v0-7-12-is-released\n\n🏷️ Naming convention summary\n\n• [AMP] = full head (pre & poweramp)\n• [PRE] = preamp section; use a poweramp + IR or tube amp & cab\n• [POW] = poweramp only; use a preamp (and IR if using DI)\n• [OD] = overdrive pedal\n• LO = low sensitivity input used\n• HI = high sensitivity input used\n• STD (A2) = new go-to NAM A2 standard architecture\n• STD (A1) = old standard quality architecture\n• xSTD = custom architecture (by Андрей Полевой) from NAM FB\n• TSMINI = Tube Screamer Mini\n• MXRM77 = MXR Custom Badass Modified O.D.\n• FORTIN14 = Fortin Fourteen\n• DWHAMER = PedalPCB Dwarven Hammer\n• DFXKoD = DemonFX King of Drive\n• DFXKLON = DemonFX Centaur\n• DFXDBOOST = DemonFX Dual Boost, Exotic EP mode\n• JR.TheJef = J.Rockett Audio Designs The Jeff Archer\n• GRIND = Fortin Grind\n• ODD = Warm Audio ODD\n• BO$$ = Boss GE-7 Equalizer\n\n📒 Spreadsheet with settings & inspiration for all profiles:\n\nhttps://mega.nz/file/mtgzASrR#hRpRWaCq-1RZ7GSQzyXZcpq5ITMFaOUvr3jbr5nvsaw",
+         "toneUrl": "https://www.tone3000.com/tones/marshall-jcm800-2203-modified-el34-community-pack-44209",
+         "format": "nam",
+         "gear": "amp-cab",
+         "license": "t3k",
+         "category": null,
+         "creator": "2dor",
+         "creatorUsername": "2dor",
+         "creatorUrl": "https://www.tone3000.com/2dor",
+         "makes": [
+          "2203",
+          "JCM",
+          "JCM800",
+          "JCM800 2203",
+          "Marshall",
+          "Marshall JCM800",
+          "Marshall JCM800 2203"
+         ],
+         "tags": [
+          "clean to mean",
+          "nam"
+         ],
+         "identity": "factory:tone3000/2dor/Marshall JCM800 2203 Modified (EL34) community pack--t44209/captures/[AMP] JCM800-2203-MODIFIED-HI Bad Boys - SM57--m567072.nam",
+         "source": "Factory"
+        }
+       },
+       "stateVersion": 5
+      }
+     },
+     {
+      "id": "cabinet",
+      "kind": "cabinet",
+      "bypass": true,
+      "inputDb": 0,
+      "outputDb": 0,
+      "state": {
+       "parameterValues": {
+        "levelMatch": {
+         "id": "levelMatch",
+         "value": 1,
+         "normalized": false
+        },
+        "irTrim": {
+         "id": "irTrim",
+         "value": 0,
+         "normalized": false
+        },
+        "outputGain": {
+         "id": "outputGain",
+         "value": 0,
+         "normalized": false
+        },
+        "bypass": {
+         "id": "bypass",
+         "value": 1,
+         "normalized": false
+        }
+       },
+       "ir": {
+        "id": "factory:tone3000/outmodedelectronics/Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57--t45023/captures/V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+        "name": "V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+        "analysis": {
+         "energy": 5.999299236550684,
+         "l2Norm": 2.4493466958662027,
+         "rawCompensationDb": -7.781005244714877,
+         "compensationDb": -7.781005244714877,
+         "compensation": 0.4082721330090649,
+         "valid": true,
+         "clamped": false
+        },
+        "metadata": {
+         "provider": "TONE3000",
+         "importedAt": "2026-09-16T07:36:16.084Z",
+         "toneId": 45023,
+         "modelId": 239290,
+         "title": "Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57",
+         "description": "I made impulse responses of my Mesa Boogie 4FB Traditional Straight 4x12 cabinet loaded with Celestion Vintage 30 speakers. I used a Shure SM57 on all four speakers and have uploaded on-axis IRs in 0.25inch (~0.6cm) increments from 0.00” to 2.00” from the cap. Off-axis IRs were captured in 0.5” increments.\n\n5/6/26 - I deleted the 2.25in and 2.50in positions since they are most likely too dark for most users playing rock and metal. See Linked Tones for SM57 IRs backed off the cab to reduce congestion in darker positions.\n\nRecommended starting points vary depending on amp:\nMesa Rectifier Modern Mode - 0.50” from cap\nPeavey 5150/6505 Lead - 0.75” from cap\n\nThe Upper Left and Lower Left speakers are not as thick sounding.\n\nI will be using this cab as a load to train my high gain amps for both Full Rigs and DI captures with the ideal cab load. I also intend to provide a Part 2 to this set, but with non-SM57 microphones.\n\nThe cabinet has a production date of 2002 with 8 ohm Vintage 30s from 2001. The cabinet is comparable in dimensions vs other 4x12 cabinets. It is not as tall as the Mesa Standard Oversized 4x12, which is well represented on TONE3000. These V30 IRs in general are warmer sounding compared to my IRs of my 16 Ohm V30 in various cabs.\n\nMore about the cab here:\nhttps://outmodedelectronics.blogspot.com/2025/11/mesa-boogie-rectifier-standard-4x12.html?m=1\n\nI shot each microphone position through Chameleon Labs 7603 (Neve 1073-inspired), Stam SA-73 (Neve-inspired), and CAPI VP28 (API-based) microphone preamps for some variety.\n\n24Bit 48kHz - 500ms - MPT Format\n\nNaming Convention\nV30 <speaker position> 4FB 4x12 SM57 <Distance from Center> <Distance Off Grill> <Off Axis Angle, if applicable> <Microphone Preamp>\n\nSpeaker Positions are LL – lower left, LR – lower right, UL – upper left, UR – upper right\n\nEquipment Used:\n-Shure SM57\n-Behringer A800 Power Amp\n-Chameleon Labs 7603 Microphone Preamp\n-Stam SA-73 Microphone Preamp\n-CAPI VP28 Microphone Preamp\n-Steinberg UR824 Audio Interface\n-Voxengo Deconvolver\n\n10sec sine sweeps were used to excite speaker",
+         "toneUrl": "https://www.tone3000.com/tones/celestion-vintage-30-2002-mesa-boogie-4x12-sm57-45023",
+         "format": "ir",
+         "gear": "cab",
+         "license": "t3k",
+         "category": null,
+         "creator": "OutmodedElectronics",
+         "creatorUsername": "outmodedelectronics",
+         "creatorUrl": "https://www.tone3000.com/outmodedelectronics",
+         "makes": [
+          "Celestion",
+          "Celestion Vintage 30",
+          "Mesa Boogie Traditional 4x12",
+          "Shure SM57"
+         ],
+         "tags": [
+          "celestion v30",
+          "impulse response",
+          "ir",
+          "mesa boogie",
+          "rock",
+          "thick mids"
+         ],
+         "identity": "factory:tone3000/outmodedelectronics/Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57--t45023/captures/V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+         "source": "Factory"
+        },
+        "assetRef": {
+         "source": "factory",
+         "kind": "ir",
+         "id": "factory:tone3000/outmodedelectronics/Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57--t45023/captures/V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+         "contentHash": "06b853f53c2436eb8a0cf9deb6a129e0f8f3a31c48f45a1376efb70d85c4e55a"
+        }
+       },
+       "trimByIr": {},
+       "routingMode": "auto",
+       "stateVersion": 2
+      }
+     }
+    ]
+   },
+   "b": null,
+   "visible": false,
+   "route": null,
+   "inputDbB": 0,
+   "outputDbA": 0,
+   "outputDbB": 0,
+   "mutedA": false,
+   "enabledB": false
+  }
+ },
+ {
+  "format": "nam-a2-preset",
+  "version": 1,
+  "id": "factory:killing-in-the-name-solo",
+  "name": "Killing in the Name (Solo)",
+  "description": "The \"Killing in the Name\" solo: the same JCM800 with two pitch shifters at +12 semitones after the amp, like Morello's Whammy set two octaves up in the effects loop. Play single notes.",
+  "tags": [
+   "rage against the machine",
+   "solo",
+   "whammy",
+   "drop d"
+  ],
+  "createdAt": "2026-10-10T00:00:00.000Z",
+  "updatedAt": "2026-10-10T00:00:00.000Z",
+  "summary": {
+   "chains": 1,
+   "amp": "Marshall JCM800 2203 Modified (EL34) community pack",
+   "cabinet": "Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57",
+   "effects": [
+    "DualPitchShifter",
+    "DualPitchShifter"
+   ],
+   "chainA": [
+    {
+     "kind": "nam",
+     "name": "Marshall JCM800 2203 Modified (EL34) community pack",
+     "bypass": false
+    },
+    {
+     "kind": "cabinet",
+     "name": "Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57",
+     "bypass": true
+    },
+    {
+     "kind": "effect",
+     "name": "DualPitchShifter",
+     "bypass": false
+    },
+    {
+     "kind": "effect",
+     "name": "DualPitchShifter",
+     "bypass": false
+    }
+   ],
+   "chainB": []
+  },
+  "rack": {
+   "version": 2,
+   "panA": 0,
+   "panB": 0,
+   "a": {
+    "version": 1,
+    "entries": [
+     {
+      "id": "nam",
+      "kind": "nam",
+      "bypass": false,
+      "inputDb": 0,
+      "outputDb": 0,
+      "state": {
+       "parameterValues": {
+        "inputGain": {
+         "id": "inputGain",
+         "value": 3,
+         "normalized": false
+        },
+        "outputGain": {
+         "id": "outputGain",
+         "value": -1.2,
+         "normalized": false
+        },
+        "noise": {
+         "id": "noise",
+         "value": -65,
+         "normalized": false
+        },
+        "noiseEnabled": {
+         "id": "noiseEnabled",
+         "value": 1,
+         "normalized": false
+        },
+        "bass": {
+         "id": "bass",
+         "value": 6,
+         "normalized": false
+        },
+        "middle": {
+         "id": "middle",
+         "value": 7,
+         "normalized": false
+        },
+        "treble": {
+         "id": "treble",
+         "value": 6,
+         "normalized": false
+        },
+        "toneEnabled": {
+         "id": "toneEnabled",
+         "value": 1,
+         "normalized": false
+        },
+        "eqEnabled": {
+         "id": "eqEnabled",
+         "value": 1,
+         "normalized": false
+        },
+        "eqPre": {
+         "id": "eqPre",
+         "value": 0,
+         "normalized": false
+        },
+        "eq1Freq": {
+         "id": "eq1Freq",
+         "value": 100,
+         "normalized": false
+        },
+        "eq1Gain": {
+         "id": "eq1Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq1Q": {
+         "id": "eq1Q",
+         "value": 0.71,
+         "normalized": false
+        },
+        "eq2Freq": {
+         "id": "eq2Freq",
+         "value": 250,
+         "normalized": false
+        },
+        "eq2Gain": {
+         "id": "eq2Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq2Q": {
+         "id": "eq2Q",
+         "value": 1,
+         "normalized": false
+        },
+        "eq3Freq": {
+         "id": "eq3Freq",
+         "value": 650,
+         "normalized": false
+        },
+        "eq3Gain": {
+         "id": "eq3Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq3Q": {
+         "id": "eq3Q",
+         "value": 1,
+         "normalized": false
+        },
+        "eq4Freq": {
+         "id": "eq4Freq",
+         "value": 1600,
+         "normalized": false
+        },
+        "eq4Gain": {
+         "id": "eq4Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq4Q": {
+         "id": "eq4Q",
+         "value": 1,
+         "normalized": false
+        },
+        "eq5Freq": {
+         "id": "eq5Freq",
+         "value": 3500,
+         "normalized": false
+        },
+        "eq5Gain": {
+         "id": "eq5Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq5Q": {
+         "id": "eq5Q",
+         "value": 1.4,
+         "normalized": false
+        },
+        "eq6Freq": {
+         "id": "eq6Freq",
+         "value": 8000,
+         "normalized": false
+        },
+        "eq6Gain": {
+         "id": "eq6Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq6Q": {
+         "id": "eq6Q",
+         "value": 0.71,
+         "normalized": false
+        },
+        "bypass": {
+         "id": "bypass",
+         "value": 0,
+         "normalized": false
+        }
+       },
+       "model": {
+        "name": "[AMP] JCM800-2203-MODIFIED-HI Bad Boys - SM57--m567072.nam",
+        "contentHash": "45f6f0f7e26857528869694df800f6aa8d6831ae460e0257728b68aa1e9e61cc",
+        "provenance": {
+         "provider": "TONE3000",
+         "importedAt": "2026-09-04T15:50:02.668Z",
+         "toneId": 44209,
+         "modelId": 567072,
+         "title": "Marshall JCM800 2203 Modified (EL34) community pack",
+         "description": "🅰️2️⃣ ready!\n\nIf you like my work & want to support me, consider grabbing the ✨full✨ Marshall JCM800 2203 Modified (EL34) NAM pack over here:\n\n👉 https://ko-fi.com/2dornam/shop 🙏\n\nThe Marshall JCM800 2203 Modified (EL34) NAM pack\n\nℹ️ Summary\n\nThe pack features the 2025-released Marshall JCM800 2203 Modified (EL34) captured using a Mesa 4x12 Oversized Straight cabinet loading down the amplifier.\n\n✅ All profiles calibrated\n✅ Real cab (Mesa 4x12 OS straight) used as load (no reactive load)\n✅ AMP, PRE & POW profiles for maximum flexibility\n✅ DI and MIC-ed up flavors for each AMP and POW profile\n✅ STD (A2), STD (A1) and xSTD architectures\n✅ Extended, anti-aliasing signal leveraged during reamping\n✅ High-fidelity signal chain used during reamping\n✅ Stompbox / OD profiles included\n\nThis full pack includes includes:\n\n• 110 x AMP profiles (1 x DI and 5 mic-ed up, full-rig flavors for every knob combination used)\n• 38 x PRE profiles\n• 11 x POW profiles (1 x DI and 5 mic-ed up, full-rig flavors for every knob combination used)\n• 50 x OD pedal profiles\n\nTOTAL: over 2,000 individual NAM files (across all 3 NAM architectures)\n\n✅ Efficiency \n\nStreamlined for users across platforms (Dimehead, Valeton GP-5 etc), AMP & POW profiles offer 6 flavors:\n\n• DI = raw poweramp <-> cab signal tapped with a DI box, no Microphone \n• SM57 = full-rig chain, cab mic-ed with a Shure SM57 on the top-left speaker\n• SM58 = full-rig chain, cab mic-ed with a Shure SM58 on the top-right speaker\n• BLEND #1: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58) blended\n• BLEND #2: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58 @ +3dB) blended\n• BLEND #3: full-rig chain, cab mic-ed with 2 mics (Shure SM57 @ +3dB & SM58) blended\n\n⚙️ Reamp chain details\n\n• RME Fireface UCX II -> Lehle P-SPLIT III -> Marshall JCM800 2203 Modified -> St.Rock React:IR II (Mesa 4x12 OS Straight load) -> RME Fireface UCX II\n\n• SEND level: 18.995 dBu\n• RETURN level: 13.195 dBu\n\nUse the new \"Calibration\" feature (video linked) in the NAM plugin to get the most out of these profiles: \n\nhttps://www.neuralampmodeler.com/post/neuralampmodelerplugin-v0-7-12-is-released\n\n🏷️ Naming convention summary\n\n• [AMP] = full head (pre & poweramp)\n• [PRE] = preamp section; use a poweramp + IR or tube amp & cab\n• [POW] = poweramp only; use a preamp (and IR if using DI)\n• [OD] = overdrive pedal\n• LO = low sensitivity input used\n• HI = high sensitivity input used\n• STD (A2) = new go-to NAM A2 standard architecture\n• STD (A1) = old standard quality architecture\n• xSTD = custom architecture (by Андрей Полевой) from NAM FB\n• TSMINI = Tube Screamer Mini\n• MXRM77 = MXR Custom Badass Modified O.D.\n• FORTIN14 = Fortin Fourteen\n• DWHAMER = PedalPCB Dwarven Hammer\n• DFXKoD = DemonFX King of Drive\n• DFXKLON = DemonFX Centaur\n• DFXDBOOST = DemonFX Dual Boost, Exotic EP mode\n• JR.TheJef = J.Rockett Audio Designs The Jeff Archer\n• GRIND = Fortin Grind\n• ODD = Warm Audio ODD\n• BO$$ = Boss GE-7 Equalizer\n\n📒 Spreadsheet with settings & inspiration for all profiles:\n\nhttps://mega.nz/file/mtgzASrR#hRpRWaCq-1RZ7GSQzyXZcpq5ITMFaOUvr3jbr5nvsaw",
+         "toneUrl": "https://www.tone3000.com/tones/marshall-jcm800-2203-modified-el34-community-pack-44209",
+         "format": "nam",
+         "gear": "amp-cab",
+         "license": "t3k",
+         "category": null,
+         "creator": "2dor",
+         "creatorUsername": "2dor",
+         "creatorUrl": "https://www.tone3000.com/2dor",
+         "makes": [
+          "2203",
+          "JCM",
+          "JCM800",
+          "JCM800 2203",
+          "Marshall",
+          "Marshall JCM800",
+          "Marshall JCM800 2203"
+         ],
+         "tags": [
+          "clean to mean",
+          "nam"
+         ],
+         "identity": "factory:tone3000/2dor/Marshall JCM800 2203 Modified (EL34) community pack--t44209/captures/[AMP] JCM800-2203-MODIFIED-HI Bad Boys - SM57--m567072.nam",
+         "source": "Factory"
+        },
+        "assetRef": {
+         "source": "factory",
+         "kind": "nam",
+         "id": "factory:tone3000/2dor/Marshall JCM800 2203 Modified (EL34) community pack--t44209/captures/[AMP] JCM800-2203-MODIFIED-HI Bad Boys - SM57--m567072.nam",
+         "contentHash": "45f6f0f7e26857528869694df800f6aa8d6831ae460e0257728b68aa1e9e61cc"
+        }
+       },
+       "modelVariant": "full",
+       "autoLevel": true,
+       "measuredCalibration": null,
+       "measuredLevels": {},
+       "metadata": {
+        "name": "[AMP] JCM800-2203-MODIFIED-HI Bad Boys - SM57--m567072.nam",
+        "architecture": "SlimmableContainer",
+        "subtype": "A2 Full",
+        "version": "0.7.0",
+        "rawMetadata": {
+         "date": {
+          "year": 2026,
+          "month": 6,
+          "day": 9,
+          "hour": 5,
+          "minute": 52,
+          "second": 39
+         },
+         "loudness": -17.71971176935893,
+         "gain": 0.8032333750850366,
+         "name": "[AMP] JCM800-2203-MODIFIED-HI Bad Boys - SM57",
+         "modeled_by": "2dor",
+         "gear_type": "amp_cab",
+         "gear_make": "Marshall JCM800",
+         "gear_model": "Marshall JCM800",
+         "tone_type": "clean to mean",
+         "trainer": "TONE3000",
+         "input_level_dbu": 18.995,
+         "output_level_dbu": 13.195
+        },
+        "loudness": -17.71971176935893,
+        "expectedSampleRate": 48000,
+        "modeledBy": "2dor",
+        "availableVariants": [
+         "full",
+         "lite"
+        ],
+        "activeVariant": "full",
+        "modelVariant": "full",
+        "autoLevelEnabled": true,
+        "autoLevelCompensationDb": -0.28028823064106945,
+        "levelMode": "metadata",
+        "source": "Factory",
+        "provenance": {
+         "provider": "TONE3000",
+         "importedAt": "2026-09-04T15:50:02.668Z",
+         "toneId": 44209,
+         "modelId": 567072,
+         "title": "Marshall JCM800 2203 Modified (EL34) community pack",
+         "description": "🅰️2️⃣ ready!\n\nIf you like my work & want to support me, consider grabbing the ✨full✨ Marshall JCM800 2203 Modified (EL34) NAM pack over here:\n\n👉 https://ko-fi.com/2dornam/shop 🙏\n\nThe Marshall JCM800 2203 Modified (EL34) NAM pack\n\nℹ️ Summary\n\nThe pack features the 2025-released Marshall JCM800 2203 Modified (EL34) captured using a Mesa 4x12 Oversized Straight cabinet loading down the amplifier.\n\n✅ All profiles calibrated\n✅ Real cab (Mesa 4x12 OS straight) used as load (no reactive load)\n✅ AMP, PRE & POW profiles for maximum flexibility\n✅ DI and MIC-ed up flavors for each AMP and POW profile\n✅ STD (A2), STD (A1) and xSTD architectures\n✅ Extended, anti-aliasing signal leveraged during reamping\n✅ High-fidelity signal chain used during reamping\n✅ Stompbox / OD profiles included\n\nThis full pack includes includes:\n\n• 110 x AMP profiles (1 x DI and 5 mic-ed up, full-rig flavors for every knob combination used)\n• 38 x PRE profiles\n• 11 x POW profiles (1 x DI and 5 mic-ed up, full-rig flavors for every knob combination used)\n• 50 x OD pedal profiles\n\nTOTAL: over 2,000 individual NAM files (across all 3 NAM architectures)\n\n✅ Efficiency \n\nStreamlined for users across platforms (Dimehead, Valeton GP-5 etc), AMP & POW profiles offer 6 flavors:\n\n• DI = raw poweramp <-> cab signal tapped with a DI box, no Microphone \n• SM57 = full-rig chain, cab mic-ed with a Shure SM57 on the top-left speaker\n• SM58 = full-rig chain, cab mic-ed with a Shure SM58 on the top-right speaker\n• BLEND #1: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58) blended\n• BLEND #2: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58 @ +3dB) blended\n• BLEND #3: full-rig chain, cab mic-ed with 2 mics (Shure SM57 @ +3dB & SM58) blended\n\n⚙️ Reamp chain details\n\n• RME Fireface UCX II -> Lehle P-SPLIT III -> Marshall JCM800 2203 Modified -> St.Rock React:IR II (Mesa 4x12 OS Straight load) -> RME Fireface UCX II\n\n• SEND level: 18.995 dBu\n• RETURN level: 13.195 dBu\n\nUse the new \"Calibration\" feature (video linked) in the NAM plugin to get the most out of these profiles: \n\nhttps://www.neuralampmodeler.com/post/neuralampmodelerplugin-v0-7-12-is-released\n\n🏷️ Naming convention summary\n\n• [AMP] = full head (pre & poweramp)\n• [PRE] = preamp section; use a poweramp + IR or tube amp & cab\n• [POW] = poweramp only; use a preamp (and IR if using DI)\n• [OD] = overdrive pedal\n• LO = low sensitivity input used\n• HI = high sensitivity input used\n• STD (A2) = new go-to NAM A2 standard architecture\n• STD (A1) = old standard quality architecture\n• xSTD = custom architecture (by Андрей Полевой) from NAM FB\n• TSMINI = Tube Screamer Mini\n• MXRM77 = MXR Custom Badass Modified O.D.\n• FORTIN14 = Fortin Fourteen\n• DWHAMER = PedalPCB Dwarven Hammer\n• DFXKoD = DemonFX King of Drive\n• DFXKLON = DemonFX Centaur\n• DFXDBOOST = DemonFX Dual Boost, Exotic EP mode\n• JR.TheJef = J.Rockett Audio Designs The Jeff Archer\n• GRIND = Fortin Grind\n• ODD = Warm Audio ODD\n• BO$$ = Boss GE-7 Equalizer\n\n📒 Spreadsheet with settings & inspiration for all profiles:\n\nhttps://mega.nz/file/mtgzASrR#hRpRWaCq-1RZ7GSQzyXZcpq5ITMFaOUvr3jbr5nvsaw",
+         "toneUrl": "https://www.tone3000.com/tones/marshall-jcm800-2203-modified-el34-community-pack-44209",
+         "format": "nam",
+         "gear": "amp-cab",
+         "license": "t3k",
+         "category": null,
+         "creator": "2dor",
+         "creatorUsername": "2dor",
+         "creatorUrl": "https://www.tone3000.com/2dor",
+         "makes": [
+          "2203",
+          "JCM",
+          "JCM800",
+          "JCM800 2203",
+          "Marshall",
+          "Marshall JCM800",
+          "Marshall JCM800 2203"
+         ],
+         "tags": [
+          "clean to mean",
+          "nam"
+         ],
+         "identity": "factory:tone3000/2dor/Marshall JCM800 2203 Modified (EL34) community pack--t44209/captures/[AMP] JCM800-2203-MODIFIED-HI Bad Boys - SM57--m567072.nam",
+         "source": "Factory"
+        }
+       },
+       "stateVersion": 5
+      }
+     },
+     {
+      "id": "cabinet",
+      "kind": "cabinet",
+      "bypass": true,
+      "inputDb": 0,
+      "outputDb": 0,
+      "state": {
+       "parameterValues": {
+        "levelMatch": {
+         "id": "levelMatch",
+         "value": 1,
+         "normalized": false
+        },
+        "irTrim": {
+         "id": "irTrim",
+         "value": 0,
+         "normalized": false
+        },
+        "outputGain": {
+         "id": "outputGain",
+         "value": 0,
+         "normalized": false
+        },
+        "bypass": {
+         "id": "bypass",
+         "value": 1,
+         "normalized": false
+        }
+       },
+       "ir": {
+        "id": "factory:tone3000/outmodedelectronics/Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57--t45023/captures/V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+        "name": "V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+        "analysis": {
+         "energy": 5.999299236550684,
+         "l2Norm": 2.4493466958662027,
+         "rawCompensationDb": -7.781005244714877,
+         "compensationDb": -7.781005244714877,
+         "compensation": 0.4082721330090649,
+         "valid": true,
+         "clamped": false
+        },
+        "metadata": {
+         "provider": "TONE3000",
+         "importedAt": "2026-09-16T07:36:16.084Z",
+         "toneId": 45023,
+         "modelId": 239290,
+         "title": "Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57",
+         "description": "I made impulse responses of my Mesa Boogie 4FB Traditional Straight 4x12 cabinet loaded with Celestion Vintage 30 speakers. I used a Shure SM57 on all four speakers and have uploaded on-axis IRs in 0.25inch (~0.6cm) increments from 0.00” to 2.00” from the cap. Off-axis IRs were captured in 0.5” increments.\n\n5/6/26 - I deleted the 2.25in and 2.50in positions since they are most likely too dark for most users playing rock and metal. See Linked Tones for SM57 IRs backed off the cab to reduce congestion in darker positions.\n\nRecommended starting points vary depending on amp:\nMesa Rectifier Modern Mode - 0.50” from cap\nPeavey 5150/6505 Lead - 0.75” from cap\n\nThe Upper Left and Lower Left speakers are not as thick sounding.\n\nI will be using this cab as a load to train my high gain amps for both Full Rigs and DI captures with the ideal cab load. I also intend to provide a Part 2 to this set, but with non-SM57 microphones.\n\nThe cabinet has a production date of 2002 with 8 ohm Vintage 30s from 2001. The cabinet is comparable in dimensions vs other 4x12 cabinets. It is not as tall as the Mesa Standard Oversized 4x12, which is well represented on TONE3000. These V30 IRs in general are warmer sounding compared to my IRs of my 16 Ohm V30 in various cabs.\n\nMore about the cab here:\nhttps://outmodedelectronics.blogspot.com/2025/11/mesa-boogie-rectifier-standard-4x12.html?m=1\n\nI shot each microphone position through Chameleon Labs 7603 (Neve 1073-inspired), Stam SA-73 (Neve-inspired), and CAPI VP28 (API-based) microphone preamps for some variety.\n\n24Bit 48kHz - 500ms - MPT Format\n\nNaming Convention\nV30 <speaker position> 4FB 4x12 SM57 <Distance from Center> <Distance Off Grill> <Off Axis Angle, if applicable> <Microphone Preamp>\n\nSpeaker Positions are LL – lower left, LR – lower right, UL – upper left, UR – upper right\n\nEquipment Used:\n-Shure SM57\n-Behringer A800 Power Amp\n-Chameleon Labs 7603 Microphone Preamp\n-Stam SA-73 Microphone Preamp\n-CAPI VP28 Microphone Preamp\n-Steinberg UR824 Audio Interface\n-Voxengo Deconvolver\n\n10sec sine sweeps were used to excite speaker",
+         "toneUrl": "https://www.tone3000.com/tones/celestion-vintage-30-2002-mesa-boogie-4x12-sm57-45023",
+         "format": "ir",
+         "gear": "cab",
+         "license": "t3k",
+         "category": null,
+         "creator": "OutmodedElectronics",
+         "creatorUsername": "outmodedelectronics",
+         "creatorUrl": "https://www.tone3000.com/outmodedelectronics",
+         "makes": [
+          "Celestion",
+          "Celestion Vintage 30",
+          "Mesa Boogie Traditional 4x12",
+          "Shure SM57"
+         ],
+         "tags": [
+          "celestion v30",
+          "impulse response",
+          "ir",
+          "mesa boogie",
+          "rock",
+          "thick mids"
+         ],
+         "identity": "factory:tone3000/outmodedelectronics/Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57--t45023/captures/V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+         "source": "Factory"
+        },
+        "assetRef": {
+         "source": "factory",
+         "kind": "ir",
+         "id": "factory:tone3000/outmodedelectronics/Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57--t45023/captures/V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+         "contentHash": "06b853f53c2436eb8a0cf9deb6a129e0f8f3a31c48f45a1376efb70d85c4e55a"
+        }
+       },
+       "trimByIr": {},
+       "routingMode": "auto",
+       "stateVersion": 2
+      }
+     },
+     {
+      "id": "46e85b4d-b909-4c98-90ff-3f56fbc331ac",
+      "kind": "effect",
+      "pluginUri": "./DualPitchShifter/index.js",
+      "bypass": false,
+      "inputDb": 0,
+      "outputDb": 0,
+      "state": {
+       "/DualPitchShifter/Mix": 1,
+       "/DualPitchShifter/ShiftL": 12,
+       "/DualPitchShifter/WindowSize": 150,
+       "/DualPitchShifter/bypass": 0,
+       "/DualPitchShifter/ShiftR": 12
+      }
+     },
+     {
+      "id": "c0eaa268-7280-4704-b641-c0dfedec8f78",
+      "kind": "effect",
+      "pluginUri": "./DualPitchShifter/index.js",
+      "bypass": false,
+      "inputDb": 0,
+      "outputDb": 0,
+      "state": {
+       "/DualPitchShifter/Mix": 1,
+       "/DualPitchShifter/ShiftL": 12,
+       "/DualPitchShifter/WindowSize": 150,
+       "/DualPitchShifter/bypass": 0,
+       "/DualPitchShifter/ShiftR": 12
+      }
+     }
+    ]
+   },
+   "b": null,
+   "visible": false,
+   "route": null,
+   "inputDbB": 0,
+   "outputDbA": 0,
+   "outputDbB": 0,
+   "mutedA": false,
+   "enabledB": false
+  }
+ },
+ {
+  "format": "nam-a2-preset",
+  "version": 1,
+  "id": "factory:my-own-summer",
+  "name": "My Own Summer",
+  "description": "Inspired by Stephen Carpenter on \"My Own Summer (Shove It)\": a thick, saturated wall of guitar through a Marshall 4x12, deep lows with the mids kept. Drop C# tuning, palm-muted and played hard.",
+  "tags": [
+   "deftones",
+   "riff",
+   "nu metal",
+   "drop c#"
+  ],
+  "createdAt": "2026-10-10T00:00:00.000Z",
+  "updatedAt": "2026-10-10T00:00:00.000Z",
+  "summary": {
+   "chains": 1,
+   "amp": "Bogner Uberschall Rev Blue (E34L)",
+   "cabinet": "Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57",
+   "effects": [],
+   "chainA": [
+    {
+     "kind": "nam",
+     "name": "Bogner Uberschall Rev Blue (E34L)",
+     "bypass": false
+    },
+    {
+     "kind": "cabinet",
+     "name": "Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57",
+     "bypass": true
+    }
+   ],
+   "chainB": []
+  },
+  "rack": {
+   "version": 2,
+   "panA": 0,
+   "panB": 0,
+   "a": {
+    "version": 1,
+    "entries": [
+     {
+      "id": "nam",
+      "kind": "nam",
+      "bypass": false,
+      "inputDb": 0,
+      "outputDb": 0,
+      "state": {
+       "parameterValues": {
+        "inputGain": {
+         "id": "inputGain",
+         "value": -4,
+         "normalized": false
+        },
+        "outputGain": {
+         "id": "outputGain",
+         "value": -5,
+         "normalized": false
+        },
+        "noise": {
+         "id": "noise",
+         "value": -60,
+         "normalized": false
+        },
+        "noiseEnabled": {
+         "id": "noiseEnabled",
+         "value": 1,
+         "normalized": false
+        },
+        "bass": {
+         "id": "bass",
+         "value": 5,
+         "normalized": false
+        },
+        "middle": {
+         "id": "middle",
+         "value": 5.5,
+         "normalized": false
+        },
+        "treble": {
+         "id": "treble",
+         "value": 5,
+         "normalized": false
+        },
+        "toneEnabled": {
+         "id": "toneEnabled",
+         "value": 1,
+         "normalized": false
+        },
+        "eqEnabled": {
+         "id": "eqEnabled",
+         "value": 1,
+         "normalized": false
+        },
+        "eqPre": {
+         "id": "eqPre",
+         "value": 0,
+         "normalized": false
+        },
+        "eq1Freq": {
+         "id": "eq1Freq",
+         "value": 100,
+         "normalized": false
+        },
+        "eq1Gain": {
+         "id": "eq1Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq1Q": {
+         "id": "eq1Q",
+         "value": 0.71,
+         "normalized": false
+        },
+        "eq2Freq": {
+         "id": "eq2Freq",
+         "value": 250,
+         "normalized": false
+        },
+        "eq2Gain": {
+         "id": "eq2Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq2Q": {
+         "id": "eq2Q",
+         "value": 1,
+         "normalized": false
+        },
+        "eq3Freq": {
+         "id": "eq3Freq",
+         "value": 650,
+         "normalized": false
+        },
+        "eq3Gain": {
+         "id": "eq3Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq3Q": {
+         "id": "eq3Q",
+         "value": 1,
+         "normalized": false
+        },
+        "eq4Freq": {
+         "id": "eq4Freq",
+         "value": 1600,
+         "normalized": false
+        },
+        "eq4Gain": {
+         "id": "eq4Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq4Q": {
+         "id": "eq4Q",
+         "value": 1,
+         "normalized": false
+        },
+        "eq5Freq": {
+         "id": "eq5Freq",
+         "value": 3500,
+         "normalized": false
+        },
+        "eq5Gain": {
+         "id": "eq5Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq5Q": {
+         "id": "eq5Q",
+         "value": 1.4,
+         "normalized": false
+        },
+        "eq6Freq": {
+         "id": "eq6Freq",
+         "value": 8000,
+         "normalized": false
+        },
+        "eq6Gain": {
+         "id": "eq6Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq6Q": {
+         "id": "eq6Q",
+         "value": 0.71,
+         "normalized": false
+        },
+        "bypass": {
+         "id": "bypass",
+         "value": 0,
+         "normalized": false
+        }
+       },
+       "model": {
+        "name": "[AMP] UBER--m694955.nam",
+        "contentHash": "726e321daf77c25ff3ccd601b25264127da118fdc88a589c55e4247c5c0986bb",
+        "provenance": {
+         "provider": "TONE3000",
+         "importedAt": "2026-09-04T16:00:31.065Z",
+         "toneId": 80705,
+         "modelId": 694955,
+         "title": "Bogner Uberschall Rev Blue (E34L)",
+         "description": "🅰️2️⃣ ready!\n\nIf you like my work & want to support it, you can do so here: \n\nhttps://ko-fi.com/2dornam/shop 🙏\n\nThis one's the pack that did not get to be 😞\n\nDue to an unforseen failure event, I had to stop work on the pack.\n\nIn light of this, I'm sharing a handful of high-quality, calibrated profiles of what should have been the Bogner Uberschall \"MultiLoad\" pack. \n\nℹ️ Summary\n\nThe pack features a Bogner Uberschall Rev Blue E34L-loaded head captured using a Mesa 4x12 Oversized Straight & a Marshall 4x12 1960BV cabinet loading down the amplifier. \n\n✅ All profiles calibrated\n✅ 2 iconic guitar cabs used as loads (no reactive load):\n🟣 Mesa 4x12 OS Straight\n🟣 Marshall 4x12 1960BV with Marshall G12 Vintage speakers\n✅ AMP (DI and MIC-ed up flavors; check the \"Linked\" pack)\n✅ NAM A2 ready\n✅ Extended, anti-aliasing signal leveraged during reamping\n✅ High-fidelity signal chain used during reamping\n✅ Stompbox / OD profiles included\n\n✅ Efficiency\n\nStreamlined for users across platforms, each amp's knob positions / permutations offers 6 flavors:\n\n• DI = raw poweramp <-> cab signal tapped with a DI box, no Microphone\n• SM57 = full-rig chain, cab mic-ed with a Shure SM57 on the top-left speaker\n• SM58 = full-rig chain, cab mic-ed with a Shure SM58 on the top-right speaker\n• BLEND #1: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58) blended\n• BLEND #2: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58 @ +4dB) blended\n• BLEND #3: full-rig chain, cab mic-ed with 2 mics (Shure SM57 @ +4dB & SM58) blended\n\n⚙️ Reamp chain details\n\n• RME Fireface UCX II -> Lehle P-SPLIT III -> Bogner Uberschall Rev Blue -> St.Rock React:IR II (Mesa 4x12 OS Straight / Marshall 4x12 1960BV) -> RME Fireface UCX II\n\n• SEND level: 18.995 dBu\n\nUse the \"Calibration\" feature (video linked) in the NAM plugin to get the most out of these profiles:\n\nwww.neuralampmodeler.com/post/neuralampmodelerplugin-v0-7-12-is-released\n\n🏷️ Naming convention summary\n\n• [AMP] = full head (pre & poweramp)\n• CLEAN = clean channel\n• LEAD = lead channel\n• Mar412 = Marshall 4x12 1960BV cabinet used as load\n• Mes412 = Mesa 4x12 Oversized Straight cabinet used as load\n\n📒 Spreadsheet with settings & inspiration for all profiles:\n\nhttps://mega.nz/file/ioQHHZSY#CLYjRyIaIbN-KDRE5ZfeIcuSWEjCZE4Rje6yUIGzLCA",
+         "toneUrl": "https://www.tone3000.com/tones/bogner-uberschall-rev-blue-e34l-80705",
+         "format": "nam",
+         "gear": "amp-cab",
+         "license": "t3k",
+         "category": null,
+         "creator": "2dor",
+         "creatorUsername": "2dor",
+         "creatorUrl": "https://www.tone3000.com/2dor",
+         "makes": [
+          "Bogner",
+          "Bogner Uberschall",
+          "Bogner Uberschall Rev Blue",
+          "Uberschall"
+         ],
+         "tags": [
+          "clean to extreme",
+          "nam"
+         ],
+         "identity": "factory:tone3000/2dor/Bogner Uberschall Rev Blue (E34L)--t80705/captures/[AMP] UBER--m694955.nam",
+         "source": "Factory"
+        },
+        "assetRef": {
+         "source": "factory",
+         "kind": "nam",
+         "id": "factory:tone3000/2dor/Bogner Uberschall Rev Blue (E34L)--t80705/captures/[AMP] UBER--m694955.nam",
+         "contentHash": "726e321daf77c25ff3ccd601b25264127da118fdc88a589c55e4247c5c0986bb"
+        }
+       },
+       "modelVariant": "full",
+       "autoLevel": true,
+       "measuredCalibration": null,
+       "measuredLevels": {},
+       "metadata": {
+        "name": "[AMP] UBER--m694955.nam",
+        "architecture": "SlimmableContainer",
+        "subtype": "A2 Full",
+        "version": "0.7.0",
+        "rawMetadata": {
+         "date": {
+          "year": 2026,
+          "month": 8,
+          "day": 7,
+          "hour": 17,
+          "minute": 17,
+          "second": 39
+         },
+         "loudness": -20.335953700373743,
+         "gain": 0.8469583698577888,
+         "name": "[AMP] UBER.BLUE-Mar412-LEAD Anthem - SM57",
+         "modeled_by": "2dor",
+         "gear_type": "amp_cab",
+         "gear_make": "T3K-Null",
+         "gear_model": "T3K-Null",
+         "tone_type": "T3K-Null",
+         "trainer": "TONE3000",
+         "input_level_dbu": 18.995,
+         "output_level_dbu": 13.195
+        },
+        "loudness": -20.335953700373743,
+        "expectedSampleRate": 48000,
+        "modeledBy": "2dor",
+        "availableVariants": [
+         "full",
+         "lite"
+        ],
+        "activeVariant": "full",
+        "modelVariant": "full",
+        "autoLevelEnabled": true,
+        "autoLevelCompensationDb": 2.335953700373743,
+        "levelMode": "metadata",
+        "source": "Factory",
+        "provenance": {
+         "provider": "TONE3000",
+         "importedAt": "2026-09-04T16:00:31.065Z",
+         "toneId": 80705,
+         "modelId": 694955,
+         "title": "Bogner Uberschall Rev Blue (E34L)",
+         "description": "🅰️2️⃣ ready!\n\nIf you like my work & want to support it, you can do so here: \n\nhttps://ko-fi.com/2dornam/shop 🙏\n\nThis one's the pack that did not get to be 😞\n\nDue to an unforseen failure event, I had to stop work on the pack.\n\nIn light of this, I'm sharing a handful of high-quality, calibrated profiles of what should have been the Bogner Uberschall \"MultiLoad\" pack. \n\nℹ️ Summary\n\nThe pack features a Bogner Uberschall Rev Blue E34L-loaded head captured using a Mesa 4x12 Oversized Straight & a Marshall 4x12 1960BV cabinet loading down the amplifier. \n\n✅ All profiles calibrated\n✅ 2 iconic guitar cabs used as loads (no reactive load):\n🟣 Mesa 4x12 OS Straight\n🟣 Marshall 4x12 1960BV with Marshall G12 Vintage speakers\n✅ AMP (DI and MIC-ed up flavors; check the \"Linked\" pack)\n✅ NAM A2 ready\n✅ Extended, anti-aliasing signal leveraged during reamping\n✅ High-fidelity signal chain used during reamping\n✅ Stompbox / OD profiles included\n\n✅ Efficiency\n\nStreamlined for users across platforms, each amp's knob positions / permutations offers 6 flavors:\n\n• DI = raw poweramp <-> cab signal tapped with a DI box, no Microphone\n• SM57 = full-rig chain, cab mic-ed with a Shure SM57 on the top-left speaker\n• SM58 = full-rig chain, cab mic-ed with a Shure SM58 on the top-right speaker\n• BLEND #1: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58) blended\n• BLEND #2: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58 @ +4dB) blended\n• BLEND #3: full-rig chain, cab mic-ed with 2 mics (Shure SM57 @ +4dB & SM58) blended\n\n⚙️ Reamp chain details\n\n• RME Fireface UCX II -> Lehle P-SPLIT III -> Bogner Uberschall Rev Blue -> St.Rock React:IR II (Mesa 4x12 OS Straight / Marshall 4x12 1960BV) -> RME Fireface UCX II\n\n• SEND level: 18.995 dBu\n\nUse the \"Calibration\" feature (video linked) in the NAM plugin to get the most out of these profiles:\n\nwww.neuralampmodeler.com/post/neuralampmodelerplugin-v0-7-12-is-released\n\n🏷️ Naming convention summary\n\n• [AMP] = full head (pre & poweramp)\n• CLEAN = clean channel\n• LEAD = lead channel\n• Mar412 = Marshall 4x12 1960BV cabinet used as load\n• Mes412 = Mesa 4x12 Oversized Straight cabinet used as load\n\n📒 Spreadsheet with settings & inspiration for all profiles:\n\nhttps://mega.nz/file/ioQHHZSY#CLYjRyIaIbN-KDRE5ZfeIcuSWEjCZE4Rje6yUIGzLCA",
+         "toneUrl": "https://www.tone3000.com/tones/bogner-uberschall-rev-blue-e34l-80705",
+         "format": "nam",
+         "gear": "amp-cab",
+         "license": "t3k",
+         "category": null,
+         "creator": "2dor",
+         "creatorUsername": "2dor",
+         "creatorUrl": "https://www.tone3000.com/2dor",
+         "makes": [
+          "Bogner",
+          "Bogner Uberschall",
+          "Bogner Uberschall Rev Blue",
+          "Uberschall"
+         ],
+         "tags": [
+          "clean to extreme",
+          "nam"
+         ],
+         "identity": "factory:tone3000/2dor/Bogner Uberschall Rev Blue (E34L)--t80705/captures/[AMP] UBER--m694955.nam",
+         "source": "Factory"
+        }
+       },
+       "stateVersion": 5
+      }
+     },
+     {
+      "id": "cabinet",
+      "kind": "cabinet",
+      "bypass": true,
+      "inputDb": 0,
+      "outputDb": 0,
+      "state": {
+       "parameterValues": {
+        "levelMatch": {
+         "id": "levelMatch",
+         "value": 1,
+         "normalized": false
+        },
+        "irTrim": {
+         "id": "irTrim",
+         "value": 0,
+         "normalized": false
+        },
+        "outputGain": {
+         "id": "outputGain",
+         "value": 0,
+         "normalized": false
+        },
+        "bypass": {
+         "id": "bypass",
+         "value": 1,
+         "normalized": false
+        }
+       },
+       "ir": {
+        "id": "factory:tone3000/outmodedelectronics/Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57--t45023/captures/V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+        "name": "V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+        "analysis": {
+         "energy": 5.999299236550684,
+         "l2Norm": 2.4493466958662027,
+         "rawCompensationDb": -7.781005244714877,
+         "compensationDb": -7.781005244714877,
+         "compensation": 0.4082721330090649,
+         "valid": true,
+         "clamped": false
+        },
+        "metadata": {
+         "provider": "TONE3000",
+         "importedAt": "2026-09-16T07:36:16.084Z",
+         "toneId": 45023,
+         "modelId": 239290,
+         "title": "Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57",
+         "description": "I made impulse responses of my Mesa Boogie 4FB Traditional Straight 4x12 cabinet loaded with Celestion Vintage 30 speakers. I used a Shure SM57 on all four speakers and have uploaded on-axis IRs in 0.25inch (~0.6cm) increments from 0.00” to 2.00” from the cap. Off-axis IRs were captured in 0.5” increments.\n\n5/6/26 - I deleted the 2.25in and 2.50in positions since they are most likely too dark for most users playing rock and metal. See Linked Tones for SM57 IRs backed off the cab to reduce congestion in darker positions.\n\nRecommended starting points vary depending on amp:\nMesa Rectifier Modern Mode - 0.50” from cap\nPeavey 5150/6505 Lead - 0.75” from cap\n\nThe Upper Left and Lower Left speakers are not as thick sounding.\n\nI will be using this cab as a load to train my high gain amps for both Full Rigs and DI captures with the ideal cab load. I also intend to provide a Part 2 to this set, but with non-SM57 microphones.\n\nThe cabinet has a production date of 2002 with 8 ohm Vintage 30s from 2001. The cabinet is comparable in dimensions vs other 4x12 cabinets. It is not as tall as the Mesa Standard Oversized 4x12, which is well represented on TONE3000. These V30 IRs in general are warmer sounding compared to my IRs of my 16 Ohm V30 in various cabs.\n\nMore about the cab here:\nhttps://outmodedelectronics.blogspot.com/2025/11/mesa-boogie-rectifier-standard-4x12.html?m=1\n\nI shot each microphone position through Chameleon Labs 7603 (Neve 1073-inspired), Stam SA-73 (Neve-inspired), and CAPI VP28 (API-based) microphone preamps for some variety.\n\n24Bit 48kHz - 500ms - MPT Format\n\nNaming Convention\nV30 <speaker position> 4FB 4x12 SM57 <Distance from Center> <Distance Off Grill> <Off Axis Angle, if applicable> <Microphone Preamp>\n\nSpeaker Positions are LL – lower left, LR – lower right, UL – upper left, UR – upper right\n\nEquipment Used:\n-Shure SM57\n-Behringer A800 Power Amp\n-Chameleon Labs 7603 Microphone Preamp\n-Stam SA-73 Microphone Preamp\n-CAPI VP28 Microphone Preamp\n-Steinberg UR824 Audio Interface\n-Voxengo Deconvolver\n\n10sec sine sweeps were used to excite speaker",
+         "toneUrl": "https://www.tone3000.com/tones/celestion-vintage-30-2002-mesa-boogie-4x12-sm57-45023",
+         "format": "ir",
+         "gear": "cab",
+         "license": "t3k",
+         "category": null,
+         "creator": "OutmodedElectronics",
+         "creatorUsername": "outmodedelectronics",
+         "creatorUrl": "https://www.tone3000.com/outmodedelectronics",
+         "makes": [
+          "Celestion",
+          "Celestion Vintage 30",
+          "Mesa Boogie Traditional 4x12",
+          "Shure SM57"
+         ],
+         "tags": [
+          "celestion v30",
+          "impulse response",
+          "ir",
+          "mesa boogie",
+          "rock",
+          "thick mids"
+         ],
+         "identity": "factory:tone3000/outmodedelectronics/Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57--t45023/captures/V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+         "source": "Factory"
+        },
+        "assetRef": {
+         "source": "factory",
+         "kind": "ir",
+         "id": "factory:tone3000/outmodedelectronics/Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57--t45023/captures/V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+         "contentHash": "06b853f53c2436eb8a0cf9deb6a129e0f8f3a31c48f45a1376efb70d85c4e55a"
+        }
+       },
+       "trimByIr": {},
+       "routingMode": "auto",
+       "stateVersion": 2
+      }
+     }
+    ]
+   },
+   "b": null,
+   "visible": false,
+   "route": null,
+   "inputDbB": 0,
+   "outputDbA": 0,
+   "outputDbB": 0,
+   "mutedA": false,
+   "enabledB": false
+  }
+ },
+ {
+  "format": "nam-a2-preset",
+  "version": 1,
+  "id": "factory:monster",
+  "name": "Monster",
+  "description": "Inspired by Skillet on \"Monster\": modern, tight high gain, a Tube Screamer pushing a high-gain head into a Mesa 4x12, noise gate on. Drop C tuning, tight palm mutes.",
+  "tags": [
+   "skillet",
+   "riff",
+   "high gain",
+   "drop c"
+  ],
+  "createdAt": "2026-10-10T00:00:00.000Z",
+  "updatedAt": "2026-10-10T00:00:00.000Z",
+  "summary": {
+   "chains": 1,
+   "amp": "Bogner Uberschall Rev Blue (E34L)",
+   "cabinet": "Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57",
+   "effects": [
+    "TS9 Overdrive"
+   ],
+   "chainA": [
+    {
+     "kind": "effect",
+     "name": "TS9 Overdrive",
+     "bypass": false
+    },
+    {
+     "kind": "nam",
+     "name": "Bogner Uberschall Rev Blue (E34L)",
+     "bypass": false
+    },
+    {
+     "kind": "cabinet",
+     "name": "Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57",
+     "bypass": true
+    }
+   ],
+   "chainB": []
+  },
+  "rack": {
+   "version": 2,
+   "panA": 0,
+   "panB": 0,
+   "a": {
+    "version": 1,
+    "entries": [
+     {
+      "id": "c94f6257-7dfd-4e82-8b7f-07048bce8cb3",
+      "kind": "effect",
+      "pluginUri": "./TS9_OverdriveFaustGenerated/index.js",
+      "bypass": false,
+      "inputDb": 0,
+      "outputDb": 0,
+      "state": {
+       "/TS9_OverdriveFaustGenerated/bypass": 0,
+       "/TS9_OverdriveFaustGenerated/TubeScreamer/drive": 0,
+       "/TS9_OverdriveFaustGenerated/TubeScreamer/tone": 500,
+       "/TS9_OverdriveFaustGenerated/TubeScreamer/level": 0
+      }
+     },
+     {
+      "id": "nam",
+      "kind": "nam",
+      "bypass": false,
+      "inputDb": 0,
+      "outputDb": 0,
+      "state": {
+       "parameterValues": {
+        "inputGain": {
+         "id": "inputGain",
+         "value": 0,
+         "normalized": false
+        },
+        "outputGain": {
+         "id": "outputGain",
+         "value": -2,
+         "normalized": false
+        },
+        "noise": {
+         "id": "noise",
+         "value": -55,
+         "normalized": false
+        },
+        "noiseEnabled": {
+         "id": "noiseEnabled",
+         "value": 1,
+         "normalized": false
+        },
+        "bass": {
+         "id": "bass",
+         "value": 5.5,
+         "normalized": false
+        },
+        "middle": {
+         "id": "middle",
+         "value": 5.5,
+         "normalized": false
+        },
+        "treble": {
+         "id": "treble",
+         "value": 4.5,
+         "normalized": false
+        },
+        "toneEnabled": {
+         "id": "toneEnabled",
+         "value": 1,
+         "normalized": false
+        },
+        "eqEnabled": {
+         "id": "eqEnabled",
+         "value": 1,
+         "normalized": false
+        },
+        "eqPre": {
+         "id": "eqPre",
+         "value": 0,
+         "normalized": false
+        },
+        "eq1Freq": {
+         "id": "eq1Freq",
+         "value": 100,
+         "normalized": false
+        },
+        "eq1Gain": {
+         "id": "eq1Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq1Q": {
+         "id": "eq1Q",
+         "value": 0.71,
+         "normalized": false
+        },
+        "eq2Freq": {
+         "id": "eq2Freq",
+         "value": 250,
+         "normalized": false
+        },
+        "eq2Gain": {
+         "id": "eq2Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq2Q": {
+         "id": "eq2Q",
+         "value": 1,
+         "normalized": false
+        },
+        "eq3Freq": {
+         "id": "eq3Freq",
+         "value": 650,
+         "normalized": false
+        },
+        "eq3Gain": {
+         "id": "eq3Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq3Q": {
+         "id": "eq3Q",
+         "value": 1,
+         "normalized": false
+        },
+        "eq4Freq": {
+         "id": "eq4Freq",
+         "value": 1600,
+         "normalized": false
+        },
+        "eq4Gain": {
+         "id": "eq4Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq4Q": {
+         "id": "eq4Q",
+         "value": 1,
+         "normalized": false
+        },
+        "eq5Freq": {
+         "id": "eq5Freq",
+         "value": 3500,
+         "normalized": false
+        },
+        "eq5Gain": {
+         "id": "eq5Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq5Q": {
+         "id": "eq5Q",
+         "value": 1.4,
+         "normalized": false
+        },
+        "eq6Freq": {
+         "id": "eq6Freq",
+         "value": 8000,
+         "normalized": false
+        },
+        "eq6Gain": {
+         "id": "eq6Gain",
+         "value": 0,
+         "normalized": false
+        },
+        "eq6Q": {
+         "id": "eq6Q",
+         "value": 0.71,
+         "normalized": false
+        },
+        "bypass": {
+         "id": "bypass",
+         "value": 0,
+         "normalized": false
+        }
+       },
+       "model": {
+        "name": "[AMP] UBER--m689733.nam",
+        "contentHash": "553e4e8a8fc81f03a8b8f1aad86f106ffc587bef2448e4112820233abfcdcb5e",
+        "provenance": {
+         "provider": "TONE3000",
+         "importedAt": "2026-09-04T16:00:31.065Z",
+         "toneId": 80705,
+         "modelId": 689733,
+         "title": "Bogner Uberschall Rev Blue (E34L)",
+         "description": "🅰️2️⃣ ready!\n\nIf you like my work & want to support it, you can do so here: \n\nhttps://ko-fi.com/2dornam/shop 🙏\n\nThis one's the pack that did not get to be 😞\n\nDue to an unforseen failure event, I had to stop work on the pack.\n\nIn light of this, I'm sharing a handful of high-quality, calibrated profiles of what should have been the Bogner Uberschall \"MultiLoad\" pack. \n\nℹ️ Summary\n\nThe pack features a Bogner Uberschall Rev Blue E34L-loaded head captured using a Mesa 4x12 Oversized Straight & a Marshall 4x12 1960BV cabinet loading down the amplifier. \n\n✅ All profiles calibrated\n✅ 2 iconic guitar cabs used as loads (no reactive load):\n🟣 Mesa 4x12 OS Straight\n🟣 Marshall 4x12 1960BV with Marshall G12 Vintage speakers\n✅ AMP (DI and MIC-ed up flavors; check the \"Linked\" pack)\n✅ NAM A2 ready\n✅ Extended, anti-aliasing signal leveraged during reamping\n✅ High-fidelity signal chain used during reamping\n✅ Stompbox / OD profiles included\n\n✅ Efficiency\n\nStreamlined for users across platforms, each amp's knob positions / permutations offers 6 flavors:\n\n• DI = raw poweramp <-> cab signal tapped with a DI box, no Microphone\n• SM57 = full-rig chain, cab mic-ed with a Shure SM57 on the top-left speaker\n• SM58 = full-rig chain, cab mic-ed with a Shure SM58 on the top-right speaker\n• BLEND #1: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58) blended\n• BLEND #2: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58 @ +4dB) blended\n• BLEND #3: full-rig chain, cab mic-ed with 2 mics (Shure SM57 @ +4dB & SM58) blended\n\n⚙️ Reamp chain details\n\n• RME Fireface UCX II -> Lehle P-SPLIT III -> Bogner Uberschall Rev Blue -> St.Rock React:IR II (Mesa 4x12 OS Straight / Marshall 4x12 1960BV) -> RME Fireface UCX II\n\n• SEND level: 18.995 dBu\n\nUse the \"Calibration\" feature (video linked) in the NAM plugin to get the most out of these profiles:\n\nwww.neuralampmodeler.com/post/neuralampmodelerplugin-v0-7-12-is-released\n\n🏷️ Naming convention summary\n\n• [AMP] = full head (pre & poweramp)\n• CLEAN = clean channel\n• LEAD = lead channel\n• Mar412 = Marshall 4x12 1960BV cabinet used as load\n• Mes412 = Mesa 4x12 Oversized Straight cabinet used as load\n\n📒 Spreadsheet with settings & inspiration for all profiles:\n\nhttps://mega.nz/file/ioQHHZSY#CLYjRyIaIbN-KDRE5ZfeIcuSWEjCZE4Rje6yUIGzLCA",
+         "toneUrl": "https://www.tone3000.com/tones/bogner-uberschall-rev-blue-e34l-80705",
+         "format": "nam",
+         "gear": "amp-cab",
+         "license": "t3k",
+         "category": null,
+         "creator": "2dor",
+         "creatorUsername": "2dor",
+         "creatorUrl": "https://www.tone3000.com/2dor",
+         "makes": [
+          "Bogner",
+          "Bogner Uberschall",
+          "Bogner Uberschall Rev Blue",
+          "Uberschall"
+         ],
+         "tags": [
+          "clean to extreme",
+          "nam"
+         ],
+         "identity": "factory:tone3000/2dor/Bogner Uberschall Rev Blue (E34L)--t80705/captures/[AMP] UBER--m689733.nam",
+         "source": "Factory"
+        },
+        "assetRef": {
+         "source": "factory",
+         "kind": "nam",
+         "id": "factory:tone3000/2dor/Bogner Uberschall Rev Blue (E34L)--t80705/captures/[AMP] UBER--m689733.nam",
+         "contentHash": "553e4e8a8fc81f03a8b8f1aad86f106ffc587bef2448e4112820233abfcdcb5e"
+        }
+       },
+       "modelVariant": "full",
+       "autoLevel": true,
+       "measuredCalibration": null,
+       "measuredLevels": {},
+       "metadata": {
+        "name": "[AMP] UBER--m689733.nam",
+        "architecture": "SlimmableContainer",
+        "subtype": "A2 Full",
+        "version": "0.7.0",
+        "rawMetadata": {
+         "date": {
+          "year": 2026,
+          "month": 8,
+          "day": 3,
+          "hour": 11,
+          "minute": 17,
+          "second": 37
+         },
+         "loudness": -18.598318220987824,
+         "gain": 0.9022208353116863,
+         "name": "[AMP] UBER.BLUE-Mes412-LEAD Striptaser - SM57",
+         "modeled_by": "2dor",
+         "gear_type": "amp_cab",
+         "gear_make": "T3K-Null",
+         "gear_model": "T3K-Null",
+         "tone_type": "T3K-Null",
+         "trainer": "TONE3000",
+         "input_level_dbu": 18.995,
+         "output_level_dbu": 13.195
+        },
+        "loudness": -18.598318220987824,
+        "expectedSampleRate": 48000,
+        "modeledBy": "2dor",
+        "availableVariants": [
+         "full",
+         "lite"
+        ],
+        "activeVariant": "full",
+        "modelVariant": "full",
+        "autoLevelEnabled": true,
+        "autoLevelCompensationDb": 0.5983182209878244,
+        "levelMode": "metadata",
+        "source": "Factory",
+        "provenance": {
+         "provider": "TONE3000",
+         "importedAt": "2026-09-04T16:00:31.065Z",
+         "toneId": 80705,
+         "modelId": 689733,
+         "title": "Bogner Uberschall Rev Blue (E34L)",
+         "description": "🅰️2️⃣ ready!\n\nIf you like my work & want to support it, you can do so here: \n\nhttps://ko-fi.com/2dornam/shop 🙏\n\nThis one's the pack that did not get to be 😞\n\nDue to an unforseen failure event, I had to stop work on the pack.\n\nIn light of this, I'm sharing a handful of high-quality, calibrated profiles of what should have been the Bogner Uberschall \"MultiLoad\" pack. \n\nℹ️ Summary\n\nThe pack features a Bogner Uberschall Rev Blue E34L-loaded head captured using a Mesa 4x12 Oversized Straight & a Marshall 4x12 1960BV cabinet loading down the amplifier. \n\n✅ All profiles calibrated\n✅ 2 iconic guitar cabs used as loads (no reactive load):\n🟣 Mesa 4x12 OS Straight\n🟣 Marshall 4x12 1960BV with Marshall G12 Vintage speakers\n✅ AMP (DI and MIC-ed up flavors; check the \"Linked\" pack)\n✅ NAM A2 ready\n✅ Extended, anti-aliasing signal leveraged during reamping\n✅ High-fidelity signal chain used during reamping\n✅ Stompbox / OD profiles included\n\n✅ Efficiency\n\nStreamlined for users across platforms, each amp's knob positions / permutations offers 6 flavors:\n\n• DI = raw poweramp <-> cab signal tapped with a DI box, no Microphone\n• SM57 = full-rig chain, cab mic-ed with a Shure SM57 on the top-left speaker\n• SM58 = full-rig chain, cab mic-ed with a Shure SM58 on the top-right speaker\n• BLEND #1: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58) blended\n• BLEND #2: full-rig chain, cab mic-ed with 2 mics (Shure SM57 & SM58 @ +4dB) blended\n• BLEND #3: full-rig chain, cab mic-ed with 2 mics (Shure SM57 @ +4dB & SM58) blended\n\n⚙️ Reamp chain details\n\n• RME Fireface UCX II -> Lehle P-SPLIT III -> Bogner Uberschall Rev Blue -> St.Rock React:IR II (Mesa 4x12 OS Straight / Marshall 4x12 1960BV) -> RME Fireface UCX II\n\n• SEND level: 18.995 dBu\n\nUse the \"Calibration\" feature (video linked) in the NAM plugin to get the most out of these profiles:\n\nwww.neuralampmodeler.com/post/neuralampmodelerplugin-v0-7-12-is-released\n\n🏷️ Naming convention summary\n\n• [AMP] = full head (pre & poweramp)\n• CLEAN = clean channel\n• LEAD = lead channel\n• Mar412 = Marshall 4x12 1960BV cabinet used as load\n• Mes412 = Mesa 4x12 Oversized Straight cabinet used as load\n\n📒 Spreadsheet with settings & inspiration for all profiles:\n\nhttps://mega.nz/file/ioQHHZSY#CLYjRyIaIbN-KDRE5ZfeIcuSWEjCZE4Rje6yUIGzLCA",
+         "toneUrl": "https://www.tone3000.com/tones/bogner-uberschall-rev-blue-e34l-80705",
+         "format": "nam",
+         "gear": "amp-cab",
+         "license": "t3k",
+         "category": null,
+         "creator": "2dor",
+         "creatorUsername": "2dor",
+         "creatorUrl": "https://www.tone3000.com/2dor",
+         "makes": [
+          "Bogner",
+          "Bogner Uberschall",
+          "Bogner Uberschall Rev Blue",
+          "Uberschall"
+         ],
+         "tags": [
+          "clean to extreme",
+          "nam"
+         ],
+         "identity": "factory:tone3000/2dor/Bogner Uberschall Rev Blue (E34L)--t80705/captures/[AMP] UBER--m689733.nam",
+         "source": "Factory"
+        }
+       },
+       "stateVersion": 5
+      }
+     },
+     {
+      "id": "cabinet",
+      "kind": "cabinet",
+      "bypass": true,
+      "inputDb": 0,
+      "outputDb": 0,
+      "state": {
+       "parameterValues": {
+        "levelMatch": {
+         "id": "levelMatch",
+         "value": 1,
+         "normalized": false
+        },
+        "irTrim": {
+         "id": "irTrim",
+         "value": 0,
+         "normalized": false
+        },
+        "outputGain": {
+         "id": "outputGain",
+         "value": 0,
+         "normalized": false
+        },
+        "bypass": {
+         "id": "bypass",
+         "value": 1,
+         "normalized": false
+        }
+       },
+       "ir": {
+        "id": "factory:tone3000/outmodedelectronics/Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57--t45023/captures/V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+        "name": "V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+        "analysis": {
+         "energy": 5.999299236550684,
+         "l2Norm": 2.4493466958662027,
+         "rawCompensationDb": -7.781005244714877,
+         "compensationDb": -7.781005244714877,
+         "compensation": 0.4082721330090649,
+         "valid": true,
+         "clamped": false
+        },
+        "metadata": {
+         "provider": "TONE3000",
+         "importedAt": "2026-09-16T07:36:16.084Z",
+         "toneId": 45023,
+         "modelId": 239290,
+         "title": "Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57",
+         "description": "I made impulse responses of my Mesa Boogie 4FB Traditional Straight 4x12 cabinet loaded with Celestion Vintage 30 speakers. I used a Shure SM57 on all four speakers and have uploaded on-axis IRs in 0.25inch (~0.6cm) increments from 0.00” to 2.00” from the cap. Off-axis IRs were captured in 0.5” increments.\n\n5/6/26 - I deleted the 2.25in and 2.50in positions since they are most likely too dark for most users playing rock and metal. See Linked Tones for SM57 IRs backed off the cab to reduce congestion in darker positions.\n\nRecommended starting points vary depending on amp:\nMesa Rectifier Modern Mode - 0.50” from cap\nPeavey 5150/6505 Lead - 0.75” from cap\n\nThe Upper Left and Lower Left speakers are not as thick sounding.\n\nI will be using this cab as a load to train my high gain amps for both Full Rigs and DI captures with the ideal cab load. I also intend to provide a Part 2 to this set, but with non-SM57 microphones.\n\nThe cabinet has a production date of 2002 with 8 ohm Vintage 30s from 2001. The cabinet is comparable in dimensions vs other 4x12 cabinets. It is not as tall as the Mesa Standard Oversized 4x12, which is well represented on TONE3000. These V30 IRs in general are warmer sounding compared to my IRs of my 16 Ohm V30 in various cabs.\n\nMore about the cab here:\nhttps://outmodedelectronics.blogspot.com/2025/11/mesa-boogie-rectifier-standard-4x12.html?m=1\n\nI shot each microphone position through Chameleon Labs 7603 (Neve 1073-inspired), Stam SA-73 (Neve-inspired), and CAPI VP28 (API-based) microphone preamps for some variety.\n\n24Bit 48kHz - 500ms - MPT Format\n\nNaming Convention\nV30 <speaker position> 4FB 4x12 SM57 <Distance from Center> <Distance Off Grill> <Off Axis Angle, if applicable> <Microphone Preamp>\n\nSpeaker Positions are LL – lower left, LR – lower right, UL – upper left, UR – upper right\n\nEquipment Used:\n-Shure SM57\n-Behringer A800 Power Amp\n-Chameleon Labs 7603 Microphone Preamp\n-Stam SA-73 Microphone Preamp\n-CAPI VP28 Microphone Preamp\n-Steinberg UR824 Audio Interface\n-Voxengo Deconvolver\n\n10sec sine sweeps were used to excite speaker",
+         "toneUrl": "https://www.tone3000.com/tones/celestion-vintage-30-2002-mesa-boogie-4x12-sm57-45023",
+         "format": "ir",
+         "gear": "cab",
+         "license": "t3k",
+         "category": null,
+         "creator": "OutmodedElectronics",
+         "creatorUsername": "outmodedelectronics",
+         "creatorUrl": "https://www.tone3000.com/outmodedelectronics",
+         "makes": [
+          "Celestion",
+          "Celestion Vintage 30",
+          "Mesa Boogie Traditional 4x12",
+          "Shure SM57"
+         ],
+         "tags": [
+          "celestion v30",
+          "impulse response",
+          "ir",
+          "mesa boogie",
+          "rock",
+          "thick mids"
+         ],
+         "identity": "factory:tone3000/outmodedelectronics/Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57--t45023/captures/V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+         "source": "Factory"
+        },
+        "assetRef": {
+         "source": "factory",
+         "kind": "ir",
+         "id": "factory:tone3000/outmodedelectronics/Celestion Vintage 30 - 2002 Mesa Boogie 4x12 - SM57--t45023/captures/V30 LL 4FB 4x12 SM57 0.50in 0--m239290.wav",
+         "contentHash": "06b853f53c2436eb8a0cf9deb6a129e0f8f3a31c48f45a1376efb70d85c4e55a"
+        }
+       },
+       "trimByIr": {},
+       "routingMode": "auto",
+       "stateVersion": 2
+      }
+     }
+    ]
+   },
+   "b": null,
+   "visible": false,
+   "route": null,
+   "inputDbB": 0,
+   "outputDbA": 0,
+   "outputDbB": 0,
+   "mutedA": false,
+   "enabledB": false
+  }
  }
 ];

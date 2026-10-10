@@ -74,7 +74,8 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 | 6 | Presets d'usine (`feature/presets-usine`) | ✅ | 2026-10-10 | voir `git log feature/presets-usine` |
 | 7 | Finitions, relectures, REPORT.md (`feature/finitions`) | ✅ | 2026-10-10 | voir `git log feature/finitions` |
 | F | Correctif « Copy to account » sur les presets d'usine (`feature/fix-copie-usine`) | ✅ | 2026-10-09 | voir `git log feature/fix-copie-usine` |
-| 8 | Refonte de l'interface : thème rock, FR/EN, ergonomie (`feature/interface-design`) | 🔄 | 2026-10-09 | |
+| 8 | Refonte de l'interface : thème rock, FR/EN, ergonomie (`feature/interface-design`) | ✅ | 2026-10-10 | voir `git log feature/interface-design` |
+| P | Presets de morceaux : Killing in the Name, My Own Summer, Monster (`feature/presets-chansons`) | ✅ | 2026-10-10 | voir `git log feature/presets-chansons` |
 
 ### Détail mission 0
 
@@ -1399,6 +1400,74 @@ et push (jamais `main`).
 **Résultats finaux mission 8** : hôte **286/286** (146 du professeur + 77 `phase5` + 63 `phase6`),
 serveur **43/43**.
 
+### Presets de morceaux (`feature/presets-chansons`, 2026-10-10)
+
+**Demande** : des presets pour jouer *Killing in the Name* (Rage Against the Machine), *My Own
+Summer (Shove It)* (Deftones) et *Monster* (Skillet). **Fait** : 4 nouveaux presets d'usine (11 au
+total), générés comme les autres avec les vrais plugins.
+
+**1. Recherche du matériel (sources croisées)**
+
+| Morceau | Ce qui est documenté | Accordage |
+|---|---|---|
+| Killing in the Name | Tom Morello : Marshall JCM800 2205, canal saturé seulement (« Bass 10, Middle 10, Gain 9 »), aucune pédale de distorsion, son sec ; solo : DigiTech Whammy à +2 octaves dans la boucle d'effets | drop D |
+| My Own Summer | Stephen Carpenter (*Around the Fur*, 1997) : préampli saturé dans des baffles Marshall 4x12 ; son épais, grave, médiums gardés | drop C# |
+| Monster | Skillet (*Awake*, 2009) : Mesa Rectifier, Tube Screamer devant, noise gate ; high gain moderne et serré | drop C |
+
+Sources : [Neural DSP — Tom Morello](https://neuraldsp.com/us/articles/tom-morello-pedalboard-and-amp-settings),
+[Roland Indonesia — Killing in the Name](https://rolandindonesia.com/rage-against-the-machines-killing-in-the-name-guitar-tone-dissected),
+[Equipboard — Around the Fur](https://equipboard.com/albums/deftones-around-the-fur),
+[tablature My Own Summer](https://pt.ultimate-guitar.com/tab/deftones/my-own-summer-shove-it-tabs-375396),
+[KillerRig — Deftones](https://killerrig.com/sound-like-deftones-amp-settings/),
+[Equipboard — Ben Kasica](https://equipboard.com/pros/ben-kasica),
+[tablature Monster](https://tabs.ultimate-guitar.com/tab/skillet/monster-tabs-868215),
+[Mesa Boogie — Korey Cooper](https://legacy.mesaboogie.com/artist/korey-cooper.html).
+Le son clair/couplet de *My Own Summer* n'est pas documenté de façon fiable : **pas de preset
+inventé** pour cette partie.
+
+**2. Choix des captures en les MESURANT** (on ne peut pas écouter). Nouvel outil
+`tools/factory-presets/tone-lab.js` : un signal de test (dent de scie 73 Hz filtrée, comme une corde
+grave) passe dans la chaîne A, la sortie générale est coupée pendant la mesure. On lit le niveau, la
+compression quand l'attaque baisse de 12 dB (= le gain : ≈ 0 clair, ≈ 12 saturé à fond), l'équilibre
+par bandes et la fréquence dominante.
+
+| Capture | Gain | Retenue pour |
+|---|---|---|
+| JCM800 2203 Modified « Bad Boys » | 9,1 | Killing in the Name (JCM800 fort mais pas noyé, comme chez Morello) |
+| JCM800 « All-In » | 11,6 | écartée : trop saturée pour ce son |
+| Bogner Uberschall, Marshall 4x12 « Anthem » | 11,7 | My Own Summer (épais, grave, peu de « fizz ») |
+| Bogner Uberschall, Mesa 4x12 « Striptaser » | 12,2 | Monster (pas de tête Rectifier dans le catalogue : high gain moderne de la même famille, baffle Mesa) |
+
+**3. Le solo (Whammy +2 octaves)** : le pitch shifter du catalogue monte de 12 demi-tons au plus →
+**deux en série** après l'ampli (comme la boucle d'effets). Avec la fenêtre par défaut (50 ms), le son
+« chevrote » : seulement 11 % de l'énergie tombe sur les vraies harmoniques. Fenêtres testées sur trois
+notes : 50 ms 11-12 %, 100 ms 16-20 %, 200 ms 31-39 %, **150 ms 98-100 %** → retenue. La note
+dominante sort bien à 293 Hz (73,4 Hz × 4).
+
+**4. Volumes** (même signal, même série) : les trois riffs à **−15,5 dB** comme le High Gain 5150,
+le solo à **−14 dB** (un peu plus fort pour passer devant).
+
+**5. Générateur transformé en module** : `RECIPES`, `applyRecipe()` et `generateFactoryPresets()`
+sont exportés, pour que `tone-lab.js` mesure le son EXACT que le générateur enregistrera.
+**Bug trouvé et corrigé** : au rechargement, la page restaure la dernière session, et un réglage
+absent d'une recette gardait la valeur de la page (les anciens presets ressortaient avec le gain et
+le noise gate du solo). `applyRecipe` repart maintenant des **valeurs par défaut** de l'ampli. Après
+correction, les 7 anciens presets ressortent identiques (seuls les identifiants aléatoires des pédales
+changent) : ils sont gardés tels quels et les 4 nouveaux sont ajoutés à la suite.
+
+**6. Traductions et tests** : descriptions FR/EN (`presets.factory.<id>`). `factory-presets.test.mjs`
+passe de 7 à 11 presets et vérifie maintenant que le fichier correspond aux recettes (ids, noms,
+descriptions, tags), que chaque description est traduite, et que le solo garde la fenêtre de 150 ms.
+Mode d'emploi des outils : [`tools/factory-presets/README.md`](tools/factory-presets/README.md). Un
+skill Claude Code (`nam-song-preset`, dans le profil utilisateur) reprend cette démarche pour les
+prochains morceaux.
+
+**Vérifié dans le navigateur** : onglet Usine en français, chaque nouveau preset se charge avec la
+bonne chaîne (Monster : TS9 → ampli ; solo : ampli → 2 pitch shifters), les bons réglages, sans
+erreur dans la console et sans être marqué « modifié ».
+
+**Résultats** : hôte **287/287**, serveur **43/43**.
+
 ---
 
 ## 5. Mémo pratique
@@ -1409,6 +1478,7 @@ serveur **43/43**.
 | Lancer les tests de l'hôte | `.\build.bat test` |
 | Voir l'appli | VS Code → clic droit `dist/NAM_A2_WAM/index.html` → *Open with Live Server* |
 | Récupérer les mises à jour du prof | `git pull upstream main` |
+| Créer / mesurer des presets d'usine | voir [`tools/factory-presets/README.md`](tools/factory-presets/README.md) |
 | Lancer uniquement les tests des presets | `wsl bash -lc "cd /mnt/c/Users/NITRO/Projects/NAM_A2_WAM && node --test tests/phase5/*.test.mjs"` |
 | Voir les presets stockés | DevTools (F12) → Application → IndexedDB → `nam-a2-wam-presets` |
 | Installer le backend (une fois) | `cd server` puis `npm install` |
@@ -1423,6 +1493,7 @@ serveur **43/43**.
 ## 6. Reste à faire / idées
 
 - Missions 0 à 8 terminées et fusionnées (voir tableau) ; `develop` fusionnée dans `main` le 2026-10-10.
+- Presets de morceaux (11 sons d'usine) fusionnés dans `develop` ; pas encore dans `main`.
 - À vérifier à la main : jeu avec une vraie guitare et un vrai micro ; passage avec un lecteur d'écran (NVDA).
 - Idées hors périmètre : amis et partage privé, presets favoris, notes/likes, aperçu audio d'un
   preset, déploiement en ligne (backend + dist).
