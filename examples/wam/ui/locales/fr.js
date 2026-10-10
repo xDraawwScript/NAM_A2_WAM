@@ -42,6 +42,7 @@ export default {
   },
   toast: {
     close: 'Fermer la notification',
+    region: 'Notifications',
   },
   shortcuts: {
     title: 'Raccourcis clavier',
@@ -220,8 +221,8 @@ export default {
     routeHere: 'Dériver vers B ici',
     routeAt: 'Dériver vers B à cet endroit',
     active: 'Actif',
-    bypassed: 'Bypassé',
-    toggleBypass: 'Activer ou bypasser',
+    bypassed: 'En bypass',
+    toggleBypass: 'Activer ou mettre en bypass',
     removeNamed: 'Retirer {name}',
     removePlugin: 'Retirer le plugin',
     pluginInputLevel: 'Niveau d\'entrée du plugin',
@@ -267,7 +268,7 @@ export default {
   account: {
     title: 'Compte',
     close: 'Fermer le compte',
-    signIn: 'Connexion',
+    signIn: 'Se connecter',
     create: 'Créer un compte',
     tabs: 'Compte',
     email: 'E-mail',
@@ -421,7 +422,7 @@ export default {
       makePublicNamed: 'Rendre public : {name}',
       makePrivate: 'Rendre privé',
       makePrivateNamed: 'Rendre privé : {name}',
-      copy: 'Copier sur le compte',
+      copy: 'Copier sur mon compte',
       copyNamed: 'Copier {name} sur mon compte',
       export: 'Exporter',
       exportNamed: 'Exporter {name}',

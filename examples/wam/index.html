@@ -96,7 +96,7 @@
         </div>
       </div>
       <section class="fx-rack" aria-label="Processing chain A">
-        <aside class="fx-endpoint fx-input-strip" aria-label="Chain A input">
+        <section class="fx-endpoint fx-input-strip" aria-label="Chain A input">
           <strong>INPUT · A</strong>
           <div class="fx-endpoint-routing"><label class="fx-select-label"><span data-i18n="rack.inputDevice">Input device</span><select id="inputDevice" title="Input device" data-i18n-title="rack.inputDevice"></select></label>
             <label class="fx-select-label" id="inputChannelRow" hidden><span>Input channel</span><select id="inputChannel" title="Input channel"><option value="0">Input 1</option></select></label></div>
@@ -108,9 +108,9 @@
             </div>
             <label class="fx-gain"><span>Gain</span><input id="sourceTrim" aria-label="Input gain" aria-orientation="vertical" type="range" min="-48" max="12" step="0.5" value="0"><output id="sourceTrimValue">0.0 dB</output></label>
           </div>
-        </aside>
+        </section>
         <section class="fx-chain" id="fxChain" aria-label="Chain A effects: drag to swap cards, or Alt + arrow keys" data-i18n-aria-label="rack.effects" data-i18n-params='{"lane":"A"}'></section>
-        <aside class="fx-endpoint fx-output-strip" aria-label="Chain A output">
+        <section class="fx-endpoint fx-output-strip" aria-label="Chain A output">
           <strong>OUTPUT · A</strong>
           <div class="fx-endpoint-routing"><label class="fx-select-label"><span data-i18n="rack.outputDevice">Output device</span><select id="outputDevice" title="Output device" data-i18n-title="rack.outputDevice"><option value="">System default</option></select></label></div>
           <div class="fx-endpoint-controls">
@@ -122,7 +122,7 @@
             <label class="fx-gain"><span>Volume</span><input id="chainOutputGain" aria-label="Output gain" aria-orientation="vertical" type="range" min="-48" max="12" step="0.5" value="0"><output id="chainOutputGainValue">0.0 dB</output></label>
           </div>
           <label class="fx-pan"><span>L</span><input id="chainOutputPan" type="range" min="-1" max="1" step="0.01" value="0" aria-label="Chain A pan" title="Pan L/R — double-click to center"><span>R</span><output id="chainOutputPanValue">C</output></label>
-        </aside>
+        </section>
       </section>
       <p id="hostStatus" class="sr-only" role="status">Initializing…</p>
     </main>

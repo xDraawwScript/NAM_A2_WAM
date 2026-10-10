@@ -25,7 +25,7 @@ export class FxChainView {
   }
   createThinMeter(label) {
     const meter=element('span','fx-thin-meter');meter.setAttribute('role','meter');
-    localize(meter,{ariaLabel:label});meter.setAttribute('aria-valuemin','-60');meter.setAttribute('aria-valuemax','0');
+    localize(meter,{ariaLabel:label});meter.setAttribute('aria-valuemin','-60');meter.setAttribute('aria-valuemax','0');meter.setAttribute('aria-valuenow','-60');
     meter.append(element('span','fx-meter-fill'));return meter;
   }
   updateThinMeter(meter,value,now) {
@@ -38,7 +38,7 @@ export class FxChainView {
     meter.setAttribute('aria-valuetext',meter.title);
   }
   createEditorSide(side) {
-    const keys=`chain.side.${side}`,root=element('aside','fx-editor-side fx-editor-'+side);
+    const keys=`chain.side.${side}`,root=element('div','fx-editor-side fx-editor-'+side);
     const button=localize(element('button','fx-plugin-gain-toggle'),{title:`${keys}.gain`,ariaLabel:`${keys}.gain`});button.setAttribute('aria-expanded','false');
     button.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 3v18M12 3v18M19 3v18M2 8h6M9 16h6M16 10h6"/></svg>';
     const panel=element('div','fx-plugin-gain-panel');panel.hidden=true;
@@ -192,7 +192,7 @@ export class FxChainView {
       if(e.plugin&&e.kind!=='effect'){const params=await e.plugin.audioNode.getParameterValues(false,'bypass');e.bypass=Number(params.bypass?.value)>=.5;}
       image ||= fallbackThumbnail({id:e.id,name});
       if(card.image.dataset.source!==image){card.image.dataset.source=image;card.image.src=image;}
-      card.image.alt=name;card.photo.title=e.error?`${name}: ${e.error}`:name;card.photo.setAttribute('aria-label',t('chain.open',{name}));
+      card.image.alt='';card.photo.title=e.error?`${name}: ${e.error}`:name;card.photo.setAttribute('aria-label',t('chain.open',{name}));
       card.caption.textContent=name;
       card.card.classList.toggle('is-bypassed',e.bypass||!e.plugin);card.bypass.setAttribute('aria-pressed',String(e.bypass));card.bypass.textContent=t(e.bypass?'chain.bypassed':'chain.active');card.bypass.title=e.routingStatus||t('chain.toggleBypass');
     } this.syncEditorGains(); } finally {this.refreshing=false;}

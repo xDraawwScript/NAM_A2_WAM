@@ -114,7 +114,7 @@ function relabelHost() {
   syncLiveInputButton();
   syncModeButton();
   if (outputSupport) $('#outputSupport').textContent = outputSupport();
-  $('#sourceTrimValue').textContent = formatDb($('#sourceTrim').value);
+  showSourceTrim();
   if (savedState) showStateSize();
 }
 let outputSupport = null;
@@ -192,11 +192,16 @@ async function detectSelectedInputChannels() {
   }
 }
 
+/** Valeur du gain d'entrée affichée au format de la langue. */
+function showSourceTrim(value = $('#sourceTrim').value) {
+  $('#sourceTrimValue').textContent = formatDb(value);
+}
+
 function syncSourceTrim() {
   const value = sourceManager.activeTrimDb;
   $('#sourceTrim').value = value;
   $('#sourceTrim').dispatchEvent(new Event('change'));
-  $('#sourceTrimValue').textContent = formatDb(value);
+  showSourceTrim(value);
 }
 
 function showStateSize() {
@@ -365,6 +370,7 @@ async function initialize() {
   setPlayerEnabled(false);
   syncLiveInputButton();
   syncModeButton();
+  showSourceTrim(); // le HTML part de « 0.0 dB »
   let deviceRefresh = Promise.resolve();
   let wasRunning = context.state === 'running';
   let recovery = null;
@@ -415,7 +421,7 @@ async function initialize() {
   };
   $('#sourceTrim').oninput = () => {
     const value = sourceManager.setTrimDb(Number($('#sourceTrim').value), $('#audioSource').value === 'live' ? 'live' : 'file');
-    $('#sourceTrimValue').textContent = formatDb(value);
+    showSourceTrim(value);
   };
   $('#chainInputReset').onclick=()=>{
     const mode=$('#audioSource').value==='live'?'live':'file';

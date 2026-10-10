@@ -7,7 +7,7 @@ import {t, formatDate as formatLocalDate} from '../ui/i18n.js';
  * Boutons d'un preset dans la liste « mes presets », selon l'onglet (fonction pure, testée).
  *   - lecture seule (usine) : seulement Load ;
  *   - compte : Rename, Make public/private, Export, Delete ;
- *   - navigateur : Rename, Copy to account (si connecté), Export, Delete.
+ *   - navigateur : Rename, Copy to my account (si connecté), Export, Delete.
  */
 export function presetActions({source, readOnly = false, signedIn = false}) {
   if (readOnly) return ['load'];

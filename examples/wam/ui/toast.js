@@ -35,8 +35,11 @@ export function createToaster({document: doc = globalThis.document, setTimer = s
     const same = toasts.find((toast) => toast.text === text && toast.error === error);
     if (same) { schedule(same); return same; }
     if (!region) {
-      region = doc.createElement('div');
+      // Zone repère (landmark) nommée : les notifications ne sont pas du contenu « hors repère ».
+      region = doc.createElement('section');
       region.className = 'host-toasts';
+      region.setAttribute('aria-label', t('toast.region'));
+      region.setAttribute('data-i18n-aria-label', 'toast.region');
       doc.body.append(region);
     }
     const node = doc.createElement('div');

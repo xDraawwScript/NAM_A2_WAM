@@ -29,7 +29,7 @@ export class FxRackView {
     this.gutter=el('div','fx-route-gutter');this.track.append(this.gutter);
     this.bStrip=el('section','fx-chain');this.bStrip.id='fxChainB';localize(this.bStrip,{ariaLabel:'rack.effects'},{lane:'B'});this.track.append(this.bStrip);
     this.svg=document.createElementNS('http://www.w3.org/2000/svg','svg');this.svg.classList.add('fx-route-cable');this.svg.setAttribute('aria-hidden','true');this.track.append(this.svg);
-    this.routeLabel=el('button','fx-route-label');this.gutter.append(this.routeLabel);
+    this.routeLabel=el('button','fx-route-label');this.routeLabel.hidden=true;this.gutter.append(this.routeLabel);
     this.routeLabel.onclick=()=>this.routeMenu(this.rack.route?.index||0,this.routeLabel,true);
     this.root.replaceChildren(this.left,this.scroller,this.right);
     labelStrip(input,'input','A');labelStrip(output,'output','A');
