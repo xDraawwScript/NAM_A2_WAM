@@ -2,9 +2,9 @@
 
 > Récapitulatif de **chaque mesure de sécurité** mise en place dans le projet (hôte + serveur), avec
 > *où* elle est implémentée, *pourquoi*, et le *test* qui la vérifie. Les décisions détaillées sont
-> dans le journal [`SUIVI.md`](SUIVI.md) (missions 2 à 5 et « Revue de sécurité »).
+> dans le journal [`SUIVI.md`](SUIVI.md) (missions 2 à 8 et « Revue de sécurité »).
 >
-> Légende des origines : **M2…M5** = mission où la mesure a été ajoutée ; **CR** = corrigé après une
+> Légende des origines : **M0…M8** = mission où la mesure a été ajoutée ; **CR** = corrigé après une
 > relecture de code (`/code-review`) ; **RS** = revue de sécurité ; **E2E** = trouvé par un test de
 > bout en bout.
 
@@ -83,19 +83,20 @@
 
 ## 7. Serveur et secrets
 
-| # | Mesure | Où | Pourquoi | Origine |
-|---|---|---|---|---|
-| 40 | **CORS** limité aux origines de Live Server (liste blanche), méthodes et en-têtes restreints | `server/src/app.js`, `CORS_ORIGINS` | Un autre site ne peut pas appeler l'API depuis le navigateur de l'utilisateur | M2 |
-| 41 | Erreurs 500 **sans détail** pour le client (détail seulement dans les logs) ; messages Mongoose nettoyés | `app.js` | Pas de fuite d'informations internes | M2 + CR |
-| 42 | En-tête `X-Powered-By` désactivé | `app.js` | Ne pas annoncer la techno du serveur | M2 |
-| 43 | Les logs ne contiennent **jamais** de mot de passe ni de jeton | `routes/*.js`, `auth.js` | Les logs ne doivent pas devenir une fuite | M2 |
-| 44 | `server/.env` **ignoré par Git**, `.env.example` fourni ; `config.js` (public) ne contient aucun secret | `.gitignore`, `config.js` | Aucun secret dans le dépôt GitHub | M0 + M3 (test « no secret in config.js ») |
-| 45 | Assets servis avec `Cache-Control: private` | `routes/assets.js` | Pas de mise en cache par un proxy partagé | M2 |
-| 50 | Codes d'erreur stables : une erreur 500 ne renvoie que `{ message: "Internal server error", code: "internal" }` (jamais de `params`) ; les `params` ne contiennent que des limites publiques (`min`, `max`, `count`) ou le message du validateur, déjà visible avant | `errorCodes.js`, `app.js` | Traduire les erreurs sans exposer plus d'informations qu'avant | M8 |
+| # | Mesure | Où | Pourquoi | Test | Origine |
+|---|---|---|---|---|---|
+| 40 | **CORS** limité aux origines de Live Server (liste blanche), méthodes et en-têtes restreints | `server/src/app.js`, `CORS_ORIGINS` | Un autre site ne peut pas appeler l'API depuis le navigateur de l'utilisateur | — | M2 |
+| 41 | Erreurs 500 **sans détail** pour le client (détail seulement dans les logs) ; messages Mongoose nettoyés | `app.js` | Pas de fuite d'informations internes | — | M2 + CR |
+| 42 | En-tête `X-Powered-By` désactivé | `app.js` | Ne pas annoncer la techno du serveur | — | M2 |
+| 43 | Les logs ne contiennent **jamais** de mot de passe ni de jeton | `routes/*.js`, `auth.js` | Les logs ne doivent pas devenir une fuite | — | M2 |
+| 44 | `server/.env` **ignoré par Git**, `.env.example` fourni ; `config.js` (public) ne contient aucun secret | `.gitignore`, `config.js` | Aucun secret dans le dépôt GitHub | — | M0 + M3 (test « no secret in config.js ») |
+| 45 | Assets servis avec `Cache-Control: private` | `routes/assets.js` | Pas de mise en cache par un proxy partagé | — | M2 |
+| 50 | Codes d'erreur stables : une erreur 500 ne renvoie que `{ message: "Internal server error", code: "internal" }` (jamais de `params`) ; les `params` ne contiennent que des limites publiques (`min`, `max`, `count`) ou le message du validateur, déjà visible avant | `errorCodes.js`, `app.js` | Traduire les erreurs sans exposer plus d'informations qu'avant | `error-codes.test.js` (chaque code déclaré ; params = limites publiques) ; réponse 500 vérifiée par relecture | M8 |
 | 51 | Fenêtre de confirmation de l'hôte : titre, message et boutons insérés avec `textContent`, jamais `innerHTML` (un nom de preset contenant du HTML s'affiche tel quel) ; focus par défaut sur « Annuler » pour qu'une action destructrice ne parte pas d'un appui sur Entrée | `ui/confirmDialog.js` | Pas d'injection de HTML via les noms de presets ou les traductions ; pas de suppression accidentelle | `confirm-dialog.test.mjs` (« jamais interprété comme du HTML », focus) | M8 |
 | 52 | Notifications, guide et aide des raccourcis construits avec `textContent` (un message d'erreur du serveur ou un nom de preset s'affiche tel quel) ; l'état du guide lu dans `localStorage` est filtré (seules les 3 étapes connues sont gardées, JSON corrompu ou stockage bloqué = guide neuf) | `ui/toast.js`, `ui/GettingStarted.js`, `ui/ShortcutsHelp.js` | Pas d'injection de HTML ; une valeur modifiée à la main dans le stockage ne casse pas la page | `host-ui.test.mjs` (texte HTML affiché tel quel, stockage bloqué ou corrompu, étapes inconnues ignorées) | M8 |
 | 53 | Code tiers Butterchurn hébergé dans le projet (aucun CDN), fichiers npm non modifiés avec empreintes SHA-256 vérifiées, Git en `-text` sur `ui/vendor/` ; chargé seulement si l'utilisateur active le fond. Butterchurn compile les équations des presets avec `new Function` : seuls les presets du pack livré avec l'appli sont utilisés (jamais un preset venant du réseau ou d'un utilisateur). Branchement audio en lecture seule (analyseur sans sortie) | `ui/VisualizerBackground.js`, `ui/vendor/butterchurn/` | Pas de dépendance à un serveur tiers ni de code modifié en douce ; aucun code arbitraire exécuté ; le son n'est jamais altéré | `visualizer.test.mjs` (empreintes, aucune URL externe, rien de chargé avant le clic, seule la sortie est branchée) | M8 |
 | 54 | Traductions toujours insérées avec `textContent` / `setAttribute` (jamais `innerHTML`) ; la page de retour TONE3000 n'utilise plus `innerHTML` ; `data-i18n-params` lu avec un `JSON.parse` protégé (JSON cassé = texte affiché sans planter) ; le `detailCode` renvoyé par le serveur ne sert qu'à choisir une clé **existante** du dictionnaire (`hasKey`), sinon le détail d'origine est affiché | `ui/i18n.js`, `ui/hostMessages.js`, `account/ApiClient.js`, `main.js`, `server/src/validation.js` | Un nom de preset ou un message serveur ne peut pas injecter de HTML via une traduction ; une réponse serveur ne peut pas faire afficher un texte arbitraire du dictionnaire | `i18n.test.mjs` (paramètres cassés), `host-i18n.test.mjs` (code inconnu → détail d'origine), `error-codes.test.js` | M8 |
+| 55 | Langue de l'interface : la valeur de `?lang=` dans l'URL **et** celle relue dans le `localStorage` passent par une **liste blanche** (`normalizeLanguage` : seulement `fr` ou `en`, sinon ignorée). La valeur brute n'est jamais affichée ni insérée dans la page ; seule la langue validée est écrite dans `<html lang>`. Stockage bloqué ou valeur modifiée à la main = langue du navigateur, sans erreur | `ui/i18n.js` (`normalizeLanguage`, `detectLanguage`, `setLanguage`) | Un lien piégé (`?lang=de"><script>…`) ne peut ni injecter du HTML ni faire charger un dictionnaire inexistant | `i18n.test.mjs` (`?lang=xx` ignoré, stockage bloqué, langue inconnue → anglais) ; vérifié dans le navigateur avec `?lang=de%22%3E%3Cb%3Ex` (rien d'injecté) | M8 |
 
 ## 8. Limites connues (assumées et documentées)
 
