@@ -76,8 +76,14 @@ export class FxChainView {
       input.addEventListener('input',sync);input.addEventListener('change',sync);sync();
     }
   }
+  /** Nom affiché d'une carte : titre du modèle NAM / de l'IR chargé, sinon nom du plugin (même nom pour la carte, le « + », la poubelle et la confirmation). */
+  displayName(e) {
+    if(e.plugin&&e.kind==='nam'){const m=e.plugin.audioNode.getModelSnapshot();return m?.provenance?.title||m?.name||'NeuralWAMp';}
+    if(e.plugin&&e.kind==='cabinet'){const ir=e.plugin.audioNode.getIrSnapshot();return ir?.metadata?.title||ir?.name||'Cabinet';}
+    return e.record?.name||e.kind;
+  }
   async confirmRemove(id) {
-    const entry=this.chain.find(id),name=entry.record?.name||entry.kind;
+    const entry=this.chain.find(id),name=this.displayName(entry);
     const confirmed=await confirmDialog({title:t('chain.confirmRemove.title',{name}),message:t('chain.confirmRemove.message'),confirmLabel:t('chain.confirmRemove.action'),danger:true});
     if(!confirmed||!this.chain.entries.includes(entry))return;
     if(this.activeId===id)this.close();
@@ -125,9 +131,9 @@ export class FxChainView {
           const delayHide=()=>{clearTimeout(hideTimer);hideTimer=setTimeout(()=>{if(!slot.matches(':hover,:focus-within'))slot.classList.remove('route-visible');},700);};
           slot.addEventListener('pointerenter',showRoute);slot.addEventListener('pointerleave',delayHide);
           slot.addEventListener('focusin',showRoute);slot.addEventListener('focusout',delayHide);}
-        this.container.append(slot);};
+        this.container.append(slot);return button;};
       for(const entry of this.chain.entries){
-        add(entry);const card=element('article','fx-card'),toolbar=element('div','fx-card-toolbar');
+        const insert=add(entry),card=element('article','fx-card'),toolbar=element('div','fx-card-toolbar');
         const bypass=element('button','fx-bypass',t('chain.active'));bypass.onclick=()=>this.toggle(entry.id);toolbar.append(bypass);
         const remove=element('button','fx-delete');
         remove.innerHTML='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg>';
@@ -171,7 +177,7 @@ export class FxChainView {
         });
         this.dropTarget(card,entry.id);
         image.onerror=()=>{image.onerror=null;image.src=fallbackThumbnail({id:entry.id,name:entry.record?.name||entry.kind});};
-        card.append(toolbar,photo);this.container.append(card);this.cards.set(entry.id,{card,bypass,image,photo,caption,inputMeter,outputMeter});
+        card.append(toolbar,photo);this.container.append(card);this.cards.set(entry.id,{card,bypass,remove,insert,image,photo,caption,inputMeter,outputMeter});
       }add(null);
       const output=element('span','fx-output-link');
       const arrow=element('span','','→');arrow.setAttribute('aria-hidden','true');
@@ -186,14 +192,14 @@ export class FxChainView {
     if(this.refreshing)return;this.refreshing=true;
     try { for(const e of this.chain.entries){
       const card=this.cards.get(e.id);if(!card)continue;
-      let name=e.record?.name||e.kind,image=e.record?.thumbnailUrl;
-      if(e.plugin&&e.kind==='nam'){const m=e.plugin.audioNode.getModelSnapshot();name=m?.provenance?.title||m?.name||'NeuralWAMp';image=m?.provenance?.imageUrl;}
-      if(e.plugin&&e.kind==='cabinet'){const ir=e.plugin.audioNode.getIrSnapshot();name=ir?.metadata?.title||ir?.name||'Cabinet';image=ir?.metadata?.imageUrl;}
+      const name=this.displayName(e);let image=e.record?.thumbnailUrl;
+      if(e.plugin&&e.kind==='nam')image=e.plugin.audioNode.getModelSnapshot()?.provenance?.imageUrl;
+      if(e.plugin&&e.kind==='cabinet')image=e.plugin.audioNode.getIrSnapshot()?.metadata?.imageUrl;
       if(e.plugin&&e.kind!=='effect'){const params=await e.plugin.audioNode.getParameterValues(false,'bypass');e.bypass=Number(params.bypass?.value)>=.5;}
       image ||= fallbackThumbnail({id:e.id,name});
       if(card.image.dataset.source!==image){card.image.dataset.source=image;card.image.src=image;}
       card.image.alt='';card.photo.title=e.error?`${name}: ${e.error}`:name;card.photo.setAttribute('aria-label',t('chain.open',{name}));
-      card.caption.textContent=name;
+      card.caption.textContent=name;card.remove.setAttribute('aria-label',t('chain.removeNamed',{name}));card.insert.setAttribute('aria-label',t('chain.insertBefore',{name}));
       card.card.classList.toggle('is-bypassed',e.bypass||!e.plugin);card.bypass.setAttribute('aria-pressed',String(e.bypass));card.bypass.textContent=t(e.bypass?'chain.bypassed':'chain.active');card.bypass.title=e.routingStatus||t('chain.toggleBypass');
     } this.syncEditorGains(); } finally {this.refreshing=false;}
   }

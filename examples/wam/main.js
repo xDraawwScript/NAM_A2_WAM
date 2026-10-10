@@ -70,8 +70,11 @@ $('#hostSidebar').addEventListener('keydown', event => {
 // Messages de l'hôte : notification visible (toast) + #hostStatus, lu par les lecteurs d'écran.
 const toaster = createToaster();
 // Les messages anglais connus du moteur (FxChain, SourceManager…) sont affichés dans la langue choisie.
+// Un texte calculé (() => t(…)) est gardé pour être retraduit au changement de langue (relabelHost).
+let hostStatusText = () => $('#hostStatus').textContent;
 function message(text, error = false) {
-  text = localizeMessage(text);
+  hostStatusText = typeof text === 'function' ? text : () => localizeMessage(text);
+  text = hostStatusText();
   $('#hostStatus').textContent = text;
   $('#hostStatus').classList.toggle('error', error);
   toaster.show(text, {error});
@@ -103,6 +106,7 @@ function relabelValidation() {
 }
 function relabelHost() {
   relabelValidation();
+  $('#hostStatus').textContent = hostStatusText();
   $('#discovery').textContent = discoveryText();
   $('#inputChannelStatus').textContent = channelStatus();
   const live = $('#audioSource').options[0];
@@ -143,7 +147,7 @@ async function refreshDevices(requestPermission = false) {
   selector.value = choice.deviceId;
   selectedInputChannel = choice.channel;
   selectedDeviceId = selector.value;
-  if (!inputs.length) message(t('status.noInput'), true);
+  if (!inputs.length) message(() => t('status.noInput'), true);
   return inputs;
 }
 
@@ -247,11 +251,11 @@ async function activateSelectedLiveInput() {
   syncLiveInputButton();
   syncSourceTrim();
   guide?.complete('live');
-  message(t('live.active', {device: activeInput?.label || $('#inputDevice').selectedOptions[0]?.textContent || selectedDeviceId, channel: Number(activeInput?.channelIndex || 0) + 1, count: activeInput?.channelCount || 1}));
+  message(() => t('live.active', {device: activeInput?.label || $('#inputDevice').selectedOptions[0]?.textContent || selectedDeviceId, channel: Number(activeInput?.channelIndex || 0) + 1, count: activeInput?.channelCount || 1}));
   return true;
 }
 
-async function disableLiveInput(status = t('live.disabled')) {
+async function disableLiveInput(status = () => t('live.disabled')) {
   await sourceManager.disconnectCurrent();
   liveInputEnabled = false;
   syncLiveInputButton();
@@ -262,7 +266,7 @@ async function selectSource() {
   const value = $('#audioSource').value;
   if (value === 'live') {
     setPlayerEnabled(false);
-    await disableLiveInput(t('live.ready'));
+    await disableLiveInput(() => t('live.ready'));
   } else {
     liveInputEnabled = false;
     syncLiveInputButton();
@@ -270,13 +274,13 @@ async function selectSource() {
     const filename = value.slice(5);
     await sourceManager.activateFile(`./assets/audio/${encodeURIComponent(filename)}`);
     syncSourceTrim();
-    message(t('status.fileReady', {file: filename}));
+    message(() => t('status.fileReady', {file: filename}));
   }
 }
 
 async function initialize() {
   if (context.sampleRate !== 48000) {
-    message(t('status.sampleRate', {rate: formatNumber(context.sampleRate)}));
+    message(() => t('status.sampleRate', {rate: formatNumber(context.sampleRate)}));
   }
   NamPlugin.configureTone3000(window.NAM_A2_WAM_CONFIG?.tone3000 || {});
   CabinetPlugin.configureTone3000(window.NAM_A2_WAM_CONFIG?.tone3000 || {});
@@ -285,7 +289,7 @@ async function initialize() {
   node = plugin.audioNode;
   cabinetPlugin = await CabinetPlugin.createInstance(groupId, context, {});
   cabinetNode = cabinetPlugin.audioNode;
-  node.onprocessorerror = (event) => { window.phase3ProcessorError = 'AudioWorklet processor error'; message(t('status.processorError'), true); };
+  node.onprocessorerror = (event) => { window.phase3ProcessorError = 'AudioWorklet processor error'; message(() => t('status.processorError'), true); };
   const registry=new WamPluginRegistry();
   try{await registry.load(new URL('./wamPlugins/plugins.json',import.meta.url));}catch(error){message(error.message,true);}
   chain=new FxChain({context,registry,groupId});
@@ -340,7 +344,7 @@ async function initialize() {
     const syncAccount=()=>{if(api.loggedIn===signedIn)return;signedIn=api.loggedIn;accountPresets.clear();presetManager.setAccountStorage(signedIn?accountPresets:null);};
     api.addEventListener('change',syncAccount);syncAccount();
     // Une session refusée (401) est déjà signalée par l'événement 'expired' de l'AccountView.
-    api.refresh().catch(error=>{if(error.status!==401)message(t('account.failed',{detail:error.message}),true);});
+    api.refresh().catch(error=>{if(error.status!==401)message(() => t('account.failed',{detail:error.message}),true);});
   }else{$('#accountButton').title=t('account.unconfigured');onLanguageChange(()=>{$('#accountButton').title=t('account.unconfigured');});}
   const modeButton=$('#uiMode');modeButton.disabled=false;
   modeButton.onclick=async()=>{
@@ -387,7 +391,7 @@ async function initialize() {
         })]);
         $('#outputDevice').value = '';
         $('#recoverAudio').hidden = true;
-        message(t('status.recovered'));
+        message(() => t('status.recovered'));
       } catch (error) { message(error.message, true); }
       finally { clearTimeout(timer); $('#recoverAudio').disabled = false; recovery = null; }
     })();
@@ -397,7 +401,7 @@ async function initialize() {
   context.addEventListener('statechange', () => {
     if (context.state === 'running') { wasRunning = true; return; }
     if (wasRunning && (liveInputEnabled || !$('#player').paused || backingPlayer?.engine.playing)) {
-      message(t('status.engineState', {state: context.state}), true);
+      message(() => t('status.engineState', {state: context.state}), true);
       recoverAudio();
     }
   });
@@ -407,12 +411,12 @@ async function initialize() {
     const old = selectedDeviceId;
     const devices = await refreshDevices(false);
     if (wasLive && !devices.some((device) => device.deviceId === old)) {
-      await disableLiveInput(t('live.disconnected'));
+      await disableLiveInput(() => t('live.disconnected'));
       refreshInputChannels();
     }
     if (outputDeviceManager.supported) await refreshOutputs({includeAuthorized: false});
     if (wasRunning && context.state !== 'running') await recoverAudio();
-    }).catch(async (error) => { message(t('status.deviceChangeFailed', {detail: detail(error)}), true); await recoverAudio(); });
+    }).catch(async (error) => { message(() => t('status.deviceChangeFailed', {detail: detail(error)}), true); await recoverAudio(); });
   });
   $('#audioSource').onchange = () => selectSource().catch((error) => message(error.message, true));
   $('#chainOutputGain').oninput=()=>{
@@ -466,7 +470,7 @@ async function initialize() {
     try {
       await context.resume();
       await activateSelectedLiveInput();
-    } catch(error) { await disableLiveInput(); message(t('status.selectInputFailed',{detail:detail(error)}),true); }
+    } catch(error) { await disableLiveInput(); message(() => t('status.selectInputFailed',{detail:detail(error)}),true); }
   };
   $('#inputChannel').onchange=async()=>{
     selectedInputChannel=Math.max(0,Number($('#inputChannel').value)||0);
@@ -474,15 +478,15 @@ async function initialize() {
     saveAudioDevicePreferences({inputDeviceId:selectedDeviceId,inputChannel:selectedInputChannel});
     if($('#audioSource').value!=='live'||!selectedDeviceId||!liveInputEnabled)return;
     try{sourceManager.selectLiveChannel(selectedInputChannel);}
-    catch(error){await disableLiveInput();message(t('status.selectChannelFailed',{detail:detail(error)}),true);}
+    catch(error){await disableLiveInput();message(() => t('status.selectChannelFailed',{detail:detail(error)}),true);}
   };
   $('#outputDevice').onchange = async () => {
     try { await outputDeviceManager.select($('#outputDevice').value); saveAudioDevicePreferences({outputDeviceId:outputDeviceManager.selectedDeviceId}); }
-    catch (error) { message(t('status.selectOutputFailed', {detail: detail(error)}), true); await refreshOutputs(); }
+    catch (error) { message(() => t('status.selectOutputFailed', {detail: detail(error)}), true); await refreshOutputs(); }
   };
   $('#authorizeOutput').onclick = async () => {
     try { await context.resume(); await outputDeviceManager.authorize(); await refreshOutputs(); saveAudioDevicePreferences({outputDeviceId:outputDeviceManager.selectedDeviceId}); }
-    catch (error) { message(t('status.authorizeFailed', {detail: detail(error)}), true); }
+    catch (error) { message(() => t('status.authorizeFailed', {detail: detail(error)}), true); }
   };
   $('#play').onclick = async () => { await context.resume(); await $('#player').play(); };
   $('#pause').onclick = () => $('#player').pause();
@@ -495,13 +499,13 @@ async function initialize() {
     showStateSize();
   };
   $('#restoreState').onclick = async () => {
-    if (!savedState) return message(t('status.saveStateFirst'), true);
+    if (!savedState) return message(() => t('status.saveStateFirst'), true);
     chainView.close();
     try{await rack.setState(savedState);syncSourceTrim();if(savedState.backingTrack)await backingPlayer.setState(savedState.backingTrack);}
-    catch(error){message(t('status.restoreFailed',{detail:detail(error)}),true);return;}
-    message(t('status.restored'));
+    catch(error){message(() => t('status.restoreFailed',{detail:detail(error)}),true);return;}
+    message(() => t('status.restored'));
   };
-  message(t('status.ready'));
+  message(() => t('status.ready'));
   // Guide de démarrage : chaque étape fait l'action, et se coche quand elle a vraiment eu lieu.
   guide=new GettingStarted({root:$('#gettingStarted'),actions:{
     source:()=>{setSidebarOpen(true);$('#audioSource').focus();},

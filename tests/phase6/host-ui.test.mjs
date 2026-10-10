@@ -126,6 +126,10 @@ test('raccourcis : « ? » ignoré pendant la saisie et dans les interfaces des 
   assert.equal(isHelpKey(key({key: '/'})), false);
   assert.equal(isHelpKey(key({ctrlKey: true})), false);
   assert.equal(isHelpKey(key({target: target('INPUT', {type: 'text'})})), false);
+  // Champ dans un shadow DOM (filtre du lecteur) : le document ne voit que l'hôte, le chemin contient le champ.
+  const host = target('BACKING-TRACK-PLAYER');
+  assert.equal(isHelpKey(key({target: host, composedPath: () => [target('INPUT', {type: 'search'}), host]})), false, 'champ du lecteur');
+  assert.equal(isHelpKey(key({target: host, composedPath: () => [target('BUTTON'), host]})), true, 'bouton du lecteur');
 });
 
 test('raccourcis : la fenêtre s\'ouvre avec « ? », liste traduite, focus rendu au bouton', () => {

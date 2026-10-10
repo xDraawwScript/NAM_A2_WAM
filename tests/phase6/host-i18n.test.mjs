@@ -154,7 +154,9 @@ test('index.html : textes traduisibles balisés, textes anglais exigés par les 
   const main = await read('examples/wam/main.js');
   assert.match(main, /summary\.textContent = t\('input\.automated'\)/u, 'main.js traduit le résumé « Automated test results »');
   assert.match(main, /onLanguageChange\(\(\) => \{ applyTranslations\(\); relabelHost\(\); \}\)/u);
-  assert.match(main, /text = localizeMessage\(text\)/u, 'les messages du moteur passent par localizeMessage');
+  assert.match(main, /: \(\) => localizeMessage\(text\)/u, 'les messages du moteur passent par localizeMessage');
+  assert.match(main, /\$\('#hostStatus'\)\.textContent = hostStatusText\(\);/u, 'le statut lu par les lecteurs d\'écran est retraduit au changement de langue');
+  assert.doesNotMatch(main, /message\(t\(/u, 'un statut traduit est passé en fonction (() => t(…)) pour être retraduit');
 });
 
 test('chaque vue se retraduit au changement de langue', async () => {

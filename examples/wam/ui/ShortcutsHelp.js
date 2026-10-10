@@ -28,7 +28,10 @@ export function isTypingTarget(target) {
 
 /** La touche « ? » ouvre l'aide (Maj + , sur un clavier AZERTY, Maj + / sur un QWERTY : seul event.key compte). */
 export function isHelpKey(event) {
-  return event.key === '?' && !event.ctrlKey && !event.metaKey && !event.altKey && !isTypingTarget(event.target);
+  // Dans un shadow DOM (lecteur de backing tracks, GUI d'un plugin), event.target vu du document est
+  // l'hôte : on regarde tout le chemin de l'événement pour trouver le vrai champ de saisie.
+  const path = event.composedPath?.() ?? [];
+  return event.key === '?' && !event.ctrlKey && !event.metaKey && !event.altKey && ![event.target, ...path].some(isTypingTarget);
 }
 
 export function mountShortcutsHelp({button, onShowGuide, document: doc = globalThis.document}) {
