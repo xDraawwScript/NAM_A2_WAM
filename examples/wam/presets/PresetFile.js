@@ -7,6 +7,7 @@
 // son hash recalculé doit correspondre, sinon le fichier est refusé (fichier corrompu ou modifié).
 
 import {validatePreset, PresetError} from './PresetFormat.js';
+import {t} from '../ui/i18n.js';
 import {collectAssetRefs, sha256Hex, irSamplesHash} from './PresetAssets.js';
 
 export const FILE_FORMAT = 'nam-a2-preset-file';
@@ -22,7 +23,7 @@ export function floatsToBase64(samples) {
 
 export function base64ToFloats(text) {
   const binary = atob(String(text));
-  if (binary.length % 4) throw new PresetError('Invalid impulse response data');
+  if (binary.length % 4) throw new PresetError('Invalid impulse response data', 'invalidIr');
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return new Float32Array(bytes.buffer);
@@ -42,11 +43,11 @@ export function encodeAsset(asset) {
 /** Inverse d'encodeAsset (le hash n'est pas vérifié ici). */
 export function decodeAsset(item) {
   if (item?.kind === 'nam') {
-    if (typeof item.data !== 'string') throw new PresetError(`Amp model "${item.name}" is invalid`);
+    if (typeof item.data !== 'string') throw new PresetError(`Amp model "${item.name}" is invalid`, 'invalidModel', {name: item.name});
     return {hash: item.hash, kind: 'nam', name: String(item.name || 'model.nam'), data: item.data};
   }
   if (item?.kind === 'ir') return {hash: item.hash, kind: 'ir', name: String(item.name || 'cabinet.wav'), samples: base64ToFloats(item.samples)};
-  throw new PresetError('Unknown asset kind');
+  throw new PresetError('Unknown asset kind', 'unknownAssetKind');
 }
 
 /** Nom de fichier sûr à partir du nom du preset. */
@@ -68,7 +69,7 @@ export async function exportPresetFile(preset, {loadAsset, now = new Date()}) {
     if (ref.source !== 'store' || seen.has(ref.hash)) continue;
     seen.add(ref.hash);
     const asset = await loadAsset(ref.hash);
-    if (!asset) { warnings.push(`Asset ${ref.hash.slice(0, 12)}… is missing and was not exported.`); continue; }
+    if (!asset) { warnings.push(t('presets.warnings.notExported', {hash: ref.hash.slice(0, 12)})); continue; }
     assets.push({hash: asset.hash, ...encodeAsset(asset)});
   }
   const file = {format: FILE_FORMAT, version: FILE_VERSION, exportedAt: now.toISOString(), preset: valid, assets};
@@ -81,15 +82,15 @@ export async function exportPresetFile(preset, {loadAsset, now = new Date()}) {
  */
 export async function importPresetFile(text, {now = new Date(), newId = () => crypto.randomUUID()} = {}) {
   let file;
-  try { file = JSON.parse(text); } catch { throw new PresetError('The file is not valid JSON'); }
-  if (file?.format !== FILE_FORMAT) throw new PresetError('Not a NAM A2 preset file');
-  if (!Number.isInteger(file.version) || file.version > FILE_VERSION) throw new PresetError('Unsupported preset file version');
+  try { file = JSON.parse(text); } catch { throw new PresetError('The file is not valid JSON', 'invalidJson'); }
+  if (file?.format !== FILE_FORMAT) throw new PresetError('Not a NAM A2 preset file', 'notPresetFile');
+  if (!Number.isInteger(file.version) || file.version > FILE_VERSION) throw new PresetError('Unsupported preset file version', 'fileVersion');
   const preset = validatePreset(file.preset);
   const assets = [];
   for (const item of Array.isArray(file.assets) ? file.assets : []) {
     const asset = decodeAsset(item);
     const actual = asset.kind === 'nam' ? await sha256Hex(asset.data) : await irSamplesHash(asset.samples);
-    if (actual !== item.hash) throw new PresetError(`${asset.kind === 'nam' ? 'Amp model' : 'Cabinet IR'} "${asset.name}" is corrupted (hash mismatch)`);
+    if (actual !== item.hash) throw new PresetError(`${asset.kind === 'nam' ? 'Amp model' : 'Cabinet IR'} "${asset.name}" is corrupted (hash mismatch)`, asset.kind === 'nam' ? 'corruptedModel' : 'corruptedIr', {name: asset.name});
     assets.push(asset);
   }
   const provided = new Set(assets.map((asset) => asset.hash));
