@@ -19,7 +19,7 @@ Aucun fichier de `src/` (plugins NAM, Cabinet, WASM) ni de `examples/wam/wamPlug
 
 | Fonctionnalité | Détail |
 |---|---|
-| **Presets d'usine** | 7 sons prêts à jouer (Clean Deluxe, Ambient Clean, Crunch JCM800, Lead Soldano, High Gain 5150, Fuzz Muff, Bass SVT), en lecture seule, volumes égalisés |
+| **Presets d'usine** | 11 sons prêts à jouer (Clean Deluxe, Ambient Clean, Crunch JCM800, Lead Soldano, High Gain 5150, Fuzz Muff, Bass SVT, et 4 sons de morceaux : Killing in the Name, son solo, My Own Summer, Monster), en lecture seule, volumes égalisés |
 | **Presets dans le navigateur** (mode invité) | Enregistrer le son actuel (nom + tags), charger, renommer, mettre à jour, supprimer ; stockage IndexedDB |
 | **Indicateur « modifié »** | Le nom du preset courant s'affiche dans l'en-tête, suivi de `•` dès que le son change |
 | **Export / import** | Fichier `.json` autonome (modèles/IR externes inclus, hash vérifiés à l'import) |
@@ -48,7 +48,7 @@ Deux boutons ont été ajoutés dans l'en-tête du rack : **Compte** (« Se conn
 | Onglet Factory | Onglet My account |
 |---|---|
 | ![Onglet Factory](docs/screenshots/projet/02-onglet-factory.jpg) | ![Onglet My account](docs/screenshots/projet/03-onglet-mon-compte.jpg) |
-| 7 sons d'usine en lecture seule, avec description et résumé de la chaîne | Presets en ligne, badge *Private*/*Public*, bandeau de copie des presets du navigateur |
+| Sons d'usine en lecture seule (11 aujourd'hui), avec description et résumé de la chaîne | Presets en ligne, badge *Private*/*Public*, bandeau de copie des presets du navigateur |
 
 | Onglet Explore | Fenêtre Account |
 |---|---|
@@ -163,7 +163,7 @@ Navigateur — hôte WAM (examples/wam)                    Serveur (server/, Nod
 | `examples/wam/presets/` | Format, assets par hash, stockages, gestionnaire, fenêtres Presets/Explore, presets d'usine |
 | `examples/wam/account/` | Client de l'API, fenêtre Account, règles des comptes (partagées avec le serveur) |
 | `server/` | API Express : `models/` (User, Preset, Asset), `routes/` (auth, presets, assets), `test/` |
-| `tools/factory-presets/` | Générateur des presets d'usine |
+| `tools/factory-presets/` | Générateur des presets d'usine (recettes) et laboratoire de mesure du son (`tone-lab.js`) |
 | `examples/wam/ui/` | Interface commune (mission 8) : thème, polices, traduction (`i18n.js`, `locales/`, `hostMessages.js`), sélecteur de langue, notifications, confirmations, onglets, guide, aide des raccourcis, fond animé (`vendor/butterchurn/`) |
 | `docs/maquette/` | Maquette HTML des trois ambiances proposées |
 | `tests/phase5/` | Tests de l'hôte ajoutés par le projet (presets, comptes) |
@@ -185,7 +185,7 @@ Chaque mission a été faite sur sa propre branche (`feature/...`), testée, rel
 | 4 | Presets en ligne | Stockage « compte », privé/public, copie des presets locaux |
 | S | Revue de sécurité | Anti force brute, compte démo hors production, limite bcrypt, JWT HS256 |
 | 5 | Explorer | Presets publics : recherche, aperçu, chargement, copie |
-| 6 | Presets d'usine | 7 sons générés avec les vrais plugins, `SECURITE.md` |
+| 6 | Presets d'usine | 7 sons générés avec les vrais plugins (4 sons de morceaux ajoutés ensuite), `SECURITE.md` |
 | 7 | Finitions | Nettoyage du code (`/simplify`), ce rapport |
 | 8 | Refonte de l'interface | Maquette, thème « Tolex & Lampes », traduction FR/EN, nouvelle mise en page, guide, notifications, fond animé, audit d'accessibilité |
 
@@ -194,8 +194,8 @@ Chaque mission a été faite sur sa propre branche (`feature/...`), testée, rel
 | Suite | Commande | Résultat |
 |---|---|---|
 | Hôte — tests d'origine du projet | `npm test` (racine) | **146 / 146** ✅ (toujours verts) |
-| Hôte — tests ajoutés (`tests/phase5/`, 10 fichiers) : presets, comptes | `npm test` (racine) | **77 / 77** ✅ |
-| Hôte — tests ajoutés (`tests/phase6/`, 8 fichiers) : interface, traduction, accessibilité | `npm test` (racine) | **63 / 63** ✅ — total **286 / 286** |
+| Hôte — tests ajoutés (`tests/phase5/`, 10 fichiers) : presets, comptes | `npm test` (racine) | **78 / 78** ✅ |
+| Hôte — tests ajoutés (`tests/phase6/`, 8 fichiers) : interface, traduction, accessibilité | `npm test` (racine) | **63 / 63** ✅ — total **287 / 287** |
 | Backend (`server/test/`, MongoDB en mémoire) | `cd server && npm test` | **43 / 43** ✅ |
 
 La refonte (mission 8) n'a **modifié aucun test existant** : les tests du professeur et ceux des
@@ -292,7 +292,7 @@ cd server && npm install && npm start            # http://localhost:3000/api/hea
 npm run dist                                     # (ou build.bat sous Windows)
 
 # 3. Tests
-npm test                                         # hôte : 286 tests
+npm test                                         # hôte : 287 tests
 cd server && npm test                            # backend : 43 tests
 ```
 
