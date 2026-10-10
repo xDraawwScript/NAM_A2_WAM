@@ -1,4 +1,4 @@
-# Suivi du projet — Hôte NAM A2 WAM avec utilisateurs et presets
+Fond animé : désactivé et rien de téléchargé avant le clic, lecture seule de la sortie, 30 images/s, réduction des animations, sans WebGL 2, choix mémorisé, Butterchurn hébergé tel quel avec ses licences
 
 > Journal de bord tenu **au fil de l'eau** : ce qui est fait, pourquoi, comment ça marche,
 > comment le tester. Toutes les mesures de sécurité sont récapitulées dans [`SECURITE.md`](SECURITE.md). Le rendu final pour le prof est [`REPORT.md`](REPORT.md), rédigé à partir
@@ -903,8 +903,8 @@ refonte complète de la mise en page ; **maquette HTML avant de coder**.
 | 3 | Internationalisation : `ui/i18n.js`, `ui/locales/{en,fr}.js`, codes d'erreur du serveur, tests | ✅ |
 | 4 | Nouvelle mise en page, guide de démarrage, confirmations thémées, accessibilité, fond animé Butterchurn (option) | ✅ |
 | 5 | Traduction de tous les textes de l'hôte, retraduction en direct, codes des `PresetError` | ✅ |
-| 6 | Audit accessibilité, relecture des textes, parcours FR/EN, `/code-review`, `/simplify` | ⏳ |
-| 7 | SUIVI, REPORT, SECURITE, merge dans `develop` | ⏳ |
+| 6 | Audit accessibilité, relecture des textes, parcours FR/EN, `/code-review`, `/simplify`, chasse aux bugs | ✅ |
+| 7 | SUIVI, REPORT, SECURITE, merge dans `develop` | ✅ |
 
 **Inventaire de départ** (fait avant de coder, pour ne perdre aucune fonctionnalité) :
 - environ **600 textes anglais** répartis dans environ 25 fichiers, sans aucune i18n ;
@@ -1347,6 +1347,57 @@ enregistrée gardée, rien d'injecté) ; seule erreur console : le serveur de co
 le test (attendu).
 
 **Résultats** : hôte **286/286**, serveur **43/43**.
+
+#### Étape 7 : documentation et intégration (2026-10-10)
+
+- **REPORT.md** : nouvelle section **3.1 « Interface et internationalisation »** (ce qui change pour
+  l'utilisateur, comment c'est fait, 7 captures dans `docs/screenshots/interface/`). Mises à jour :
+  ligne « Interface FR / EN » dans les fonctionnalités, choix techniques (module de traduction
+  maison, thème par variables CSS), dossiers `ui/`, `docs/maquette/` et `tests/phase6/`, ligne
+  mission 8, chiffres des tests, décisions de l'étudiant, limites (contrastes dans les plugins, noms
+  des sons en anglais). Les anciennes captures (`docs/screenshots/projet/`) sont gardées et
+  présentées comme « avant la refonte ».
+- **SECURITE.md** : mesure **55** (langue de l'URL et du stockage filtrée par une liste blanche,
+  valeur brute jamais insérée). Les autres mesures de la mission étaient déjà notées au fil des
+  étapes : 50 (codes d'erreur du serveur sans fuite), 51-52 (confirmations, notifications, guide en
+  `textContent`), 53 (Butterchurn hébergé et vérifié), 54 (traductions jamais en `innerHTML`,
+  `detailCode` limité aux clés existantes). Correction au passage : le tableau « Serveur et
+  secrets » n'avait que 5 colonnes alors que les lignes 51 à 54 en avaient 6 (la colonne *Test*
+  disparaissait à l'affichage) ; l'en-tête a maintenant une colonne *Test*.
+
+**Tests de la mission 8 : ce qui a été ajouté ou modifié, et pourquoi**
+
+Aucun test existant (tests du professeur `phase3` à `phase4b`, tests `phase5` des missions 1 à 7,
+tests du serveur) **n'a été modifié** : `git diff develop -- tests server/test` ne montre que des
+fichiers nouveaux. Pour qu'ils restent verts, les textes anglais qu'ils vérifient sont restés dans
+`index.html` / `main.js` et sont traduits au chargement (voir étape 5).
+
+| Fichier (nouveau) | Tests | Pourquoi |
+|---|---|---|
+| `tests/phase6/theme.test.mjs` | 7 | Thème : chargé en premier, **contraste WCAG AA** sur toutes les surfaces, pas de couleurs en dur, texte ≥ 12 px, polices locales et licences, **plugins jamais restylés** (ni variables redéfinies, ni vignettes filtrées), pas de CSS mort |
+| `tests/phase6/i18n.test.mjs` | 12 | Dictionnaires FR/EN de mêmes clés et paramètres, interpolation, pluriels, détection de la langue (`?lang=`, stockage, navigateur), retraduction du DOM, paramètres JSON cassés |
+| `tests/phase6/confirm-dialog.test.mjs` | 6 | Fenêtre de confirmation : oui / non et retour du focus, Échap, texte jamais interprété comme du HTML, **plus aucun `confirm()` du navigateur** |
+| `tests/phase6/host-ui.test.mjs` | 7 | Onglets au clavier (flèches, Début / Fin), notifications (`textContent`, 3 au plus), guide « Pour commencer » (stockage bloqué ou corrompu), aide des raccourcis (« ? » ignoré pendant la saisie) |
+| `tests/phase6/layout.test.mjs` | 5 | Nouvelle mise en page : aucun élément retrouvé par son texte (la traduction le casserait), titres de fenêtres annoncés, onglets ARIA, en-tête en trois zones **sans perdre aucun identifiant** utilisé par le code et les tests |
+| `tests/phase6/visualizer.test.mjs` | 8 | Fond animé : désactivé et rien de téléchargé avant le clic, lecture seule de la sortie, 30 images/s, réduction des animations, sans WebGL 2, choix mémorisé, Butterchurn hébergé tel quel avec ses licences |
+| `tests/phase6/host-i18n.test.mjs` | 11 | Chaque vue traduite et retraduite, messages du moteur traduits, codes des `PresetError`, `detailCode` du serveur |
+| `tests/phase6/host-a11y.test.mjs` | 7 | Corrections de l'audit axe-core figées, nom affiché des cartes |
+| `tests/phase6/fakeDom.mjs` | — | Petit faux DOM partagé par ces tests (pas de dépendance ajoutée) |
+| `server/test/error-codes.test.js` | 6 | Chaque code d'erreur du serveur est déclaré ; `params` limités aux valeurs publiques ; `detailCode` des presets refusés |
+
+Modifications **à l'intérieur** de la mission (tests écrits pendant la mission puis ajustés) :
+- `host-i18n.test.mjs` : le test qui cherchait `text = localizeMessage(text)` dans `main.js` vérifie
+  maintenant la nouvelle forme (`message()` garde une fonction pour retraduire le statut). Il interdit
+  aussi `message(t(…))`, pour qu'aucun statut ne redevienne figé dans une langue (chasse aux bugs).
+- `host-ui.test.mjs` : cas ajoutés pour un champ dans un shadow DOM (« ? » tapé dans le filtre du
+  lecteur) ; contre-épreuve faite : échoue sans la correction.
+- `host-a11y.test.mjs` : test ajouté pour `displayName()` (chasse aux bugs).
+
+**Intégration** : commit et push de `feature/interface-design`, puis merge `--no-ff` dans `develop`
+et push (jamais `main`).
+
+**Résultats finaux mission 8** : hôte **286/286** (146 du professeur + 77 `phase5` + 63 `phase6`),
+serveur **43/43**.
 
 ---
 
