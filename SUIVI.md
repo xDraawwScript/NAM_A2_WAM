@@ -1329,6 +1329,25 @@ assumés (point de rupture validé par les captures, tests du même style que le
 
 **Résultats 6** : hôte **285/285**, serveur **43/43**.
 
+#### Chasse aux bugs (fin de l'étape 6, 2026-10-10)
+
+Sondes dans le navigateur (dist) : bascule FR ↔ EN répétée avec fenêtres ouvertes, mode complet à
+375 px, raccourcis clavier dans les champs, `?lang=` invalide, erreurs console. Trois bugs trouvés
+et corrigés :
+
+| Bug | Cause | Correction | Test |
+|---|---|---|---|
+| Le « + » avant une carte, la poubelle et la fenêtre « Retirer … ? » disaient « NeuralWAMp Amp Sim » alors que la carte affiche le modèle chargé (« Bogner Uberschall… ») | ces libellés utilisaient le nom du plugin, la légende le titre du modèle | `FxChainView.displayName()` : un seul calcul du nom, utilisé par la légende, le « + », la poubelle et la confirmation | `host-a11y.test.mjs` |
+| Après un changement de langue, le statut lu par les lecteurs d'écran (`#hostStatus`) restait dans l'ancienne langue | `message()` recevait un texte déjà traduit | `message()` accepte une fonction (`() => t(…)`), gardée et rappelée par `relabelHost()` (même principe que les vues) | `host-i18n.test.mjs` |
+| Taper « ? » dans le champ « Filtrer les morceaux » du lecteur ouvrait l'aide des raccourcis et le caractère était perdu | le lecteur est dans un shadow DOM : vu du document, `event.target` est l'élément `<backing-track-player>`, pas le champ | `isHelpKey` regarde tout `event.composedPath()` (marche aussi pour les GUI de plugins) | `host-ui.test.mjs` (contre-épreuve : échoue sans la correction) |
+
+Vérifié sans problème : pas de défilement horizontal à 375 px en mode complet (2 chaînes) ;
+fenêtre Presets retraduite entièrement quand elle est ouverte ; `?lang=de"><b>x` ignoré (langue
+enregistrée gardée, rien d'injecté) ; seule erreur console : le serveur de comptes éteint pendant
+le test (attendu).
+
+**Résultats** : hôte **286/286**, serveur **43/43**.
+
 ---
 
 ## 5. Mémo pratique

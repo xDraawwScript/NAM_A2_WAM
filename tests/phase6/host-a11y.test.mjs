@@ -47,3 +47,17 @@ test('compte : role=tabpanel sur un <div> qui enveloppe le formulaire (aria-allo
   assert.match(source, /el\('div', \{id: 'accountTabPanel'\}, form\)/u);
   assert.doesNotMatch(source, /el\('form', \{[^}]*id: 'accountTabPanel'/u);
 });
+
+test('carte : le « + », la poubelle et la confirmation annoncent le nom affiché (titre du modèle), pas celui du plugin', async () => {
+  const {FxChainView} = await import('../../examples/wam/FxChainView.js');
+  const name = (entry) => FxChainView.prototype.displayName.call(null, entry);
+  const nam = (metadata) => ({kind: 'nam', record: {name: 'NeuralWAMp Amp Sim'}, plugin: {audioNode: {getModelSnapshot: () => metadata}}});
+  assert.equal(name(nam({provenance: {title: 'Bogner Shiva'}, name: 'shiva.nam'})), 'Bogner Shiva');
+  assert.equal(name(nam({name: 'shiva.nam'})), 'shiva.nam');
+  assert.equal(name({kind: 'cabinet', record: {name: 'NeuralWAMp Cabinet'}, plugin: {audioNode: {getIrSnapshot: () => ({metadata: {title: 'Twin 2x12'}})}}}), 'Twin 2x12');
+  assert.equal(name({kind: 'effect', record: {name: 'Big Muff'}, plugin: {}}), 'Big Muff');
+  assert.equal(name({kind: 'nam', record: {name: 'NeuralWAMp Amp Sim'}}), 'NeuralWAMp Amp Sim', 'plugin pas encore chargé');
+  const source = await read('FxChainView.js');
+  assert.match(source, /card\.remove\.setAttribute\('aria-label',t\('chain\.removeNamed',\{name\}\)\);card\.insert\.setAttribute\('aria-label',t\('chain\.insertBefore',\{name\}\)\)/u);
+  assert.match(source, /confirmRemove\(id\) \{\n\s*const entry=this\.chain\.find\(id\),name=this\.displayName\(entry\);/u);
+});
