@@ -1493,7 +1493,7 @@ erreur dans la console et sans être marqué « modifié ».
 ## 6. Reste à faire / idées
 
 - Missions 0 à 8 terminées et fusionnées (voir tableau) ; `develop` fusionnée dans `main` le 2026-10-10.
-- Presets de morceaux (11 sons d'usine) fusionnés dans `develop` ; pas encore dans `main`.
+- Presets de morceaux (11 sons d'usine) fusionnés dans `develop` puis dans `main` le 2026-10-10 (accord de l'étudiant).
 - À vérifier à la main : jeu avec une vraie guitare et un vrai micro ; passage avec un lecteur d'écran (NVDA).
 - Idées hors périmètre : amis et partage privé, presets favoris, notes/likes, aperçu audio d'un
   preset, déploiement en ligne (backend + dist).
