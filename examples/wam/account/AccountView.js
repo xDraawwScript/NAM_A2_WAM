@@ -114,13 +114,13 @@ export class AccountView {
     const tab = (mode, key) => localize(el('button', {type: 'button', role: 'tab', id: `accountTab-${mode}`, class: `account-tab${this.mode === mode ? ' active' : ''}`, onclick: () => { if (this.mode === mode) return; this.mode = mode; this.setStatus(''); this.render(); this.body.querySelector(`#accountTab-${mode}`)?.focus(); }}), {text: key});
     const field = (key, attributes) => el('label', {class: 'account-field'}, localize(el('span'), {text: key}), el('input', {required: true, ...attributes}));
     const form = this.mode === 'signin'
-      ? el('form', {class: 'account-form', id: 'accountTabPanel', onsubmit: (event) => { event.preventDefault(); this.signIn(event.target.elements); }},
+      ? el('form', {class: 'account-form', onsubmit: (event) => { event.preventDefault(); this.signIn(event.target.elements); }},
         field('account.email', {name: 'email', type: 'email', autocomplete: 'email'}),
         field('account.password', {name: 'password', type: 'password', autocomplete: 'current-password'}),
         localize(el('button', {type: 'submit', class: 'presets-primary'}), {text: 'account.signIn'}),
         // Le compte démo n'existe qu'en développement : l'indice n'est montré qu'avec une API locale.
         isLocalApi(this.api.baseUrl) ? localize(el('p', {class: 'host-help'}), {text: 'account.demo'}) : null)
-      : el('form', {class: 'account-form', id: 'accountTabPanel', onsubmit: (event) => { event.preventDefault(); this.register(event.target.elements); }},
+      : el('form', {class: 'account-form', onsubmit: (event) => { event.preventDefault(); this.register(event.target.elements); }},
         field('account.username', {name: 'username', type: 'text', autocomplete: 'username', ...usernameInput}),
         el('p', {class: 'host-help account-username-help'}),
         field('account.emailPrivate', {name: 'email', type: 'email', autocomplete: 'email'}),
@@ -129,9 +129,11 @@ export class AccountView {
         localize(el('button', {type: 'submit', class: 'presets-primary'}), {text: 'account.create'}));
     const tabs = [tab('signin', 'account.signIn'), tab('register', 'account.create')];
     const tablist = localize(el('div', {class: 'account-tabs', role: 'tablist'}, ...tabs), {ariaLabel: 'account.tabs'});
-    syncTabs(tabs, tabs[this.mode === 'signin' ? 0 : 1], () => form);
+    // role=tabpanel n'est pas permis sur un <form> : le formulaire est enveloppé dans le panneau.
+    const panel = el('div', {id: 'accountTabPanel'}, form);
+    syncTabs(tabs, tabs[this.mode === 'signin' ? 0 : 1], () => panel);
     bindTabKeys(tablist);
-    return [tablist, form];
+    return [tablist, panel];
   }
 
   profileView(user) {

@@ -1282,6 +1282,53 @@ pseudo), Accordeur, lecteur de backing tracks ; aucune nouvelle erreur console.
 
 **Résultats 5** : hôte **279/279**, serveur **43/43**.
 
+#### Étape 6 : accessibilité, textes, parcours complet (2026-10-10)
+
+**Audit automatique (axe-core 4.10, règles WCAG 2.0/2.1 A et AA + bonnes pratiques)**, lancé sur
+la dist dans le navigateur, en FR puis en EN, dans tous les états : page, panneau Source, mode
+complet A + B, fenêtre de routage, Presets (usine / navigateur / explorer), Compte (connexion /
+création), raccourcis, éditeur d'effet, menu d'ajout. Corrections :
+
+| Règle axe | Problème | Correction |
+|---|---|---|
+| landmark-complementary-is-top-level | `<aside>` (bandes Entrée/Sortie, côtés de l'éditeur) dans `<main>` | `<section>` / `<div>` |
+| landmark-unique / landmark-no-duplicate-main | le lecteur de backing tracks avait son propre `<main>` et `<aside>` | `<div class="track-main">` / `<div class="library">` (CSS adapté) |
+| image-redundant-alt | photo d'une carte : alt = nom déjà écrit dessous | `alt=''` (le bouton garde « Ouvrir {nom} ») |
+| aria-required-attr | vumètres fins sans `aria-valuenow` avant la 1re image | valeur initiale −60 |
+| button-name | étiquette de dérivation vide visible avant le 1er rendu | cachée dès la création |
+| region | notifications hors de toute zone repère | `<section aria-label="Notifications">` (traduit) |
+| aria-allowed-role | `role=tabpanel` posé sur un `<form>` | le formulaire est enveloppé dans un `<div id="accountTabPanel">` |
+
+Résultat : **0 violation côté hôte** partout. **Limite connue** : axe signale encore des contrastes
+faibles dans les interfaces des plugins (éditeur NAM `.eq-value` 4,43 : 1, `.eq-hint` 3,63 : 1 ;
+accordeur wasabi `#pitch_unit` 1,61 : 1, `tabindex` > 0) ; le code des plugins est intouchable,
+c'est donc documenté et non corrigé.
+
+**Clavier** : parcours réel à la touche Tab : en-tête → guide → barre d'outils → bande d'entrée →
+cartes (+, bypass, retirer, photo) → bande de sortie → lecteur ; l'ordre est logique et chaque
+contrôle a un contour de focus visible (orange).
+
+**Mise en page** : à 1366 px, avec 2 modules, la carte de la chaîne dans l'en-tête faisait passer
+« SORTIE » à la ligne ; elle passe maintenant sous le logo jusqu'à 1600 px (avant : 1180 px).
+Captures FR/EN à 1440 px et 375 px dans `docs/screenshots/interface/` (pas de défilement horizontal
+à 375 px). Le gain d'entrée s'affiche au format de la langue dès le chargement (« 0,0 dB »).
+
+**Textes (relecture ux-copy)** : « Se connecter » au lieu de « Connexion » (le même texte sert
+d'onglet et de bouton d'envoi), « En bypass » / « Activer ou mettre en bypass » au lieu de
+« Bypassé », « Copier sur mon compte » / « Copy to my account » (aligné sur la version avec le nom).
+Gardés volontairement : « Réinit. » (boutons étroits ; leur nom accessible est complet),
+« Backing tracks » (terme d'usage chez les guitaristes), « Retirer » un plugin de la chaîne vs
+« Supprimer » un preset (le plugin n'est pas détruit, le preset si).
+
+**Revue de code / simplification** : 5 remarques mineures ; appliquée : le formatage du gain
+d'entrée, répété 4 fois dans `main.js`, passe par `showSourceTrim()`. Les autres sont des choix
+assumés (point de rupture validé par les captures, tests du même style que le reste de phase6).
+
+**Tests** : `tests/phase6/host-a11y.test.mjs` (6 tests) fige chaque correction ci-dessus
+(contre-épreuve : la zone de notifications remise en `<div>` fait échouer la suite).
+
+**Résultats 6** : hôte **285/285**, serveur **43/43**.
+
 ---
 
 ## 5. Mémo pratique

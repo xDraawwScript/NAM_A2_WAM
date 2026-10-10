@@ -44,6 +44,7 @@ export default {
   },
   toast: {
     close: 'Close the notification',
+    region: 'Notifications',
   },
   shortcuts: {
     title: 'Keyboard shortcuts',
@@ -423,7 +424,7 @@ export default {
       makePublicNamed: 'Make public: {name}',
       makePrivate: 'Make private',
       makePrivateNamed: 'Make private: {name}',
-      copy: 'Copy to account',
+      copy: 'Copy to my account',
       copyNamed: 'Copy {name} to my account',
       export: 'Export',
       exportNamed: 'Export {name}',
