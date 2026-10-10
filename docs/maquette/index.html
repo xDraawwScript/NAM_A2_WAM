@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maquette NAM A2 — 3 ambiances</title>
+<!-- Maquette autonome (mission 8, étape 1). Non copiée dans la dist.
+     Les polices viennent ici de Google Fonts pour la comparaison ;
+     dans l'appli elles seront auto-hébergées (étape 2). -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600;700&family=Oswald:wght@500;600&family=Permanent+Marker&family=Saira+Stencil+One&family=Yellowtail&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================
+   1. TOKENS PAR AMBIANCE
+   Même HTML pour les 3 ambiances : seul data-theme change.
+   ========================================================== */
+:root{
+  --gap:16px; --radius-s:4px; --radius-m:8px;
+  --fs-body:15px; --fs-small:13px; --fs-tiny:12px;
+  --focus:0 0 0 3px var(--bg), 0 0 0 5px var(--accent);
+}
+
+/* --- Ambiance 1 : Tolex & Lampes --------------------------- */
+[data-theme="tolex"]{
+  --bg:#191410;
+  --bg-texture:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --surface:#241d17; --surface-2:#2e251d; --line:#5a4a3a;
+  --piping:#e6d6ae;
+  --text:#f1e6c9; --text-muted:#c9b994; --text-on-plate:#1e1912;
+  --plate:repeating-linear-gradient(90deg,#cfc9bc 0 1px,#bfb8aa 1px 2px,#c8c1b3 2px 4px);
+  --accent:#ff9440; --accent-ink:#1d1206;
+  --ok:#62d26f; --bypass:#8f8370; --clip:#ff5a47; --error:#ff7a6b;
+  --font-logo:"Yellowtail",cursive;
+  --font-title:"Oswald","Arial Narrow",sans-serif;
+  --font-text:"Barlow",system-ui,sans-serif;
+  --font-tag:"Barlow",system-ui,sans-serif;
+  --card-radius:6px;
+}
+/* --- Ambiance 2 : Flight case ------------------------------ */
+[data-theme="flight"]{
+  --bg:#18191b;
+  --bg-texture:radial-gradient(circle at 1px 1px,#26282b 1px,transparent 1.6px) 0 0/6px 6px;
+  --surface:#202225; --surface-2:#2a2d31; --line:#5d646b;
+  --piping:#b9c0c7;
+  --text:#eef0f2; --text-muted:#b4bbc2; --text-on-plate:#15171a;
+  --plate:linear-gradient(180deg,#e1e5e9 0%,#aeb5bc 48%,#c7cdd3 52%,#9aa2aa 100%);
+  --accent:#ffd21f; --accent-ink:#151200;
+  --ok:#55d68a; --bypass:#8c949c; --clip:#ff5b4a; --error:#ff8173;
+  --font-logo:"Saira Stencil One",sans-serif;
+  --font-title:"Saira Stencil One",sans-serif;
+  --font-text:"Barlow Semi Condensed",system-ui,sans-serif;
+  --font-tag:"Permanent Marker",cursive;
+  --card-radius:3px;
+  --fs-body:16px;
+}
+/* --- Ambiance 3 : Scène ------------------------------------ */
+[data-theme="scene"]{
+  --bg:#030304;
+  --bg-texture:
+    radial-gradient(ellipse 45% 60% at 18% -8%,rgba(255,38,58,.30),transparent 70%),
+    radial-gradient(ellipse 40% 55% at 82% -6%,rgba(255,170,20,.24),transparent 70%),
+    radial-gradient(ellipse 70% 40% at 50% 110%,rgba(255,38,58,.10),transparent 70%);
+  --surface:#0f0f12; --surface-2:#18181d; --line:#3a3a44;
+  --piping:#3a3a44;
+  --text:#f4f1ea; --text-muted:#b9b3a8; --text-on-plate:#f4f1ea;
+  --plate:linear-gradient(180deg,#1b1b21,#121216);
+  --accent:#ffb21e; --accent-ink:#1a1000;
+  --red:#ff3047;
+  --ok:#3ee07a; --bypass:#7c7a85; --clip:#ff3047; --error:#ff6b7a;
+  --font-logo:"Anton",Impact,sans-serif;
+  --font-title:"Anton",Impact,sans-serif;
+  --font-text:"Archivo",system-ui,sans-serif;
+  --font-tag:"Archivo",system-ui,sans-serif;
+  --card-radius:10px;
+}
+
+/* ==========================================================
+   2. BASE
+   ========================================================== */
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{
+  margin:0; min-height:100vh;
+  background:var(--bg-texture),var(--bg);
+  background-attachment:fixed;
+  color:var(--text); font:400 var(--fs-body)/1.5 var(--font-text);
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:none;box-shadow:var(--focus);border-radius:var(--radius-s)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+h1,h2,h3{font-family:var(--font-title);font-weight:500;margin:0;line-height:1.15}
+p{margin:0}
+
+/* ==========================================================
+   3. BARRE DE LA MAQUETTE (hors appli)
+   ========================================================== */
+.mq-bar{
+  position:sticky;top:0;z-index:20;
+  display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;
+  padding:10px 16px;background:#f5f5f2;color:#1a1a1a;
+  font:500 14px/1.4 system-ui,sans-serif;border-bottom:1px solid #c9c9c4;
+}
+.mq-bar strong{font-weight:700}
+.mq-bar fieldset{border:0;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.mq-bar legend{float:left;margin-right:8px;padding-top:6px}
+.mq-bar label{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid #8a8a84;border-radius:999px;cursor:pointer;background:#fff}
+.mq-bar input{accent-color:#1a1a1a;margin:0}
+.mq-bar label:has(input:checked){background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.mq-bar label:has(input:focus-visible){outline:3px solid #2457d6;outline-offset:2px}
+.mq-bar .mq-desc{flex:1 1 320px;color:#3d3d3a;font-weight:400}
+
+/* ==========================================================
+   4. APPLI
+   ========================================================== */
+.app-main{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+.app{max-width:1360px;margin:0 auto;padding:20px 16px 64px;display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+
+/* ---- Header 3 zones ---- */
+.hdr{
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px 28px;
+  padding:14px 20px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);
+}
+.brand{display:flex;flex-direction:column;line-height:1}
+.logo{margin:0;font-weight:400;line-height:1;font-family:var(--font-logo);font-size:40px;color:var(--text);white-space:nowrap}
+.brand small{font-size:var(--fs-small);color:var(--text-muted);margin-top:4px}
+.signal{display:grid;gap:6px;min-width:0}
+.chainmap{display:flex;flex-wrap:wrap;align-items:center;gap:4px 0;margin:0;padding:0;list-style:none;font-size:var(--fs-small);font-weight:600}
+.chainmap li{display:flex;align-items:center;color:var(--text-muted)}
+.chainmap li+li::before{content:"";width:18px;height:2px;margin:0 6px;background:var(--line)}
+.chainmap .on{color:var(--text)}
+.chainmap .off{color:var(--bypass);text-decoration:line-through}
+.current{font-size:var(--fs-body);color:var(--text-muted)}
+.current strong{color:var(--text);font-weight:600}
+.dirty{color:var(--accent);font-weight:600;margin-left:6px}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;justify-content:flex-end}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:6px 14px;
+  border:1px solid var(--line);border-radius:var(--radius-s);background:var(--surface-2);
+  font-weight:600;font-size:var(--fs-body);
+}
+.btn svg{flex:none}
+.btn:hover{border-color:var(--accent)}
+.btn-primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn-danger{color:var(--error);border-color:currentColor;background:transparent}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--radius-s);overflow:hidden}
+.seg button{border:0;background:transparent;min-height:34px;padding:4px 12px;font-weight:600;font-size:var(--fs-small);color:var(--text-muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+
+/* ---- Guide de démarrage (vraie séquence : numéros justifiés) ---- */
+.guide{
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px 20px;
+  padding:12px 20px;border:1px dashed var(--accent);border-radius:var(--radius-m);background:var(--surface);
+}
+.guide h2{font-size:18px}
+.guide ol{display:flex;flex-wrap:wrap;gap:8px 24px;margin:0;padding:0;list-style:none;counter-reset:s}
+.guide li{counter-increment:s;display:flex;align-items:center;gap:8px;font-size:var(--fs-body)}
+.guide li::before{
+  content:counter(s);display:grid;place-items:center;width:26px;height:26px;border-radius:50%;
+  border:2px solid var(--accent);font-weight:700;font-size:var(--fs-small);color:var(--accent)
+}
+.guide li.done::before{content:"✓";background:var(--accent);color:var(--accent-ink)}
+.guide li.done{color:var(--text-muted)}
+.icon-btn{display:grid;place-items:center;width:36px;height:36px;border:1px solid transparent;border-radius:var(--radius-s);background:transparent;color:var(--text-muted)}
+.icon-btn:hover{border-color:var(--line);color:var(--text)}
+
+/* ---- Barre source ---- */
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.toolbar .hint{font-size:var(--fs-small);color:var(--text-muted);margin-left:auto}
+kbd{font:600 var(--fs-tiny)/1 var(--font-text);padding:3px 6px;border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;background:var(--surface-2)}
+.live[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#0b1a0e}
+
+/* ---- Rack ---- */
+.rack{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);padding:14px 16px 18px}
+.rack-head{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+.rack-head h2{font-size:22px}
+.rack-head p{font-size:var(--fs-small);color:var(--text-muted)}
+.rack-row{display:flex;align-items:stretch;gap:10px;overflow-x:auto;padding:4px 2px 8px}
+
+.endpoint{
+  flex:none;width:150px;display:grid;gap:10px;align-content:start;
+  padding:10px 12px;border-radius:var(--card-radius);background:var(--plate);color:var(--text-on-plate);
+}
+.endpoint h3{font-size:16px}
+.endpoint label{display:grid;gap:4px;font-size:var(--fs-tiny);font-weight:600}
+.endpoint select{width:100%;min-height:32px;padding:4px 6px;border:1px solid rgba(0,0,0,.45);border-radius:3px;background:rgba(255,255,255,.55);color:var(--text-on-plate);font-size:var(--fs-small)}
+.meter-row{display:flex;gap:12px;align-items:end}
+.meter{position:relative;width:14px;height:96px;border-radius:2px;background:#0e0e0e;overflow:hidden}
+.meter i{position:absolute;inset:auto 0 0 0;height:var(--lvl,60%);
+  background:linear-gradient(0deg,var(--ok) 0 70%,var(--accent) 70% 88%,var(--clip) 88%) bottom/100% 96px no-repeat}
+.readout{font-size:var(--fs-tiny);font-weight:600;font-variant-numeric:tabular-nums}
+.fader{display:grid;gap:4px;justify-items:center;font-size:var(--fs-tiny);font-weight:600}
+.fader input{writing-mode:vertical-lr;direction:rtl;width:24px;height:96px;accent-color:var(--accent)}
+
+.slot{
+  flex:none;align-self:center;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;
+  border:1px dashed var(--line);background:transparent;color:var(--text-muted);font-size:20px;line-height:1
+}
+.slot:hover{border-style:solid;border-color:var(--accent);color:var(--accent)}
+
+.card{
+  flex:none;width:172px;display:grid;grid-template-rows:auto auto 1fr;gap:8px;
+  padding:8px 10px 12px;border:1px solid var(--line);border-radius:var(--card-radius);background:var(--surface-2);
+  position:relative
+}
+.card-top{display:flex;align-items:center;gap:8px}
+.state{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:2px 8px;border:1px solid var(--line);border-radius:999px;background:transparent;font-size:var(--fs-tiny);font-weight:700}
+.led{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 6px var(--ok)}
+.card[data-state="bypass"] .led{background:var(--bypass);box-shadow:none}
+.card[data-state="bypass"] .state{color:var(--text-muted)}
+.card .icon-btn{margin-left:auto;width:32px;height:32px}
+.clip{font-size:var(--fs-tiny);font-weight:700;color:#1a0503;background:var(--clip);padding:1px 6px;border-radius:3px}
+
+.face{ /* vignette du plugin : apparence d origine, jamais habillée par le thème */
+  height:112px;border-radius:4px;display:grid;place-items:center;background:#000;overflow:hidden
+}
+.face img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.card-name{font-weight:600;font-size:var(--fs-small);line-height:1.3}
+.card-name small{display:block;font-weight:400;color:var(--text-muted);font-size:var(--fs-tiny)}
+
+.chain-b{display:none}
+body[data-mode="full"] .chain-b{display:block}
+
+/* ---- Toasts ---- */
+.toasts{display:flex;flex-wrap:wrap;gap:12px}
+.toast{display:flex;align-items:center;gap:12px;max-width:440px;padding:10px 14px;border-radius:var(--radius-s);background:var(--surface-2);border:1px solid var(--line);border-left:4px solid var(--ok);font-size:var(--fs-small)}
+.toast.err{border-left-color:var(--error)}
+.toast strong{display:block;font-size:var(--fs-body)}
+
+/* ---- Écrans (dialogs montrés à plat) ---- */
+.screens{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:20px;align-items:start}
+.dlg{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);overflow:hidden}
+.dlg-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.dlg-head h2{font-size:22px}
+.dlg-head .icon-btn{margin-left:auto}
+.dlg-body{padding:16px;display:grid;gap:16px}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--line);padding:0 16px}
+.tabs [role="tab"]{border:0;background:transparent;padding:10px 12px;min-height:40px;font-weight:600;color:var(--text-muted);border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs [role="tab"][aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
+.tab-note{font-size:var(--fs-small);color:var(--text-muted)}
+.field{display:grid;gap:4px;font-size:var(--fs-small);font-weight:600}
+.field input{min-height:38px;padding:6px 10px;border:1px solid var(--line);border-radius:var(--radius-s);background:var(--bg);font-size:var(--fs-body);font-weight:400}
+.field input::placeholder{color:var(--text-muted)}
+.save-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}
+.filter-row{display:flex;gap:10px;align-items:end}
+.filter-row .field{flex:1}
+
+.plist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.preset{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px 12px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-s);background:var(--surface-2)}
+.preset.is-current{border-color:var(--accent)}
+.pname{font-family:var(--font-tag);font-size:17px;font-weight:600;justify-self:start}
+.pmeta{grid-column:1;font-size:var(--fs-small);color:var(--text-muted)}
+.tags{display:inline-flex;gap:6px;margin-left:6px}
+.tag{font-size:var(--fs-tiny);padding:1px 7px;border:1px solid var(--line);border-radius:999px;color:var(--text)}
+.pactions{grid-column:2;grid-row:1/3;display:flex;gap:6px}
+.pactions .btn{min-height:32px;padding:4px 10px;font-size:var(--fs-small)}
+.badge{font-size:var(--fs-tiny);font-weight:700;padding:1px 7px;border-radius:3px;background:var(--accent);color:var(--accent-ink);margin-left:8px;font-family:var(--font-text)}
+
+.switch-link{font-size:var(--fs-small);color:var(--text-muted)}
+.switch-link a{color:var(--accent);font-weight:600}
+.err-msg{font-size:var(--fs-small);color:var(--error);display:flex;gap:6px}
+
+/* ---- Légende des états ---- */
+.legend{display:flex;flex-wrap:wrap;gap:10px 22px;font-size:var(--fs-small);color:var(--text-muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px}
+
+/* ==========================================================
+   5. DÉCORS PROPRES À CHAQUE AMBIANCE
+   ========================================================== */
+
+/* --- Tolex : liseré crème, plaques gravées, chicken-heads --- */
+[data-theme="tolex"] .hdr,
+[data-theme="tolex"] .rack,
+[data-theme="tolex"] .dlg{
+  border:0;background:var(--bg-texture),#211a14;
+  box-shadow:inset 0 0 0 2px var(--piping),inset 0 0 0 5px #211a14,inset 0 0 0 6px rgba(230,214,174,.35),0 8px 24px rgba(0,0,0,.5);
+}
+[data-theme="tolex"] .logo{color:var(--piping);text-shadow:0 2px 0 #000}
+[data-theme="tolex"] h2{letter-spacing:.03em}
+[data-theme="tolex"] .rack-head h2,[data-theme="tolex"] .dlg-head h2{color:var(--piping)}
+[data-theme="tolex"] .card{background:#2a211a;border-color:#4d3e30}
+[data-theme="tolex"] .endpoint{box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 2px 0 #000}
+[data-theme="tolex"] .meter{border-radius:3px;box-shadow:inset 0 0 0 2px #1e1912}
+[data-theme="tolex"] .btn-primary{box-shadow:0 0 14px rgba(255,148,64,.35)}
+[data-theme="tolex"] .guide{border:2px solid var(--piping);border-style:solid;background:#211a14}
+[data-theme="tolex"] .pname{font-family:var(--font-title);font-weight:500;letter-spacing:.02em}
+
+/* --- Flight case : profilés alu, rivets, pochoir, gaffer --- */
+[data-theme="flight"] .hdr,
+[data-theme="flight"] .rack,
+[data-theme="flight"] .dlg,
+[data-theme="flight"] .guide{
+  border:0;border-radius:3px;position:relative;
+  background:
+    radial-gradient(circle at 10px 10px,#eef1f3 0 2.5px,#6b737b 3px,transparent 4px),
+    radial-gradient(circle at calc(100% - 10px) 10px,#eef1f3 0 2.5px,#6b737b 3px,transparent 4px),
+    radial-gradient(circle at 10px calc(100% - 10px),#eef1f3 0 2.5px,#6b737b 3px,transparent 4px),
+    radial-gradient(circle at calc(100% - 10px) calc(100% - 10px),#eef1f3 0 2.5px,#6b737b 3px,transparent 4px),
+    radial-gradient(circle at 1px 1px,#2a2c30 1px,transparent 1.6px) 0 0/5px 5px,
+    #1e2023;
+  box-shadow:inset 0 0 0 5px #9aa2aa,inset 0 0 0 6px #e3e7ea,inset 0 0 0 7px #4a5057,0 6px 0 #0a0a0b;
+}
+[data-theme="flight"] .hdr,[data-theme="flight"] .rack,[data-theme="flight"] .guide{padding-left:24px;padding-right:24px}
+[data-theme="flight"] .logo{font-size:36px;color:var(--accent)}
+[data-theme="flight"] h2,[data-theme="flight"] h3{font-weight:400;letter-spacing:.04em}
+[data-theme="flight"] .card{background:#26292d;border:2px solid #5d646b}
+[data-theme="flight"] .card[data-state="active"]{border-color:#8d959d}
+[data-theme="flight"] .rack-head h2,[data-theme="flight"] .dlg-head h2{
+  /* étiquette gaffer sur le nom de la section */
+  font-family:var(--font-title);color:#16181a;background:#efe9d6;padding:4px 14px 2px;
+  clip-path:polygon(1% 6%,4% 0,97% 4%,100% 0,99% 94%,96% 100%,3% 96%,0 100%);transform:rotate(-1deg)
+}
+[data-theme="flight"] .pname,
+[data-theme="flight"] .current strong{
+  font-family:var(--font-tag);font-weight:400;color:#16181a;background:#efe9d6;padding:3px 12px 1px;
+  clip-path:polygon(0 8%,3% 0,96% 6%,100% 0,98% 92%,100% 100%,4% 95%,0 100%)
+}
+[data-theme="flight"] .preset:nth-child(2) .pname{transform:rotate(-1.2deg)}
+[data-theme="flight"] .preset:nth-child(3) .pname{transform:rotate(.8deg)}
+[data-theme="flight"] .btn-danger{
+  color:#16181a;border-color:#16181a;
+  background:repeating-linear-gradient(-45deg,var(--accent) 0 8px,#16181a 8px 16px);
+}
+[data-theme="flight"] .btn-danger span{background:var(--accent);padding:0 6px}
+[data-theme="flight"] .guide{box-shadow:inset 0 0 0 5px var(--accent),inset 0 0 0 7px #16181a}
+[data-theme="flight"] .slot{border-radius:3px}
+[data-theme="flight"] .tab-note,[data-theme="flight"] .pmeta{color:var(--text-muted)}
+
+/* --- Scène : projecteurs, halos, VU lumineux, affiche --- */
+[data-theme="scene"] .hdr,[data-theme="scene"] .rack,[data-theme="scene"] .dlg,[data-theme="scene"] .guide{background:rgba(12,12,15,.82);backdrop-filter:blur(2px)}
+[data-theme="scene"] .logo{font-size:44px;letter-spacing:.01em;line-height:.95;color:var(--text);text-shadow:0 0 24px rgba(255,48,71,.45)}
+[data-theme="scene"] h2{font-weight:400;letter-spacing:.02em}
+[data-theme="scene"] .rack-head h2{font-size:34px}
+[data-theme="scene"] .dlg-head h2{font-size:28px}
+[data-theme="scene"] .card{background:#141418;border-color:#2c2c34;transition:box-shadow .3s}
+[data-theme="scene"] .card[data-state="active"]{
+  box-shadow:0 -18px 40px -14px rgba(255,48,71,.55),0 18px 40px -16px rgba(255,178,30,.4);border-color:#4a3a3e
+}
+[data-theme="scene"] .card:nth-of-type(even)[data-state="active"]{
+  box-shadow:0 -18px 40px -14px rgba(255,178,30,.5),0 18px 40px -16px rgba(255,48,71,.35)
+}
+[data-theme="scene"] .endpoint{border:1px solid #2c2c34}
+[data-theme="scene"] .endpoint select{background:#08080a;color:var(--text);border-color:#3a3a44}
+[data-theme="scene"] .meter{background:#08080a;width:16px}
+[data-theme="scene"] .meter i{ /* VU à LED segmentées et lumineuses */
+  -webkit-mask:repeating-linear-gradient(0deg,#000 0 5px,transparent 5px 7px);
+          mask:repeating-linear-gradient(0deg,#000 0 5px,transparent 5px 7px);
+  filter:drop-shadow(0 0 4px var(--ok)) brightness(1.15)
+}
+[data-theme="scene"] .btn-primary{box-shadow:0 0 18px rgba(255,178,30,.45)}
+[data-theme="scene"] .guide{border-color:var(--red)}
+[data-theme="scene"] .guide li::before{border-color:var(--red);color:var(--text)}
+[data-theme="scene"] .guide li.done::before{background:var(--red);color:#fff}
+[data-theme="scene"] .tabs [role="tab"][aria-selected="true"]{border-bottom-color:var(--red)}
+[data-theme="scene"] .pname{font-family:var(--font-title);font-weight:400;font-size:20px;letter-spacing:.02em}
+
+/* ==========================================================
+   6. RESPONSIVE + MOUVEMENT RÉDUIT
+   ========================================================== */
+@media (max-width:1060px){
+  .hdr{grid-template-columns:1fr auto}
+  .signal{grid-column:1/-1;grid-row:2}
+  .screens{grid-template-columns:1fr}
+}
+@media (max-width:720px){
+  .mq-bar{position:static}
+  .hdr{grid-template-columns:1fr}
+  .actions{justify-content:flex-start}
+  .guide{grid-template-columns:1fr auto}
+  .guide ol{grid-column:1/-1;flex-direction:column}
+  .toolbar .hint{margin-left:0}
+  .rack-row{flex-direction:column;overflow:visible}
+  .endpoint,.card{width:100%}
+  .endpoint{grid-template-columns:1fr auto}
+  .endpoint h3{grid-column:1/-1}
+  .card{grid-template-columns:120px 1fr;grid-template-rows:auto auto}
+  .card-top{grid-column:1/-1}
+  .face{height:84px}
+  .slot{width:100%;height:32px;border-radius:var(--radius-s)}
+  .save-row{grid-template-columns:1fr}
+  .preset{grid-template-columns:1fr}
+  .pactions{grid-column:1;grid-row:auto;flex-wrap:wrap}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body data-theme="tolex" data-mode="beginner">
+
+<!-- Barre de comparaison : ne fait pas partie de l'appli -->
+<aside class="mq-bar" aria-label="Comparaison des ambiances">
+  <strong>Maquette NAM A2 · mission 8</strong>
+  <fieldset>
+    <legend>Ambiance</legend>
+    <label><input type="radio" name="theme" value="tolex" checked> 1. Tolex &amp; Lampes</label>
+    <label><input type="radio" name="theme" value="flight"> 2. Flight case</label>
+    <label><input type="radio" name="theme" value="scene"> 3. Scène</label>
+  </fieldset>
+  <p class="mq-desc" id="mqDesc" aria-live="polite"></p>
+</aside>
+
+<div class="app">
+
+  <!-- ============ HEADER : marque | signal | actions ============ -->
+  <header class="hdr">
+    <div class="brand">
+      <h1 class="logo">NAM A2</h1>
+      <small>Ampli neuronal et baffle</small>
+    </div>
+    <div class="signal">
+      <ol class="chainmap" aria-label="Chaîne du signal">
+        <li>Entrée</li><li class="on">NAM</li><li class="on">Baffle</li><li class="off" title="En bypass">Chorus</li><li class="on">Delay</li><li>Sortie</li>
+      </ol>
+      <p class="current">Preset : <strong>Ambient Clean</strong><span class="dirty">• modifié</span></p>
+    </div>
+    <nav class="actions" aria-label="Actions principales">
+      <button class="btn btn-primary" type="button" aria-haspopup="dialog">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg>Presets</button>
+      <button class="btn" type="button" aria-haspopup="dialog">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 3v7a5 5 0 0 0 10 0V3M12 15v6M10 21h4"/></svg>Accordeur</button>
+      <button class="btn" type="button" aria-haspopup="dialog">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Se connecter</button>
+      <div class="seg" role="group" aria-label="Mode d'affichage">
+        <button type="button" aria-pressed="true" data-mode="beginner">Débutant</button>
+        <button type="button" aria-pressed="false" data-mode="full">Complet</button>
+      </div>
+      <div class="seg" role="group" aria-label="Langue">
+        <button type="button" aria-pressed="true" lang="fr">FR</button>
+        <button type="button" aria-pressed="false" lang="en">EN</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="app-main">
+  <!-- ============ GUIDE DE DÉMARRAGE ============ -->
+  <section class="guide" aria-labelledby="guideTitle">
+    <h2 id="guideTitle">Pour commencer</h2>
+    <ol>
+      <li class="done">Choisir une source</li>
+      <li>Activer l'entrée live</li>
+      <li>Charger un preset d'usine</li>
+    </ol>
+    <button class="icon-btn" type="button" aria-label="Fermer le guide">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </section>
+
+  <!-- ============ SOURCE ============ -->
+  <div class="toolbar">
+    <button class="btn" type="button" aria-expanded="false">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>Source : entrée live</button>
+    <button class="btn live" type="button" aria-pressed="false" id="live">Activer l'entrée live</button>
+    <p class="hint">Glisser une carte pour la déplacer, <kbd>Alt</kbd> + <kbd>←</kbd> <kbd>→</kbd> au clavier · <kbd>?</kbd> raccourcis</p>
+  </div>
+
+  <!-- ============ RACK A ============ -->
+  <section class="rack" aria-labelledby="chainA">
+    <div class="rack-head"><h2 id="chainA">Chaîne A</h2><p>4 effets, dont 1 en bypass</p></div>
+    <div class="rack-row">
+      <section class="endpoint" aria-labelledby="inA">
+        <h3 id="inA">Entrée</h3>
+        <label>Périphérique<select><option>Audio input 1</option></select></label>
+        <div class="meter-row">
+          <div><div class="meter" role="meter" aria-label="Niveau d'entrée" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-12" style="--lvl:62%"><i></i></div><p class="readout">−12 dB</p></div>
+          <label class="fader">Gain<input type="range" min="-48" max="12" value="0" aria-label="Gain d'entrée"><span class="readout">0,0 dB</span></label>
+        </div>
+      </section>
+
+      <button class="slot" type="button" aria-label="Insérer un effet avant NAM">+</button>
+      <article class="card" data-state="active" aria-label="NAM, actif">
+        <div class="card-top"><button class="state" type="button" aria-pressed="true"><span class="led"></span>Actif</button>
+          <button class="icon-btn" type="button" aria-label="Retirer NAM"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
+        <div class="face"><img data-fallback="Fender Deluxe Reverb Reissue" alt=""></div>
+        <p class="card-name">Fender Deluxe Reverb Reissue<small>Iconic Clean A2</small></p>
+      </article>
+
+      <button class="slot" type="button" aria-label="Insérer un effet avant Baffle">+</button>
+      <article class="card" data-state="active" aria-label="Baffle, actif">
+        <div class="card-top"><button class="state" type="button" aria-pressed="true"><span class="led"></span>Actif</button><span class="clip">Clip</span>
+          <button class="icon-btn" type="button" aria-label="Retirer Baffle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
+        <div class="face"><img data-fallback="Celestion Vintage 30" alt=""></div>
+        <p class="card-name">Celestion Vintage 30<small>Mesa Boogie 4×12, SM57</small></p>
+      </article>
+
+      <button class="slot" type="button" aria-label="Insérer un effet avant Chorus">+</button>
+      <article class="card" data-state="bypass" aria-label="Chorus, en bypass">
+        <div class="card-top"><button class="state" type="button" aria-pressed="false"><span class="led"></span>Bypass</button>
+          <button class="icon-btn" type="button" aria-label="Retirer Chorus"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
+        <div class="face"><img src="img/chorus.png" alt=""></div>
+        <p class="card-name">Chorus<small>Pédale WAM</small></p>
+      </article>
+
+      <button class="slot" type="button" aria-label="Insérer un effet avant Delay">+</button>
+      <article class="card" data-state="active" aria-label="Delay, actif">
+        <div class="card-top"><button class="state" type="button" aria-pressed="true"><span class="led"></span>Actif</button>
+          <button class="icon-btn" type="button" aria-label="Retirer Delay"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
+        <div class="face"><img src="img/smoothdelay.png" alt=""></div>
+        <p class="card-name">Smooth Delay<small>Pédale WAM</small></p>
+      </article>
+      <button class="slot" type="button" aria-label="Insérer un effet à la fin">+</button>
+
+      <section class="endpoint" aria-labelledby="outA">
+        <h3 id="outA">Sortie</h3>
+        <label>Périphérique<select><option>Par défaut du système</option></select></label>
+        <div class="meter-row">
+          <div><div class="meter" role="meter" aria-label="Niveau de sortie" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-6" style="--lvl:80%"><i></i></div><p class="readout">−6 dB</p></div>
+          <label class="fader">Volume<input type="range" min="-48" max="12" value="0" aria-label="Volume de sortie"><span class="readout">0,0 dB</span></label>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ============ RACK B (mode complet) ============ -->
+  <section class="rack chain-b" aria-labelledby="chainB">
+    <div class="rack-head"><h2 id="chainB">Chaîne B</h2><p>Séparée après Baffle</p></div>
+    <div class="rack-row">
+      <section class="endpoint" aria-labelledby="inB"><h3 id="inB">Entrée B</h3><label>Depuis<select><option>Après Baffle (A)</option></select></label></section>
+      <button class="slot" type="button" aria-label="Insérer un effet dans la chaîne B">+</button>
+      <article class="card" data-state="active" aria-label="Reverb, actif">
+        <div class="card-top"><button class="state" type="button" aria-pressed="true"><span class="led"></span>Actif</button>
+          <button class="icon-btn" type="button" aria-label="Retirer Reverb"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
+        <div class="face"><img src="img/kbverb.png" alt=""></div>
+        <p class="card-name">Big Reverb<small>Pédale WAM</small></p>
+      </article>
+      <button class="slot" type="button" aria-label="Insérer un effet à la fin de la chaîne B">+</button>
+      <section class="endpoint" aria-labelledby="outB"><h3 id="outB">Sortie B</h3><label>Périphérique<select><option>Par défaut du système</option></select></label></section>
+    </div>
+  </section>
+
+  <!-- ============ NOTIFICATIONS ============ -->
+  <div class="toasts" role="status">
+    <div class="toast"><div><strong>Preset chargé</strong>« Ambient Clean » est prêt à jouer.</div></div>
+    <div class="toast err"><div><strong>Serveur injoignable</strong>Vos presets restent enregistrés dans ce navigateur. Réessayez dans un instant.</div></div>
+  </div>
+
+  <!-- ============ ÉCRANS : PRESETS + COMPTE ============ -->
+  <div class="screens">
+    <section class="dlg" aria-labelledby="dlgPresets">
+      <header class="dlg-head"><h2 id="dlgPresets">Presets</h2>
+        <button class="icon-btn" type="button" aria-label="Fermer les presets"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+      <div class="tabs" role="tablist" aria-label="Où sont rangés les presets">
+        <button role="tab" id="t1" aria-selected="false" aria-controls="p1" tabindex="-1">Usine</button>
+        <button role="tab" id="t2" aria-selected="false" aria-controls="p1" tabindex="-1">Ce navigateur</button>
+        <button role="tab" id="t3" aria-selected="true" aria-controls="p1">Mon compte</button>
+        <button role="tab" id="t4" aria-selected="false" aria-controls="p1" tabindex="-1">Explorer</button>
+      </div>
+      <div class="dlg-body" role="tabpanel" id="p1" aria-labelledby="t3">
+        <p class="tab-note">Presets enregistrés en ligne sur votre compte, disponibles sur tous vos appareils.</p>
+        <form class="save-row" onsubmit="return false">
+          <label class="field">Nom du preset<input value="Ambient Clean" ></label>
+          <label class="field">Tags<input placeholder="clean, ambient…"></label>
+          <button class="btn btn-primary" type="submit">Enregistrer</button>
+        </form>
+        <div class="filter-row"><label class="field">Filtrer mes presets<input type="search" placeholder="Nom ou tag"></label><button class="btn" type="button">Importer un fichier…</button></div>
+        <ul class="plist" aria-label="Mes presets">
+          <li class="preset is-current"><span class="pname">Ambient Clean<span class="badge">Chargé</span></span>
+            <p class="pmeta">Public · modifié le 9 oct. 2026<span class="tags"><span class="tag">clean</span><span class="tag">ambient</span></span></p>
+            <div class="pactions"><button class="btn" type="button">Charger</button><button class="btn" type="button">Renommer</button><button class="btn" type="button">Exporter</button><button class="btn btn-danger" type="button"><span>Supprimer</span></button></div></li>
+          <li class="preset"><span class="pname">Crunch du dimanche</span>
+            <p class="pmeta">Privé · modifié le 8 oct. 2026<span class="tags"><span class="tag">crunch</span></span></p>
+            <div class="pactions"><button class="btn" type="button">Charger</button><button class="btn" type="button">Renommer</button><button class="btn" type="button">Exporter</button><button class="btn btn-danger" type="button"><span>Supprimer</span></button></div></li>
+          <li class="preset"><span class="pname">Lead Mesa saturé</span>
+            <p class="pmeta">Privé · modifié le 2 oct. 2026<span class="tags"><span class="tag">lead</span><span class="tag">metal</span></span></p>
+            <div class="pactions"><button class="btn" type="button">Charger</button><button class="btn" type="button">Renommer</button><button class="btn" type="button">Exporter</button><button class="btn btn-danger" type="button"><span>Supprimer</span></button></div></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="dlg" aria-labelledby="dlgAccount">
+      <header class="dlg-head"><h2 id="dlgAccount">Compte</h2>
+        <button class="icon-btn" type="button" aria-label="Fermer le compte"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+      <form class="dlg-body" onsubmit="return false">
+        <p class="tab-note">Connectez-vous pour retrouver vos presets sur tous vos appareils et les partager.</p>
+        <label class="field">E-mail<input type="email" autocomplete="email" value="demo@example.com"></label>
+        <label class="field">Mot de passe<input type="password" autocomplete="current-password" value="xxxxxxxxx" aria-describedby="pwErr" aria-invalid="true"></label>
+        <p class="err-msg" id="pwErr">E-mail ou mot de passe incorrect.</p>
+        <button class="btn btn-primary" type="submit">Se connecter</button>
+        <p class="switch-link">Pas encore de compte ? <a href="#">Créer un compte</a></p>
+      </form>
+    </section>
+  </div>
+
+  <!-- ============ LÉGENDE DES ÉTATS ============ -->
+  <section class="legend" aria-label="Couleurs d'état">
+    <span><i class="sw" style="background:var(--ok)"></i>Actif</span>
+    <span><i class="sw" style="background:var(--bypass)"></i>Bypass</span>
+    <span><i class="sw" style="background:var(--clip)"></i>Clip (saturation)</span>
+    <span><i class="sw" style="background:var(--error)"></i>Erreur</span>
+    <span><i class="sw" style="background:var(--accent)"></i>Action principale, preset chargé</span>
+  </section>
+  </main>
+</div>
+
+<script>
+// Vignette générée par l hôte quand le plugin n a pas d image
+// (copie de fallbackThumbnail() de WamPluginRegistry.js, lecture seule)
+const stableHash=t=>{let h=2166136261;for(const c of t){h^=c.codePointAt(0);h=Math.imul(h,16777619);}return (h>>>0).toString(36);};
+function fallbackThumbnail(r){
+  const hue=parseInt(stableHash(r.id),36)%360;
+  const initials=r.name.replace(/[^\p{L}\p{N}\s]/gu,"").split(/\s+/u).slice(0,2).map(w=>w[0]||"").join("").toUpperCase()||"FX";
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="320" height="220"><defs><linearGradient id="g"><stop stop-color="hsl(${hue} 58% 32%)"/><stop offset="1" stop-color="#11121a"/></linearGradient></defs><rect width="100%" height="100%" rx="24" fill="url(#g)"/><circle cx="160" cy="94" r="48" fill="none" stroke="white" stroke-opacity=".7" stroke-width="7"/><text x="160" y="112" fill="white" text-anchor="middle" font-family="system-ui" font-size="42" font-weight="800">${initials}</text><text x="160" y="185" fill="white" fill-opacity=".78" text-anchor="middle" font-family="system-ui" font-size="17">WAM</text></svg>`;
+  return "data:image/svg+xml,"+encodeURIComponent(svg);
+}
+document.querySelectorAll("img[data-fallback]").forEach((img,i)=>img.src=fallbackThumbnail({id:["nam-1","cabinet-1"][i]||"fx",name:img.dataset.fallback}));
+
+// Comparaison des ambiances (#tolex, #flight, #scene dans l'URL pour les captures)
+const DESC = {
+  tolex: 'Ampli vintage : tolex noir texturé, liseré crème, plaques en métal brossé, accent orange « lampe chaude », LED vertes et rouges, logo en script.',
+  flight: 'Tournée : caisses en ABS noir, profilés alu et coins rivetés, titres au pochoir, noms de presets sur gaffer, accent jaune ; rayures danger réservées aux suppressions.',
+  scene: 'Concert : noir profond, projecteurs rouge et ambre, halo derrière les cartes actives, VU-mètres à LED lumineuses, titres condensés façon affiche.'
+};
+const radios = document.querySelectorAll('input[name="theme"]');
+function setTheme(t){
+  if(!DESC[t]) t = 'tolex';
+  document.body.dataset.theme = t;
+  document.getElementById('mqDesc').textContent = DESC[t];
+  radios.forEach(r => r.checked = r.value === t);
+  if (location.hash.slice(1) !== t) history.replaceState(null, '', '#' + t);
+}
+radios.forEach(r => r.addEventListener('change', () => setTheme(r.value)));
+setTheme(location.hash.slice(1));
+
+// Mode débutant / complet : montre la chaîne B
+document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
+  document.body.dataset.mode = b.dataset.mode;
+  document.querySelectorAll('button[data-mode]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+}));
+document.querySelectorAll('.seg[aria-label="Langue"] button').forEach(b => b.addEventListener('click', () =>
+  document.querySelectorAll('.seg[aria-label="Langue"] button').forEach(x => x.setAttribute('aria-pressed', String(x === b)))));
+
+// Bypass d'une carte et entrée live
+document.querySelectorAll('.card .state').forEach(b => b.addEventListener('click', () => {
+  const card = b.closest('.card'), on = card.dataset.state !== 'active';
+  card.dataset.state = on ? 'active' : 'bypass';
+  b.setAttribute('aria-pressed', String(on));
+  b.lastChild.textContent = on ? 'Actif' : 'Bypass';
+}));
+const live = document.getElementById('live');
+live.addEventListener('click', () => {
+  const on = live.getAttribute('aria-pressed') !== 'true';
+  live.setAttribute('aria-pressed', String(on));
+  live.textContent = on ? 'Entrée live activée' : "Activer l'entrée live";
+});
+
+// Onglets : flèches gauche/droite, Début/Fin
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+function selectTab(tab){
+  tabs.forEach(t => { const s = t === tab; t.setAttribute('aria-selected', String(s)); t.tabIndex = s ? 0 : -1; });
+  document.getElementById('p1').setAttribute('aria-labelledby', tab.id);
+  tab.focus();
+}
+tabs.forEach((t, i) => {
+  t.addEventListener('click', () => selectTab(t));
+  t.addEventListener('keydown', e => {
+    const n = {ArrowRight:i+1, ArrowLeft:i-1, Home:0, End:tabs.length-1}[e.key];
+    if (n === undefined) return;
+    e.preventDefault(); selectTab(tabs[(n + tabs.length) % tabs.length]);
+  });
+});
+</script>
+</body>
+</html>

@@ -1,2 +1,4 @@
 *.jpg binary
 *.png binary
+*.woff2 binary
+examples/wam/ui/vendor/** -text

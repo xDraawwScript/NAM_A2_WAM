@@ -14,29 +14,33 @@ export const TAGS_MAX = 10;
 export const TAG_MAX = 24;
 
 export class PresetError extends Error {
-  constructor(message) { super(message); this.name = 'PresetError'; }
+  /**
+   * `code` (ex. 'nameTooLong') et `params` (ex. {max: 80}) permettent à l'interface d'afficher le message
+   * dans la langue choisie (clé errors.preset.<code>) ; `message` reste en anglais (serveur, tests, logs).
+   */
+  constructor(message, code = null, params = {}) { super(message); this.name = 'PresetError'; this.code = code; this.params = params; }
 }
 
 const clean = (value) => String(value ?? '').trim();
 
 export function normalizeName(name) {
   const value = clean(name).replace(/\s+/gu, ' ');
-  if (!value) throw new PresetError('Preset name is required');
-  if (value.length > NAME_MAX) throw new PresetError(`Preset name is limited to ${NAME_MAX} characters`);
+  if (!value) throw new PresetError('Preset name is required', 'nameRequired');
+  if (value.length > NAME_MAX) throw new PresetError(`Preset name is limited to ${NAME_MAX} characters`, 'nameTooLong', {max: NAME_MAX});
   return value;
 }
 
 export function normalizeDescription(description = '') {
   const value = clean(description);
-  if (value.length > DESCRIPTION_MAX) throw new PresetError(`Description is limited to ${DESCRIPTION_MAX} characters`);
+  if (value.length > DESCRIPTION_MAX) throw new PresetError(`Description is limited to ${DESCRIPTION_MAX} characters`, 'descriptionTooLong', {max: DESCRIPTION_MAX});
   return value;
 }
 
 export function normalizeTags(tags = []) {
-  if (!Array.isArray(tags)) throw new PresetError('Tags must be a list');
+  if (!Array.isArray(tags)) throw new PresetError('Tags must be a list', 'tagsNotList');
   const unique = [...new Set(tags.map((tag) => clean(tag).toLocaleLowerCase('en-US').replace(/\s+/gu, ' ')).filter(Boolean))];
-  if (unique.length > TAGS_MAX) throw new PresetError(`A preset has at most ${TAGS_MAX} tags`);
-  if (unique.some((tag) => tag.length > TAG_MAX)) throw new PresetError(`A tag is limited to ${TAG_MAX} characters`);
+  if (unique.length > TAGS_MAX) throw new PresetError(`A preset has at most ${TAGS_MAX} tags`, 'tooManyTags', {max: TAGS_MAX});
+  if (unique.some((tag) => tag.length > TAG_MAX)) throw new PresetError(`A tag is limited to ${TAG_MAX} characters`, 'tagTooLong', {max: TAG_MAX});
   return unique;
 }
 
@@ -61,13 +65,13 @@ export function portableRack(rack) {
 
 /** Vérifie la forme du state du rack (FxRack v2 / FxChain v1) sans dépendre de l'audio. */
 export function validateRack(rack) {
-  if (!rack || rack.version !== 2) throw new PresetError('Unsupported rack state version');
-  if (!rack.a || rack.a.version !== 1 || !Array.isArray(rack.a.entries)) throw new PresetError('Chain A is missing or invalid');
-  if (rack.b && (rack.b.version !== 1 || !Array.isArray(rack.b.entries))) throw new PresetError('Chain B is invalid');
+  if (!rack || rack.version !== 2) throw new PresetError('Unsupported rack state version', 'rackVersion');
+  if (!rack.a || rack.a.version !== 1 || !Array.isArray(rack.a.entries)) throw new PresetError('Chain A is missing or invalid', 'chainAInvalid');
+  if (rack.b && (rack.b.version !== 1 || !Array.isArray(rack.b.entries))) throw new PresetError('Chain B is invalid', 'chainBInvalid');
   const ids = new Set();
   for (const entry of rackEntries(rack)) {
-    if (!entry?.id || !['nam', 'cabinet', 'effect'].includes(entry.kind)) throw new PresetError('Invalid plugin entry');
-    if (ids.has(entry.id)) throw new PresetError('Duplicate plugin entry ID');
+    if (!entry?.id || !['nam', 'cabinet', 'effect'].includes(entry.kind)) throw new PresetError('Invalid plugin entry', 'invalidEntry');
+    if (ids.has(entry.id)) throw new PresetError('Duplicate plugin entry ID', 'duplicateEntry');
     ids.add(entry.id);
   }
   return rack;
@@ -133,18 +137,18 @@ export function createPreset({rack, name, description = '', tags = [], nameForUr
  */
 export function migratePreset(preset) {
   const copy = structuredClone(preset);
-  if (copy.version > PRESET_VERSION) throw new PresetError(`Preset version ${copy.version} is newer than this app (max ${PRESET_VERSION})`);
+  if (copy.version > PRESET_VERSION) throw new PresetError(`Preset version ${copy.version} is newer than this app (max ${PRESET_VERSION})`, 'versionTooNew', {version: copy.version, max: PRESET_VERSION});
   // Exemple de migration future : if (copy.version === 1) { ...; copy.version = 2; }
   return copy;
 }
 
 /** Valide (et migre si besoin) un objet reçu d'IndexedDB, d'un fichier ou de l'API. */
 export function validatePreset(value) {
-  if (!value || typeof value !== 'object') throw new PresetError('Not a preset');
-  if (value.format !== PRESET_FORMAT) throw new PresetError('Not a NAM A2 preset');
-  if (!Number.isInteger(value.version) || value.version < 1) throw new PresetError('Invalid preset version');
+  if (!value || typeof value !== 'object') throw new PresetError('Not a preset', 'notPreset');
+  if (value.format !== PRESET_FORMAT) throw new PresetError('Not a NAM A2 preset', 'notNamPreset');
+  if (!Number.isInteger(value.version) || value.version < 1) throw new PresetError('Invalid preset version', 'invalidVersion');
   const preset = migratePreset(value);
-  if (!clean(preset.id)) throw new PresetError('Preset ID is missing');
+  if (!clean(preset.id)) throw new PresetError('Preset ID is missing', 'idMissing');
   preset.name = normalizeName(preset.name);
   preset.description = normalizeDescription(preset.description);
   preset.tags = normalizeTags(preset.tags || []);

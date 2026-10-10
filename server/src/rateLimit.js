@@ -8,7 +8,7 @@ import { HttpError } from "./auth.js";
  * avec l'en-tête Retry-After. Suffisant pour un seul serveur ; avec plusieurs serveurs, il faudrait
  * un stockage partagé (Redis…).
  */
-export function rateLimit({ windowMs, max, message }) {
+export function rateLimit({ windowMs, max, message, code }) {
   const hits = new Map(); // ip → { count, resetAt }
   const middleware = (req, res, next) => {
     const now = Date.now();
@@ -22,7 +22,7 @@ export function rateLimit({ windowMs, max, message }) {
     if (entry.count > max) {
       res.set("Retry-After", String(Math.ceil((entry.resetAt - now) / 1000)));
       console.warn(`[security] Trop de tentatives (${req.method} ${req.path}) depuis ${key}`);
-      return next(new HttpError(429, message));
+      return next(new HttpError(429, message, code));
     }
     // Ménage occasionnel pour que la table ne grossisse pas indéfiniment.
     if (hits.size > 10000) for (const [ip, value] of hits) if (value.resetAt <= now) hits.delete(ip);

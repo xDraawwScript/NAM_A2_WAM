@@ -11,6 +11,7 @@
 // avant `rack.setState()`. Les plugins ne sont jamais modifiés : on ne manipule que leurs states.
 
 import {rackEntries} from './PresetFormat.js';
+import {t} from '../ui/i18n.js';
 
 /** Les deux sortes d'assets : modèle d'ampli (.nam) et réponse impulsionnelle de cabinet (IR). */
 export const ASSET_KINDS = ['nam', 'ir'];
@@ -190,7 +191,7 @@ export async function hydrateRack(rack, {factory = null, loadAsset}) {
         state.model = {...model, data};
       } catch (error) {
         delete state.model;
-        warnings.push(`Amp model "${model.name || assetRef.id || assetRef.hash}" unavailable (${error.message}); the current model was kept.`);
+        warnings.push(t('presets.warnings.modelUnavailable', {name: model.name || assetRef.id || assetRef.hash, detail: error.message}));
       }
     }
     if (state?.ir?.assetRef) {
@@ -201,7 +202,7 @@ export async function hydrateRack(rack, {factory = null, loadAsset}) {
         state.ir = {...ir, samples: Array.from(samples)};
       } catch (error) {
         delete state.ir;
-        warnings.push(`Cabinet IR "${ir.name || assetRef.id || assetRef.hash}" unavailable (${error.message}); the current IR was kept.`);
+        warnings.push(t('presets.warnings.irUnavailable', {name: ir.name || assetRef.id || assetRef.hash, detail: error.message}));
       }
     }
   }));

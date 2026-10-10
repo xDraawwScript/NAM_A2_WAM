@@ -1,100 +1,188 @@
-:root {
-  color-scheme: dark;
-  --host-bg: #090a0d; --host-card: #1b1a21; --host-line: #302d39;
-  --host-text: #f1eef7; --host-muted: #8f8a9a; --host-accent: #9f82ff;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
+/* Hôte NAM A2 : mise en page et habillage. Couleurs, polices et formes : ui/theme.css. */
+:root { font-family: var(--font-text); }
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
-body { margin: 0; color: var(--host-text); background: var(--host-bg); }
+body { margin: 0; color: var(--text); background: var(--bg-texture), var(--bg); font-size: var(--fs-m); line-height: 1.45; -webkit-font-smoothing: antialiased; }
 button, select, input { font: inherit; }
-button, select { color: var(--host-text); background: #111116; border: 1px solid var(--host-line); border-radius: 8px; }
-button { min-height: 34px; padding: 0 12px; cursor: pointer; }
-button:hover { border-color: #655c78; background: #1a1821; }
-button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--host-accent); outline-offset: 2px; }
-button:disabled, select:disabled, input:disabled { cursor: not-allowed; opacity: .45; }
+
+/* Styles de base de l'hôte. :where() = spécificité nulle, et les zones où s'affichent les
+   interfaces des plugins (.fx-editor-mount, .tuner-mount) sont exclues : voir plus bas. */
+:where(button, select):where(:not(.fx-editor-mount *, .tuner-mount *)) { color: var(--text); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-s); }
+:where(button):where(:not(.fx-editor-mount *, .tuner-mount *)) { min-height: 34px; padding: 0 12px; font-weight: 600; cursor: pointer; }
+:where(button):where(:not(.fx-editor-mount *, .tuner-mount *)):hover { border-color: var(--accent); }
+:where(button, select, input, summary, a):where(:not(.fx-editor-mount *, .tuner-mount *)):focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+:where(button, select, input):where(:not(.fx-editor-mount *, .tuner-mount *)):disabled { cursor: not-allowed; opacity: .45; }
+:where(kbd):where(:not(.fx-editor-mount *, .tuner-mount *)) { display: inline-block; min-width: 1.6em; padding: 1px 6px; color: var(--text); background: var(--surface-sunk); border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: var(--radius-s); font: 600 var(--fs-xs)/1.4 var(--font-mono); text-align: center; }
+
+/* Interfaces des plugins : elles gardent exactement l'environnement d'avant le thème
+   (police, couleur et styles de base des boutons), pour ne pas changer leur apparence. */
+.fx-editor-mount { color: #eee; }
+.tuner-mount { color: #f1eef7; }
+.fx-editor-mount, .tuner-mount { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 16px; line-height: normal; }
+:where(.fx-editor-mount, .tuner-mount) :where(button, select) { color: #f1eef7; background: #111116; border: 1px solid #302d39; border-radius: 8px; }
+:where(.fx-editor-mount, .tuner-mount) :where(button) { min-height: 34px; padding: 0 12px; cursor: pointer; }
+:where(.fx-editor-mount, .tuner-mount) :where(button):hover { border-color: #655c78; background: #1a1821; }
+:where(.fx-editor-mount, .tuner-mount) :where(button, select, input, summary):focus-visible { outline: 2px solid #9f82ff; outline-offset: 2px; }
+:where(.fx-editor-mount, .tuner-mount) :where(button, select, input):disabled { cursor: not-allowed; opacity: .45; }
+
+/* ---- Panneau « Source audio » (entrée, fichier, sortie, session) : s'ouvre à gauche du rack ---- */
 .host-shell { min-height: 100vh; display: grid; grid-template-columns: 286px minmax(0, 1fr); }
-.host-sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 20px 16px; background: #111116; border-right: 1px solid #28262f; scrollbar-width: thin; }
-.host-brand { padding: 0 4px 17px; margin-bottom: 16px; border-bottom: 1px solid #28262f; }
-.host-brand h1 { margin: 1px 0 3px; color: #b09aff; font-size: 21px; letter-spacing: -.02em; }
-.host-brand p:not(.host-kicker) { margin: 0; color: var(--host-muted); font-size: 12px; }
-.host-lab-link { display: inline-block; margin-top: 9px; color: #bcaeff; font-size: 10px; text-decoration: none; }
-.host-lab-link:hover { color: #e0d9ff; }
-.host-kicker, .rack-kicker { margin: 0; color: #777180; font-size: 9px; font-weight: 800; letter-spacing: .2em; }
-.host-card { margin: 0 0 12px; padding: 13px 14px; background: var(--host-card); border: 1px solid var(--host-line); border-radius: 12px; box-shadow: inset 0 1px rgba(255,255,255,.025); }
-.host-card h2 { display: flex; align-items: center; gap: 7px; margin: 0 0 11px; color: #aaa4b4; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
-.host-dot { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
-.host-dot.violet { color: #a986ff; background: currentColor; }
-.host-dot.amber { color: #e4bd61; background: currentColor; }
-.host-dot.rose { color: #df7891; background: currentColor; }
-.host-card > label { display: grid; gap: 5px; margin-top: 9px; color: #aaa4b4; font-size: 11px; }
-.host-card select { width: 100%; min-height: 37px; padding: 0 10px; }
-.host-secondary { width: 100%; margin-top: 9px; color: #c6b9ed; }
-.live-toggle { color: #baf7cf; background: #10261a; border-color: #2d8150; font-weight: 750; }
-.live-toggle:hover { color: #d8ffe5; background: #163522; border-color: #48ae70; }
-.live-toggle.live-active { color: #ffd0d7; background: #36151c; border-color: #a74758; box-shadow: 0 0 13px rgba(203,65,86,.18); }
-.live-toggle.live-active:hover { color: #fff0f2; background: #481b24; border-color: #dc6075; }
+.host-shell.sidebar-collapsed { grid-template-columns: minmax(0, 1fr); }
+.host-sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 18px 16px; background: var(--bg-texture), var(--panel); border-right: 2px solid var(--piping); scrollbar-width: thin; }
+.host-sidebar[hidden] { display: none; }
+.drawer-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 14px; }
+.drawer-head h2 { margin: 0; color: var(--piping); font: 500 var(--fs-l)/1.2 var(--font-title); letter-spacing: .03em; }
+.drawer-close { width: 36px; padding: 0; font-size: 20px; line-height: 1; }
+.host-card { margin: 0 0 12px; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); }
+.host-card h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; color: var(--piping); font: 500 var(--fs-m)/1.2 var(--font-title); letter-spacing: .03em; }
+.host-dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
+.host-dot.violet { color: var(--accent); background: currentColor; }
+.host-dot.amber { color: var(--warn); background: currentColor; }
+.host-card > label { display: grid; gap: 4px; margin-top: 10px; color: var(--text-muted); font-size: var(--fs-s); font-weight: 600; }
+.host-card select { width: 100%; min-height: 36px; padding: 0 10px; background: var(--surface-sunk); }
+.host-secondary { width: 100%; margin-top: 10px; }
 .host-range { grid-template-columns: 1fr auto; align-items: center; }
-.host-range input { grid-column: 1 / -1; width: 100%; accent-color: var(--host-accent); }
-.host-range output { color: #d7d0e5; font-variant-numeric: tabular-nums; }
-.host-help { margin: 8px 0 0; color: #777180; font-size: 10px; line-height: 1.35; }
-.embedded-player { margin-top: 10px; padding: 10px; background: #131218; border: 1px solid #34303d; border-radius: 9px; }
+.host-range input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+.host-range output { color: var(--text); font-variant-numeric: tabular-nums; }
+.host-help { margin: 8px 0 0; color: var(--text-muted); font-size: var(--fs-xs); line-height: 1.4; }
+.embedded-player { margin-top: 10px; padding: 10px; background: var(--surface-sunk); border: 1px solid var(--line); border-radius: var(--radius-m); }
 .embedded-player[hidden] { display: none; }
-.embedded-player-title { display: flex; align-items: center; gap: 7px; margin: 0 0 9px; color: #aaa4b4; font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.embedded-player > .host-range { display: grid; gap: 5px; margin-top: 9px; color: #aaa4b4; font-size: 11px; }
+.embedded-player-title { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: var(--piping); font: 500 var(--fs-s)/1.2 var(--font-title); letter-spacing: .03em; }
+.embedded-player > .host-range { display: grid; gap: 4px; margin-top: 10px; color: var(--text-muted); font-size: var(--fs-s); }
 .transport { display: grid; grid-template-columns: repeat(3, 36px) 1fr; gap: 6px; align-items: center; }
 .transport button { padding: 0; }
-.loop-control { justify-self: end; color: #aaa4b4; font-size: 11px; white-space: nowrap; }
-.loop-control input { accent-color: var(--host-accent); }
-.host-advanced summary { color: #aaa4b4; cursor: pointer; font-size: 11px; font-weight: 700; letter-spacing: .05em; }
+.loop-control { justify-self: end; color: var(--text-muted); font-size: var(--fs-s); white-space: nowrap; }
+.loop-control input { accent-color: var(--accent); }
+.host-advanced summary { color: var(--piping); cursor: pointer; font: 500 var(--fs-s)/1.2 var(--font-title); letter-spacing: .03em; }
 .host-session-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 12px; }
-.host-session-actions button { padding: 0 6px; font-size: 11px; }
+.host-session-actions button { padding: 0 6px; font-size: var(--fs-xs); }
 .validation-panel { margin-top: 10px; }
-.validation-panel code { color: #c6b9ed; font: inherit; }
-.validation-panel pre { max-height: 220px; overflow: auto; padding: 8px; color: #a9d7b0; background: #0c0d0f; border-radius: 7px; font: 10px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }
-.host-status { position: sticky; bottom: -1px; z-index: 2; margin: 14px 0 0; padding: 10px; color: #aaa4b4; background: rgba(17,17,22,.96); border: 1px solid #302d39; border-radius: 9px; font-size: 11px; line-height: 1.4; }
-.host-status.error { color: #ff9fae; border-color: #7f3c4c; }
-.rack-stage { min-width: 0; min-height: 100vh; padding: clamp(20px, 3vw, 42px); background: radial-gradient(circle at 50% 15%, #16151c 0, #0b0c0f 42%, #08090b 100%); }
-.rack-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 20px; max-width: 1320px; margin: 0 auto 22px; }
-.rack-header h2 { margin: 3px 0 0; font-size: 24px; letter-spacing: -.03em; }
-.chain-map { display: flex; align-items: center; gap: 8px; color: #777180; font-size: 9px; letter-spacing: .1em; }
-.chain-map strong { color: #c7bfd2; font-size: 10px; }
-.chain-map i { width: 22px; height: 1px; background: #4b4655; }
-.rack-grid { display: grid; grid-template-columns: minmax(480px, 1.35fr) 28px minmax(360px, 1fr); align-items: start; max-width: 1320px; margin: 0 auto; }
-.rack-slot { min-width: 0; }
-.rack-connector { align-self: center; display: grid; place-items: center; color: #716a7d; font-size: 20px; }
-.rack-slot > * { width: 100%; }
-@media (max-width: 1060px) {
-  .rack-grid { grid-template-columns: 1fr; gap: 14px; }
-  .rack-connector { display: none; }
-  .rack-header { align-items: start; flex-direction: column; }
-}
-@media (max-width: 720px) {
-  .host-shell { grid-template-columns: 1fr; }
-  .host-sidebar { position: static; height: auto; overflow: visible; border-right: 0; border-bottom: 1px solid #28262f; }
-  .rack-stage { min-height: auto; padding: 18px 12px 28px; }
-  .chain-map { flex-wrap: wrap; }
-}
+.validation-panel summary { color: var(--text-muted); font-size: var(--fs-s); cursor: pointer; }
+.validation-panel code { color: var(--accent); font: inherit; }
+.validation-panel pre { max-height: 220px; overflow: auto; padding: 8px; color: var(--ok); background: var(--surface-sunk); border-radius: var(--radius-s); font: var(--fs-xs)/1.45 var(--font-mono); white-space: pre-wrap; }
+.host-lab-link { display: inline-block; margin: 4px 4px 0; color: var(--accent); font-size: var(--fs-s); font-weight: 600; }
+.host-lab-link:hover { color: var(--text); }
 
-/* The host controls start closed; the rack retains all available width. */
-.host-shell.sidebar-collapsed { grid-template-columns: minmax(0, 1fr); }
-.host-sidebar[hidden] { display:none; }
-.rack-heading { display:flex;align-items:center;gap:16px;flex-wrap:wrap; }
-.rack-source-actions { display:flex;align-items:center;gap:8px;flex-wrap:wrap; }
-.rack-source-actions button { font-size:12px; }
-#toggleSidebar { display:flex;align-items:center;gap:7px;padding:8px; }
-#uiMode { font-size:12px;white-space:nowrap; }
+/* ---- Scène : header, guide, barre d'outils et rack, alignés sur la même largeur ---- */
+.rack-stage { min-width: 0; min-height: 100vh; padding: clamp(16px, 2.5vw, 36px); }
+.rack-stage > * { max-width: 1320px; margin-left: auto; margin-right: auto; }
+
+/* Header en 3 zones : marque | chaîne du signal et preset courant | actions */
+.host-header { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px 28px; margin-bottom: 16px; padding: 14px 20px; background: var(--bg-texture), var(--panel); border-radius: var(--radius-l); box-shadow: var(--frame-piping), var(--shadow-panel); }
+.host-brand { min-width: 0; }
+.host-logo { margin: 0; color: var(--piping); font: 400 40px/1 var(--font-logo); text-shadow: 0 2px 0 #000; white-space: nowrap; }
+.host-tagline { margin: 4px 0 0; color: var(--text-muted); font-size: var(--fs-xs); }
+.host-now { min-width: 0; }
+.chain-map { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--text-muted); font-size: var(--fs-xs); font-weight: 600; overflow-wrap: anywhere; }
+.chain-map strong { color: var(--text); font-size: var(--fs-s); }
+.chain-map i { width: 18px; height: 2px; background: var(--line-strong); }
+.host-preset-line { margin: 6px 0 0; color: var(--text-muted); font-size: var(--fs-m); overflow-wrap: anywhere; }
+.host-preset-line[hidden] { display: none; }
+.host-preset-current { color: var(--text); font: 500 var(--fs-m)/1.3 var(--font-title); letter-spacing: .02em; }
+.host-preset-dirty { display: none; }
+.host-preset-line.is-dirty .host-preset-dirty { display: inline; margin-left: 6px; color: var(--accent); font-weight: 600; }
+.host-preset-line.is-dirty .host-preset-dirty::before { content: "• "; }
+.host-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+.host-actions > button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; font-size: var(--fs-s); white-space: nowrap; }
+.host-presets-button { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+.host-presets-button:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+.host-account-button.signed-in { border-color: var(--ok); }
+.host-tuner-button[aria-expanded="true"] { border-color: var(--accent); }
+
+/* Guide de démarrage (ui/GettingStarted.js) */
+.host-guide { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 26px; margin-bottom: 16px; padding: 12px 18px; background: var(--surface); border-radius: var(--radius-l); box-shadow: var(--frame-piping); }
+.host-guide[hidden] { display: none; }
+.host-guide-title { margin: 0; color: var(--piping); font: 500 var(--fs-l)/1.2 var(--font-title); letter-spacing: .03em; }
+.host-guide-steps { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 0; padding: 0; list-style: none; }
+.host-guide-step { display: inline-flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px 0 4px; color: var(--text-muted); background: transparent; border-color: transparent; font-size: var(--fs-m); font-weight: 600; }
+.host-guide-step.is-current, .host-guide-step:hover { color: var(--text); }
+.host-guide-badge { display: grid; place-items: center; width: 30px; height: 30px; border: 2px solid var(--line-strong); border-radius: 50%; color: var(--text-muted); font-size: var(--fs-s); font-weight: 700; }
+.host-guide-step.is-current .host-guide-badge { color: var(--accent); border-color: var(--accent); }
+.host-guide-step.is-done .host-guide-badge { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+.host-guide-done { margin: 0; color: var(--ok); font-weight: 600; }
+.host-guide-hide { width: 36px; margin-left: auto; padding: 0; font-size: 20px; line-height: 1; }
+
+/* Barre d'outils du rack : source, entrée live, (mode complet : 1 / 2 chaînes, périphériques), aide */
+.rack-toolbar-aside { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-left: auto; }
+.rack-toolbar-aside .fx-help { margin: 0; }
+#toggleSidebar { display: inline-flex; align-items: center; gap: 8px; }
+#toggleSidebar[aria-expanded="true"] { border-color: var(--accent); }
+.live-toggle { color: var(--ok); background: var(--ok-soft); border-color: var(--ok); font-weight: 700; }
+.live-toggle:hover { color: var(--ok-ink); background: var(--ok); }
+.live-toggle.live-active { color: var(--ok-ink); background: var(--ok); border-color: var(--ok); box-shadow: 0 0 12px rgba(98, 210, 111, .35); }
+.live-toggle.live-active:hover { color: var(--clip-ink); background: var(--clip); border-color: var(--clip); }
+.host-shortcuts-button { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-s); }
+
 body[data-ui-mode="beginner"] #toggleChains,
 body[data-ui-mode="beginner"] .fx-rack-status,
 body[data-ui-mode="beginner"] .fx-route-action,
 body[data-ui-mode="beginner"] .fx-route-cable,
 body[data-ui-mode="beginner"] .fx-route-label { display:none!important; }
 
-.host-tuner-button { display:flex;align-items:center;gap:7px;font-size:12px; }
-.host-tuner-button[aria-expanded="true"] { border-color:var(--host-accent); }
-.host-tuner { width:290px;max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);overflow:auto;padding:16px;color:var(--host-text);background:var(--host-card);border:1px solid #655c78;border-radius:16px; }
-.host-tuner::backdrop { background:rgba(0,0,0,.72); }
+/* ---- Accordeur (le cadre seulement ; l'interface est celle du plugin) ---- */
+.host-tuner { width:290px;max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);overflow:auto;padding:16px;color:var(--text);background:var(--bg-texture),var(--panel);border:1px solid transparent;border-radius:var(--radius-l);box-shadow:var(--frame-piping),var(--shadow-panel); }
+.host-tuner::backdrop { background:var(--backdrop); }
 .host-tuner header { display:flex;align-items:center;justify-content:space-between;gap:16px; }
+.host-tuner header strong { color:var(--piping);font:500 var(--fs-l)/1.2 var(--font-title);letter-spacing:.03em; }
 .host-tuner .tuner-mount { display:flex;justify-content:center;margin-top:14px;min-height:50px;font-size:12px; }
 
-body[data-ui-mode="beginner"] #toggleSidebar { display:none; }
+/* ---- Sélecteur de langue FR | EN ---- */
+.lang-switch { display:inline-flex;border:1px solid var(--line);border-radius:var(--radius-s);overflow:hidden; }
+.lang-switch button { min-height:38px;padding:0 12px;border:0;border-radius:0;background:transparent;color:var(--text-muted);font-size:var(--fs-s);font-weight:700; }
+.lang-switch button + button { border-left:1px solid var(--line); }
+.lang-switch button[aria-pressed="true"] { color:var(--accent-ink);background:var(--accent); }
+.lang-switch button:focus-visible { outline-offset:-3px; }
+
+/* ---- Fenêtre de confirmation (ui/confirmDialog.js) ---- */
+.host-confirm-actions { display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:18px; }
+.fx-confirm .host-confirm-actions button { margin:0; }
+.host-confirm-primary { color:var(--accent-ink);background:var(--accent);border-color:var(--accent); }
+.host-confirm-primary:hover { background:var(--accent-hover); }
+
+/* ---- Aide des raccourcis clavier (ui/ShortcutsHelp.js) ---- */
+.host-shortcuts { max-width: min(520px, 92vw); }
+.host-shortcuts-list { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 16px; margin: 0; align-items: baseline; }
+.host-shortcuts-list dt { white-space: nowrap; }
+.host-shortcuts-list dd { margin: 0; color: var(--text-muted); font-size: var(--fs-s); }
+
+/* ---- Notifications (ui/toast.js) ---- */
+.host-toasts { position: fixed; right: 16px; bottom: 16px; z-index: 50; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; width: min(380px, calc(100vw - 32px)); pointer-events: none; }
+.host-toast { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 8px 8px 8px 14px; color: var(--text); background: var(--surface-2); border: 1px solid var(--line-strong); border-left: 4px solid var(--ok); border-radius: var(--radius-m); box-shadow: var(--shadow-panel); pointer-events: auto; animation: host-toast-in .18s ease-out; }
+.host-toast.is-error { border-left-color: var(--error); }
+.host-toast p { flex: 1; margin: 6px 0; font-size: var(--fs-s); line-height: 1.4; overflow-wrap: anywhere; }
+.host-toast.is-error p { color: var(--error); }
+.host-toast-close { flex: 0 0 32px; width: 32px; min-height: 32px; padding: 0; font-size: 18px; line-height: 1; }
+@keyframes host-toast-in { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { .host-toast { animation: none; } }
+
+/* ---- Fond animé Butterchurn (ui/VisualizerBackground.js), désactivé par défaut ----
+   Le calque est derrière toute la page ; le voile (texture + tolex à 70 %) l'assombrit. Les panneaux
+   gardent leur propre fond : seul l'espace entre eux laisse voir l'animation. */
+.host-visualizer { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.host-visualizer canvas { display: block; width: 100%; height: 100%; }
+.host-visualizer::after { content: ""; position: absolute; inset: 0; background: var(--bg-texture), color-mix(in srgb, var(--bg) 70%, transparent); }
+.host-visualizer ~ .host-shell { position: relative; z-index: 1; }
+.host-visualizer-button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 -3px 0 var(--accent); }
+
+/* Texte réservé aux lecteurs d'écran (#hostStatus, titre du rack) */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* ---- Écrans moyens et petits ---- */
+/* Jusqu'à 1600 px, la carte de la chaîne passe sous le logo et les boutons : au milieu, elle
+   n'avait pas la place (dès 2 modules, « SORTIE » passait à la ligne à 1366 px). */
+@media (max-width: 1600px) {
+  .host-header { grid-template-columns: auto minmax(0, 1fr); }
+  .host-now { grid-column: 1 / -1; grid-row: 2; }
+}
+@media (max-width: 720px) {
+  .host-shell { grid-template-columns: 1fr; }
+  .host-sidebar { position: static; height: auto; overflow: visible; border-right: 0; border-bottom: 2px solid var(--piping); }
+  .rack-stage { min-height: auto; padding: 12px 12px 28px; }
+  .host-header { grid-template-columns: minmax(0, 1fr); padding: 12px 14px; }
+  .host-now { grid-row: auto; }
+  .host-actions { justify-content: flex-start; }
+  .host-logo { font-size: 34px; }
+  .host-guide { padding: 12px; }
+  .host-guide-steps { flex-direction: column; gap: 4px; }
+  .rack-toolbar-aside { margin-left: 0; }
+}
