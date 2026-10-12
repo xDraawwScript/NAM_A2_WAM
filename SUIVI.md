@@ -889,7 +889,7 @@ après la déconnexion.
 
 **Demande** : une appli « très belle, la plus ergonomique », **compréhensible**, **traduite (FR/EN)**,
 avec un **thème rock mais lisible**, qui reprend **toutes** les fonctionnalités existantes.
-`develop` a d'abord été fusionnée dans `main` (accord explicite de l'étudiant, commit `5d9fc7e`).
+`develop` a d'abord été fusionnée dans `main` (accord explicite de l'étudiant, commit `b2bfe17`).
 
 **Choix validés** : français + anglais (langue du navigateur par défaut, choix mémorisé) ;
 refonte complète de la mise en page ; **maquette HTML avant de coder**.
@@ -1467,6 +1467,16 @@ bonne chaîne (Monster : TS9 → ampli ; solo : ampli → 2 pitch shifters), les
 erreur dans la console et sans être marqué « modifié ».
 
 **Résultats** : hôte **287/287**, serveur **43/43**.
+
+### Historique Git sans « Co-Authored-By » (2026-10-12)
+
+À la demande de l'étudiant, la ligne `Co-Authored-By: Claude …` a été retirée des 42 messages de
+commit qui la contenaient, sur toutes les branches (`git filter-branch --msg-filter`, lancé par
+l'étudiant), puis poussée avec `git push --force-with-lease --all`. **Le code n'a pas changé** :
+le contenu (arbre) de chacune des 14 branches est identique avant et après. Seuls les identifiants
+des commits ont changé (le seul cité dans ce fichier a été mis à jour). Une sauvegarde complète
+d'avant la réécriture est gardée hors du dépôt (`NAM_A2_WAM-sauvegarde-2026-10-12/`). Les commits
+suivants n'ont plus cette ligne.
 
 ---
 
