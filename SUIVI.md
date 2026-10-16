@@ -76,6 +76,7 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 | F | Correctif « Copy to account » sur les presets d'usine (`feature/fix-copie-usine`) | ✅ | 2026-10-09 | voir `git log feature/fix-copie-usine` |
 | 8 | Refonte de l'interface : thème rock, FR/EN, ergonomie (`feature/interface-design`) | ✅ | 2026-10-10 | voir `git log feature/interface-design` |
 | P | Presets de morceaux : Killing in the Name, My Own Summer, Monster (`feature/presets-chansons`) | ✅ | 2026-10-10 | voir `git log feature/presets-chansons` |
+| R | README.md du fork, en anglais (`feature/readme`) | ✅ | 2026-10-16 | voir `git log feature/readme` |
 
 ### Détail mission 0
 
@@ -1477,6 +1478,25 @@ le contenu (arbre) de chacune des 14 branches est identique avant et après. Seu
 des commits ont changé (le seul cité dans ce fichier a été mis à jour). Une sauvegarde complète
 d'avant la réécriture est gardée hors du dépôt (`NAM_A2_WAM-sauvegarde-2026-10-12/`). Les commits
 suivants n'ont plus cette ligne.
+
+### README.md du fork (`feature/readme`, 2026-10-16)
+
+**Demande** : un README racine **en anglais** (comme celui du projet d'origine) qui présente le fork
+et son auteur (**Mathys Bellini--Le Gall**), avec des renvois vers les documents qui expliquent
+l'architecture, les routes du backend et ce qui a été ajouté à la base.
+
+**Fait** : nouveau haut de page — auteur, liens du fork et du projet d'origine, règle « code des
+plugins intouché », capture d'écran, sommaire ; *What this fork adds* (résumé anglais de REPORT §2) ;
+*Quick start* (backend + `.env` + `CORS_ORIGINS`, compte démo, build de l'hôte, tests) ;
+*Architecture* (schéma + dossiers ajoutés) ; *Backend API* (les 15 routes, vérifiées dans
+`server/src/routes/`) ; *Documentation map* (chaque document, son contenu, sa langue — nos docs sont
+en français, c'est indiqué) ; *AI assistance*. Le README d'origine du prof est **conservé en
+dessous** (« Original project documentation »), titres descendus d'un niveau ; seule la phrase
+périmée « factory/user preset management is a subsequent phase » renvoie maintenant vers les ajouts
+du fork.
+
+**Vérifié** : les 65 liens relatifs du README et leurs ancres existent (script node) ; rendu GitHub
+contrôlé après le push.
 
 ---
 
