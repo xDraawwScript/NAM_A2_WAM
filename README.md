@@ -131,8 +131,8 @@ and translated by the interface.
 | HEAD | `/assets/:hash` | JWT | Does this asset already exist? |
 | GET | `/assets/:hash` | optional JWT | Read an asset |
 
-Request and response bodies, limits and every error code: [`server/API_CONTRACT.md`](server/API_CONTRACT.md)
-(in French).
+Setup, configuration and internals: [`server/README.md`](server/README.md). Request and response
+bodies, limits and every error code: [`server/API_CONTRACT.md`](server/API_CONTRACT.md) (in French).
 
 ## Documentation map
 
@@ -141,6 +141,7 @@ Request and response bodies, limits and every error code: [`server/API_CONTRACT.
 | [`REPORT.md`](REPORT.md) | Project report: features, interface, technical choices, security, architecture, work breakdown, tests, use of the AI assistant, limits | French |
 | [`SUIVI.md`](SUIVI.md) | Step-by-step development log: every mission, the files changed, why, problems met, how to test | French |
 | [`SECURITE.md`](SECURITE.md) | Every security measure: where it is implemented, why, and the test that checks it | French |
+| [`server/README.md`](server/README.md) | Backend: setup, configuration, routes, data model, security, tests | English |
 | [`server/API_CONTRACT.md`](server/API_CONTRACT.md) | Full HTTP contract of the backend | French |
 | [`tools/factory-presets/README.md`](tools/factory-presets/README.md) | How factory presets are generated and measured | French |
 | [`CLAUDE.md`](CLAUDE.md) | Project rules given to the AI assistant | French |

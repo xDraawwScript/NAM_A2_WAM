@@ -77,6 +77,7 @@ Légende : ✅ fait · 🔄 en cours · ⏳ à faire
 | 8 | Refonte de l'interface : thème rock, FR/EN, ergonomie (`feature/interface-design`) | ✅ | 2026-10-10 | voir `git log feature/interface-design` |
 | P | Presets de morceaux : Killing in the Name, My Own Summer, Monster (`feature/presets-chansons`) | ✅ | 2026-10-10 | voir `git log feature/presets-chansons` |
 | R | README.md du fork, en anglais (`feature/readme`) | ✅ | 2026-10-16 | voir `git log feature/readme` |
+| R2 | README du serveur, en anglais (`feature/readme-server`) | ✅ | 2026-10-16 | voir `git log feature/readme-server` |
 
 ### Détail mission 0
 
@@ -1497,6 +1498,19 @@ du fork.
 
 **Vérifié** : les 65 liens relatifs du README et leurs ancres existent (script node) ; rendu GitHub
 contrôlé après le push.
+
+### README du serveur (`feature/readme-server`, 2026-10-16)
+
+**Fait** : `server/README.md`, en anglais comme le README racine : lancement, tableau des variables
+de `.env` (obligatoires, valeurs par défaut, rôle de `CORS_ORIGINS`), les 15 routes avec
+pagination et format des erreurs, exemple `curl`, fonctionnement (chemin d'une requête, règles
+partagées avec le navigateur, assets par hash, propriétaires, ménage des assets orphelins),
+modèle de données, mesures de sécurité principales, tests (fichier par fichier) et arborescence.
+Le détail complet reste dans `API_CONTRACT.md` (français). Le README racine renvoie vers ce fichier.
+
+**Vérifié** : chaque affirmation relue dans le code (réponse de connexion, codes d'erreur, accès aux
+assets, ménage après 24 h, noms des tests) ; liens des deux README valides (script node) ; serveur
+43/43.
 
 ---
 
