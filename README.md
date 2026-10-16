@@ -1,10 +1,172 @@
-# NAM A2 WAM
+# NAM A2 WAM — accounts & presets edition
 
-## Serial effect chain
+A browser guitar rig (neural amp, cabinet, effect pedals) extended with **user accounts, online
+presets and a public preset library**.
+
+- **Fork author:** Mathys Bellini--Le Gall — M1 MIAGE, Université Côte d'Azur, 2026-2027
+  (Web technologies mini-project).
+- **Fork:** <https://github.com/xDraawwScript/NAM_A2_WAM>
+- **Original project:** [micbuffa/NAM_A2_WAM](https://github.com/micbuffa/NAM_A2_WAM) by Michel
+  Buffa — online demo of the original host: <https://mainline.i3s.unice.fr/NAM_A2_WAM/>
+
+The assignment was to build an improved host that manages **users, sign-in and presets
+(save/load)** **without touching the plugin code**. No file in `src/` (NAM, Cabinet, WASM) or in
+`examples/wam/wamPlugins/` was modified: the state of every plugin is captured and restored only
+through its WAM `getState()` / `setState()` methods.
+
+![Host with a factory preset loaded](docs/screenshots/projet/01-rack-preset-usine.jpg)
+
+## Contents
+
+- [What this fork adds](#what-this-fork-adds)
+- [Quick start](#quick-start)
+- [Architecture](#architecture)
+- [Backend API](#backend-api)
+- [Documentation map](#documentation-map)
+- [AI assistance](#ai-assistance)
+- [Original project documentation](#original-project-documentation)
+
+## What this fork adds
+
+| Feature | Details |
+|---|---|
+| **Factory presets** | 11 read-only, level-matched sounds: Clean Deluxe, Ambient Clean, Crunch JCM800, Lead Soldano, High Gain 5150, Fuzz Muff, Bass SVT, plus 4 song presets (Killing in the Name, its solo, My Own Summer, Monster). Generated with the real plugins by [`tools/factory-presets/`](tools/factory-presets/README.md). |
+| **Browser presets** (guest mode) | Save the current sound (name + tags), load, rename, update, delete; stored in IndexedDB. A `•` next to the preset name shows unsaved changes. |
+| **Export / import** | Self-contained `.json` file (external models/IRs included, hashes checked on import). |
+| **Accounts** | Sign up (unique public username, private email, password), sign in, profile, username change, sign out; the session survives a page reload. |
+| **Online presets** | Saved on the account, **private or public**, available on every device; browser presets can be copied to the account. |
+| **Explore** | Public presets from every user, **even without an account**: newest first, search (name, tag, amp, pedal, author), chain preview, load, copy to my presets. |
+| **Shared models and IRs** | A model or IR is stored **once**, identified by its SHA-256 hash: a preset weighs ~14 KB instead of ~850 KB. |
+| **Redesigned interface** | "Tolex & Lampes" (tolex and tubes) theme, French and English (switchable live), getting-started guide, notifications, keyboard shortcuts help (`?`), optional music-reactive background (Butterchurn), keyboard and screen-reader accessibility. Plugin GUIs keep their original look. |
+| **Security** | bcrypt passwords, HS256 JWT, rate limiting, ownership checks, server-side validation, no user HTML ever interpreted… 55 measures, each with its test, in [`SECURITE.md`](SECURITE.md). |
+
+A preset contains the **whole rack**: chains A and B, pedal order and settings, amp, cabinet, gains,
+pan and A→B routing. It never contains the input gain, the backing track, any token or device
+identifier, and loading it never turns the microphone on.
+
+## Quick start
+
+Requirements: the [original build requirements](#requirements) (Node.js, CMake, Emscripten — on
+Windows the build scripts run in WSL) and a MongoDB database (Atlas or local) for the backend.
+
+**1. Backend** (accounts and online presets, `http://localhost:3000/api`):
+
+```sh
+cd server
+npm install
+cp .env.example .env    # then fill MONGODB_URI, JWT_SECRET and CORS_ORIGINS
+npm start               # check http://localhost:3000/api/health
+```
+
+`CORS_ORIGINS` must contain the address the host is opened from (Live Server
+`http://127.0.0.1:5500` and `http://localhost:5500` by default). In development the backend creates
+a demo account: `demo@example.com` / `Demo1234!` (never in production).
+
+**2. Host** (build once, then serve the static distribution):
+
+```sh
+npm install
+npm run setup           # first time only: third-party sources and WASM
+npm run dist            # produces dist/NAM_A2_WAM/
+```
+
+Open `dist/NAM_A2_WAM/index.html` with a static server (for example VS Code Live Server). Without the
+backend, the host still works in guest mode: factory presets, browser presets and import/export.
+
+**3. Tests:**
+
+```sh
+npm test                # host: 287 tests (146 original + 141 added by this fork)
+cd server && npm test   # backend: 43 tests, in-memory MongoDB, never touches Atlas
+```
+
+## Architecture
+
+```text
+Browser — WAM host (examples/wam)                        Server (server/, Node + Express)     MongoDB
+  main.js ── FxRack.getState() / setState()
+  presets/  PresetManager ─┬─ FactoryPresetStorage (factory, read-only)
+                           ├─ IndexedDbPresetStorage (this browser)
+                           ├─ RemotePresetStorage ── HTTP + JWT ──► /api/presets (private/public) ──► presets
+                           └─ RemotePresetStorage (public, read-only) ──► /api/presets/public
+            PresetAssets: models/IRs ⇄ hash references ───────────► /api/assets/:hash (SHA-256) ──► assets
+  account/  ApiClient + AccountView ───────────────────────────────► /api/auth, /api/users/me ────► users
+```
+
+| Folder | Content |
+|---|---|
+| [`examples/wam/presets/`](examples/wam/presets/) | Preset format, hash-based assets, storages (factory, IndexedDB, remote), manager, Presets/Explore windows, factory presets |
+| [`examples/wam/account/`](examples/wam/account/) | API client, account window, account rules shared with the server |
+| [`examples/wam/ui/`](examples/wam/ui/) | Shared interface: theme, fonts, translations (`i18n.js`, `locales/`), notifications, confirmations, tabs, guide, shortcuts help, animated background |
+| [`server/`](server/) | Express API: `src/models/` (User, Preset, Asset), `src/routes/` (auth, presets, assets), `test/` |
+| [`tools/factory-presets/`](tools/factory-presets/) | Factory preset generator (recipes) and sound measurement lab |
+| [`tests/phase5/`](tests/phase5/), [`tests/phase6/`](tests/phase6/) | Host tests added by the fork (presets, accounts / interface, translations, accessibility) |
+| [`docs/maquette/`](docs/maquette/) | HTML mock-ups of the three interface directions that were proposed |
+
+Detailed architecture and technical choices: [`REPORT.md` §4 and §6](REPORT.md#4-choix-techniques)
+(in French).
+
+## Backend API
+
+Base URL `http://localhost:3000/api`, JSON only. Authenticated routes expect
+`Authorization: Bearer <token>` (JWT valid for 12 hours, returned by sign-up and sign-in). Errors
+look like `{ "message": "…", "code": "…", "params"?: {…} }`: `message` is English, `code` is stable
+and translated by the interface.
+
+| Method | Route | Auth | Purpose |
+|---|---|---|---|
+| GET | `/health` | — | The API is up |
+| POST | `/auth/register` | — | Create an account |
+| POST | `/auth/login` | — | Sign in |
+| GET | `/users/me` | JWT | My profile |
+| PUT | `/users/me` | JWT | Change my username |
+| GET | `/presets/mine` | JWT | My presets (list) |
+| GET | `/presets/public` | — | Public presets (newest, search) |
+| POST | `/presets` | JWT | Create a preset |
+| GET | `/presets/:id` | optional JWT | Read a full preset |
+| PUT | `/presets/:id` | JWT (owner) | Update a preset |
+| DELETE | `/presets/:id` | JWT (owner) | Delete a preset |
+| POST | `/presets/:id/copy` | JWT | Copy a public preset into my presets |
+| PUT | `/assets/:hash` | JWT | Upload an external model / IR |
+| HEAD | `/assets/:hash` | JWT | Does this asset already exist? |
+| GET | `/assets/:hash` | optional JWT | Read an asset |
+
+Request and response bodies, limits and every error code: [`server/API_CONTRACT.md`](server/API_CONTRACT.md)
+(in French).
+
+## Documentation map
+
+| Document | What you will find | Language |
+|---|---|---|
+| [`REPORT.md`](REPORT.md) | Project report: features, interface, technical choices, security, architecture, work breakdown, tests, use of the AI assistant, limits | French |
+| [`SUIVI.md`](SUIVI.md) | Step-by-step development log: every mission, the files changed, why, problems met, how to test | French |
+| [`SECURITE.md`](SECURITE.md) | Every security measure: where it is implemented, why, and the test that checks it | French |
+| [`server/API_CONTRACT.md`](server/API_CONTRACT.md) | Full HTTP contract of the backend | French |
+| [`tools/factory-presets/README.md`](tools/factory-presets/README.md) | How factory presets are generated and measured | French |
+| [`CLAUDE.md`](CLAUDE.md) | Project rules given to the AI assistant | French |
+| [`SPECIFICATION_FX_CHAIN.md`](SPECIFICATION_FX_CHAIN.md) | Original specification of the effect chain and of presets (§7.2) | English |
+| [`docs/`](docs/), [`HANDOFF.md`](HANDOFF.md) | Original project notes: plugin registry, factory library, cabinet, model analysis | English |
+
+## AI assistance
+
+This fork was developed with an AI coding assistant (Claude Code): features, interface and technical
+choices were discussed first, then the work was split into missions, each on its own branch with
+tests and code review. The method, what the AI did well and its limits are described in
+[`REPORT.md` §9](REPORT.md#9-utilisation-de-lassistant-ia) (in French).
+
+---
+
+## Original project documentation
+
+*The sections below are the original README of [micbuffa/NAM_A2_WAM](https://github.com/micbuffa/NAM_A2_WAM),
+kept as is (only the heading levels changed). They describe the plugins, TONE3000 integration and
+the C++/WASM build.*
+
+### Serial effect chain
 
 The main host shows the current NAM capture and Cabinet IR as photo cards. Click a `+` to insert a bundled effect at that position. Click any photo to open its editor; closing the editor preserves the running instance and its settings. Card controls and editor toolbars provide bypass. Cabinet AUTO still follows the selected NAM capture type.
 
-NAM and Cabinet initialize their default assets without creating editors. Multiple instances keep independent WAM states. The **Session & diagnostics** save/restore controls now snapshot the whole chain in memory; factory/user preset management is a subsequent phase.
+NAM and Cabinet initialize their default assets without creating editors. Multiple instances keep independent WAM states. The **Session & diagnostics** save/restore controls snapshot the whole chain in memory; factory and user presets were added by this fork (see [What this fork adds](#what-this-fork-adds)).
 
 For a microphone-free real-browser test, open `examples/wam/fx-test/chain-validation.html` and click **Run headless and instance isolation tests**. The test renders audio into a muted measurement path and checks headless defaults, duplicate instances, state restoration and editor reuse. The same page is included under `dist/NAM_A2_WAM/fx-test/`.
 
@@ -16,7 +178,7 @@ The repository contains the source code, the Factory assets required by the exam
 the test suite. The `third_party/`, `dist/`, and build directories are not intended to be
 committed.
 
-## Features
+### Features
 
 - Web Audio/WAM host in [`examples/wam/`](examples/wam/).
 - NAM A2 plugin in [`src/nam-wam/`](src/nam-wam/), with `.nam` model loading and safe replacement,
@@ -71,7 +233,7 @@ but can be moved before NAM. Its bands are low shelf at 100 Hz, four bells at 25
 and 3.5 kHz, and high shelf at 8 kHz. Bypassed NAM and Cabinet modules use a red-tinted faceplate so
 their inactive state remains immediately visible.
 
-## Requirements
+### Requirements
 
 - Recent Node.js with npm.
 - CMake 3.20 or newer and a C++20 compiler.
@@ -79,7 +241,7 @@ their inactive state remains immediately visible.
 - The `third_party/NeuralAmpModelerCore` checkout. Third-party sources are intentionally ignored
   by Git.
 
-## Run the host locally
+### Run the host locally
 
 Install dependencies, fetch third-party sources, build the WASM, then start the static server:
 
@@ -112,7 +274,7 @@ diagnostic message and NAM model loading may be rejected by the core.
 An automated validation page is available at
 <http://127.0.0.1:8765/examples/wam/index.html?auto=1>.
 
-## TONE3000 authentication
+### TONE3000 authentication
 
 The TONE3000 tab starts with an authentication step following the Select Flow guidelines. Click
 **Continue to TONE3000**, sign in or create an account, then return to the host to browse and
@@ -142,9 +304,9 @@ selected NAM A2 or IR tone as a repository-ready ZIP containing `tone.json`, its
 selected captures, hashes, creator attribution, and license metadata. See
 [`docs/FACTORY_LIBRARY.md`](docs/FACTORY_LIBRARY.md) before importing or redistributing any tone.
 
-## Build the project
+### Build the project
 
-### Native C++ build
+#### Native C++ build
 
 ```sh
 cmake -S . -B build-native -DCMAKE_BUILD_TYPE=Release
@@ -154,7 +316,7 @@ ctest --test-dir build-native --output-on-failure
 
 The native executables are `build-native/nam_native` and `build-native/cabinet_native`.
 
-### WASM build
+#### WASM build
 
 ```sh
 emcmake cmake -S . -B build-wasm -DCMAKE_BUILD_TYPE=Release
@@ -171,7 +333,7 @@ npm run dist
 This rebuilds the Factory manifests and produces a deployable static distribution.
 `npm run build-static` is an alias for the same operation.
 
-## Test
+### Test
 
 Run the complete JavaScript test suite:
 
@@ -201,9 +363,9 @@ node tools/analyze_models.mjs
 node tools/analyze_ir_levels.mjs
 ```
 
-## Modify the project
+### Modify the project
 
-### Modify the host
+#### Modify the host
 
 - UI and styles: [`examples/wam/index.html`](examples/wam/index.html) and
   [`examples/wam/host.css`](examples/wam/host.css).
@@ -212,7 +374,7 @@ node tools/analyze_ir_levels.mjs
 - NAM/Cabinet routing: [`examples/wam/CabinetRouting.js`](examples/wam/CabinetRouting.js).
 - Local server and audio discovery: [`examples/wam/server.mjs`](examples/wam/server.mjs).
 
-### Modify the plugins
+#### Modify the plugins
 
 - NAM: [`src/nam-wam/index.js`](src/nam-wam/index.js), [`NamNode.js`](src/nam-wam/NamNode.js),
   [`NamProcessor.js`](src/nam-wam/NamProcessor.js), and [`gui.js`](src/nam-wam/gui.js).
@@ -224,7 +386,7 @@ node tools/analyze_ir_levels.mjs
 After changing code or assets, run `npm test`, then `npm run dist` if the deployed distribution
 must be updated.
 
-## Repository layout
+### Repository layout
 
 ```text
 src/nam-wam/       NAM A2 plugin and TONE3000 integration
@@ -239,7 +401,7 @@ third_party/       External dependencies, not committed
 dist/              Generated distribution, not committed
 ```
 
-## Additional documentation
+### Additional documentation
 
 - [`docs/phase3d-model-analysis.md`](docs/phase3d-model-analysis.md) — NAM model and IR asset
   analysis.
@@ -249,7 +411,7 @@ dist/              Generated distribution, not committed
   and maintainer-only TONE3000 import workflow.
 - [`HANDOFF.md`](HANDOFF.md) — detailed project status and next steps.
 
-## Git and files to commit
+### Git and files to commit
 
 The `.gitignore` excludes builds, `dist/`, third-party dependencies, and out-of-scope prototypes.
 To stage the code, host, plugins, and documentation:
