@@ -1,5 +1,10 @@
 # NAM A2 WAM — accounts & presets edition
 
+[![Presentation video (3 min, French with subtitles) — watch on YouTube](https://img.youtube.com/vi/r-875k-oObc/maxresdefault.jpg)](https://youtu.be/r-875k-oObc)
+
+▶ **Presentation video (3 min, in French with subtitles):** <https://youtu.be/r-875k-oObc> —
+also in the repository: [`docs/video/nam-a2-wam-presentation.mp4`](docs/video/nam-a2-wam-presentation.mp4).
+
 A browser guitar rig (neural amp, cabinet, effect pedals) extended with **user accounts, online
 presets and a public preset library**.
 
