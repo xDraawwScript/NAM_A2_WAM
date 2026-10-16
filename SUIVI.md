@@ -1499,6 +1499,11 @@ du fork.
 **Vérifié** : les 65 liens relatifs du README et leurs ancres existent (script node) ; rendu GitHub
 contrôlé après le push.
 
+**Ajout du 2026-10-16 (commit direct sur `main`, à la demande de l'étudiant)** : les captures de
+l'interface actuelle (`docs/screenshots/interface/`, mission 8) remplacent l'ancienne capture en
+haut du README, et une galerie *Screenshots* montre la fenêtre Presets, la fenêtre Compte, le mode
+complet (chaînes A et B) et la version mobile.
+
 ### README du serveur (`feature/readme-server`, 2026-10-16)
 
 **Fait** : `server/README.md`, en anglais comme le README racine : lancement, tableau des variables

@@ -14,7 +14,7 @@ The assignment was to build an improved host that manages **users, sign-in and p
 `examples/wam/wamPlugins/` was modified: the state of every plugin is captured and restored only
 through its WAM `getState()` / `setState()` methods.
 
-![Host with a factory preset loaded](docs/screenshots/projet/01-rack-preset-usine.jpg)
+![The redesigned host: input, NAM amp, cabinet and output on chain A](docs/screenshots/interface/02-rack-en-1440.png)
 
 ## Contents
 
@@ -43,6 +43,17 @@ through its WAM `getState()` / `setState()` methods.
 A preset contains the **whole rack**: chains A and B, pedal order and settings, amp, cabinet, gains,
 pan and A→B routing. It never contains the input gain, the backing track, any token or device
 identifier, and loading it never turns the microphone on.
+
+### Screenshots
+
+| Presets window: factory, browser, account and Explore tabs | Account window (sign in / create an account) |
+|---|---|
+| ![Presets window](docs/screenshots/interface/05-presets-fr-1440.png) | ![Account window](docs/screenshots/interface/06-compte-fr-1440.png) |
+| **Full mode**: two chains (A and B) side by side | **Mobile** (375 px) |
+| ![Full mode with chains A and B](docs/screenshots/interface/07-mode-complet-en-1440.png) | <img src="docs/screenshots/interface/04-mobile-en-375.png" alt="Host on a phone" width="260"> |
+
+The interface switches between English and French at any time (`FR` / `EN` buttons); some captures
+above are in French.
 
 ## Quick start
 
