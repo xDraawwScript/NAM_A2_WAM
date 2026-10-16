@@ -1543,6 +1543,10 @@ assets, ménage après 24 h, noms des tests) ; liens des deux README valides (sc
 
 - Missions 0 à 8 terminées et fusionnées (voir tableau) ; `develop` fusionnée dans `main` le 2026-10-10.
 - Presets de morceaux (11 sons d'usine) fusionnés dans `develop` puis dans `main` le 2026-10-10 (accord de l'étudiant).
+- Vidéo de présentation (3 min, en français, sous-titrée) ajoutée le 2026-10-16 : lien YouTube
+  <https://youtu.be/r-875k-oObc> en tête du README, et fichier `docs/video/nam-a2-wam-presentation.mp4`
+  (version réencodée de 33 Mo ; le projet de montage Remotion est à part, dans `NAM_A2_WAM-video`).
+  Fusionnée dans `develop` puis dans `main` à la demande de l'étudiant.
 - À vérifier à la main : jeu avec une vraie guitare et un vrai micro ; passage avec un lecteur d'écran (NVDA).
 - Idées hors périmètre : amis et partage privé, presets favoris, notes/likes, aperçu audio d'un
   preset, déploiement en ligne (backend + dist).

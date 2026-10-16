@@ -2,3 +2,4 @@
 *.png binary
 *.woff2 binary
 examples/wam/ui/vendor/** -text
+*.mp4 binary
